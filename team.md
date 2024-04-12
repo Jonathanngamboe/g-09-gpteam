@@ -4,3 +4,4 @@
 
 - Jonathan Ngamboe
 - Léticia Tscherrig
+- Francesco De Fino
