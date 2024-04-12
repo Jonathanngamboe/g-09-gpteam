@@ -3,4 +3,4 @@
 ## Members
 
 - Jonathan Ngamboe
-- Léticia T
+- Léticia Tscherrig
