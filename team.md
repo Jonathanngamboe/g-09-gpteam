@@ -1,4 +1,6 @@
 # 09-GPTeam
 
 ## Members
-- Léticia Tscherrig
+
+- Jonathan Ngamboe
+- Léticia T
