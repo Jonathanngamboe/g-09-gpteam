@@ -1,5 +1,7 @@
-# 09-gpteam
+# 09-GPTeam
 
 ## Members
 
--David Bürki
+- Jonathan Ngamboe
+- Léticia Tscherrig
+- David Bürki
