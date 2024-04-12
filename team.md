@@ -5,3 +5,4 @@
 - Jonathan Ngamboe
 - Léticia Tscherrig
 - David Bürki
+- Francesco De Fino
