@@ -1,19 +1,35 @@
 <template>
-  <div class="greetings">
-    <h1 class="green">{{ msg }}</h1>
-    <h3>
-      You’ve successfully created a project with
-      <a href="https://vitejs.dev/" target="_blank" rel="noopener">Vite</a> +
-      <a href="https://vuejs.org/" target="_blank" rel="noopener">Vue 3</a>.
-    </h3>
+  <div>
+      <h1>Room Details</h1>
+      <div v-if="room">
+          <p>Title: {{ room.title }}</p>
+          <p>Description: {{ room.description }}</p>
+          <p>Price: {{ room.price }}</p>
+          <p>Location: {{ room.location }}</p>
+      </div>
   </div>
 </template>
 
 <script>
+import axios from '@/services/api';
 export default {
   name: "HelloWorld",
+  data() {
+        return {
+            room: null
+        };
+    },
   props: {
     msg: String
+  },
+  mounted() {
+      axios.get('/rooms/1/')
+          .then(response => {
+              this.room = response.data;
+          })
+          .catch(error => {
+              console.error('There was an error!', error);
+          });
   }
 }
 </script>
