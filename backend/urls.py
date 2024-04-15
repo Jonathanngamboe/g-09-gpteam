@@ -18,12 +18,13 @@ from django.urls import path, include
 from rest_framework import routers
 from django.conf.urls.static import static
 from django.conf import settings
-from .api.views import index_view, UserViewSet, GroupViewSet, MessageViewSet
+from .api.views import index_view, UserViewSet, GroupViewSet, MessageViewSet, RoomViewSet
 
 router = routers.DefaultRouter()
 router.register('messages', MessageViewSet)
 router.register('users', UserViewSet)
 router.register('groups', GroupViewSet)
+router.register('rooms', RoomViewSet)
 
 urlpatterns = [
     # http://localhost:8000/
