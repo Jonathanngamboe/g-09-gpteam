@@ -32,3 +32,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     # SHOULD IMPLEMENT CUSTOM PERMISSIONS FOR OBJECT LEVEL SECURITY
+
+class RoomViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
