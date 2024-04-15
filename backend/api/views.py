@@ -2,8 +2,8 @@ from django.contrib.auth.models import User, Group
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions
-from .models import Message
-from .serializers import UserSerializer, GroupSerializer, MessageSerializer
+from .models import Message, Room
+from .serializers import UserSerializer, GroupSerializer, MessageSerializer, RoomSerializer
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
