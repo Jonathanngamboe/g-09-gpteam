@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from .models import Message
-
+from .models import Message, Room
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
