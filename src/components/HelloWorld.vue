@@ -7,6 +7,9 @@
           <p>Price: {{ room.price }}</p>
           <p>Location: {{ room.location }}</p>
       </div>
+      <div v-else>
+          <p>There is no room available.</p>
+      </div>
   </div>
 </template>
 
