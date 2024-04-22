@@ -13,8 +13,8 @@
         <!-- Avatar icon (Only visible on large screens) -->
         <q-btn flat round dense icon="account_circle" v-show="$q.screen.gt.md" />
         
-        <!-- Menu icon (Only visible on small screens) -->
-        <q-btn v-show="$q.screen.lt.md" dense flat round icon="menu" @click="toggleRightDrawer" />
+        <!-- Menu icon (Only visible on small and medium screens) -->
+        <q-btn flat round dense icon="menu" v-show="$q.screen.lt.lg" @click="toggleRightDrawer" />
       </q-toolbar>
     </q-header>
     
