@@ -2,8 +2,9 @@
   <q-layout view="hHh LpR fff">
     <q-header bordered class="bg-white text-primary" :class="`q-pl-${$q.screen.gt.sm ? 'xl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
       <q-toolbar class="q-gutter-sm">
+        <!-- Logo -->
         <q-toolbar-title>
-          LOGO <!-- TODO: Replace with the logo -->
+          <img src="~@/assets/logo-vue.png" style="height: 30px" />
         </q-toolbar-title>
         
         <!-- Search bar -->
