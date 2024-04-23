@@ -53,9 +53,10 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 
 export default {
+  
   setup() {
     // TODO: Replace with the actual list of rooms
     const rooms = ref([
@@ -107,10 +108,30 @@ export default {
         : visibleAmenities;
     };
 
+    // Helper function to equalize title heights
+    const equalizeTitleHeights = () => {
+      nextTick(() => {
+        const titles = Array.from(document.querySelectorAll('.text-h5'));
+        const maxHeight = Math.max(...titles.map(el => el.clientHeight));
+        titles.forEach(el => el.style.height = `${maxHeight}px`);
+      });
+    };
+    // Use mounted lifecycle hook to call the function after the component is mounted
+    onMounted(() => {
+      equalizeTitleHeights();
+      window.addEventListener('resize', equalizeTitleHeights);
+    });
+
+    // Cleanup the event listener when the component is unmounted
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', equalizeTitleHeights);
+    });
+
     return {
       rooms,
       toggleExpanded,
-      formatAmenities
+      formatAmenities,
+      equalizeTitleHeights
     };
   }
 }
