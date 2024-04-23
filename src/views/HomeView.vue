@@ -11,6 +11,7 @@
         <q-card-section>
           <div class="text-overline text-secondary">{{ room.location }}</div>
           <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
+          <div class="text-subtitle1 q-mb-xs">{{ room.surfaceArea }} m²</div>
           <div class="text-h7 text-dark q-mb-xs">From CHF {{ room.price }}.-</div>
           <div class="text-caption text-grey">
             {{ formatAmenities(room.amenities) }}
@@ -19,7 +20,8 @@
 
         <!-- Card actions -->
         <q-card-actions>
-          <q-btn flat color="grey" label="Share" />
+          <q-btn flat round color="red" icon="favorite" />
+          <q-btn flat round color="primary" icon="share" />
           <q-btn flat color="primary" label="Book" />
           
           <q-space />
@@ -62,6 +64,7 @@ export default {
         location: 'Venice',
         title: 'Beautiful Room with a View',
         description: 'Detailed information about the room...',
+        surfaceArea: 55,
         price: 100,
         amenities: ['Bed', '1 bath', '1 TV', 'Wi-Fi'],
         expanded: false
@@ -72,6 +75,7 @@ export default {
         location: 'New York',
         title: 'Cozy Apartment in the Heart of the City',
         description: 'Detailed information about the room...',
+        surfaceArea: 20,
         price: 120,
         amenities: ['Pool', 'Gym', 'Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
         expanded: false
@@ -82,6 +86,7 @@ export default {
         location: 'Martigny',
         title: 'Mountain Chalet with a Stunning View',
         description: 'Detailed information about the room...',
+        surfaceArea: 35,
         price: 920,
         amenities: ['Pool', 'Gym', 'Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
         expanded: false
