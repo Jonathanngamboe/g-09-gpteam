@@ -10,6 +10,7 @@
         <!-- Card content -->
         <q-card-section>
           <div class="text-overline text-secondary">{{ room.location }}</div>
+          <q-rating v-model="stars" :max="5" size="16px" />
           <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
           <div class="text-subtitle1 q-mb-xs">{{ room.surfaceArea }} m²</div>
           <div class="text-h7 text-dark q-mb-xs">From CHF {{ room.price }}.-</div>
