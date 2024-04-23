@@ -43,7 +43,7 @@
           <div v-show="room.expanded">
             <q-separator />
             <q-card-section class="text-subtitle2">
-              {{ room.description }}
+              {{ truncateText(room.description, 100) }} 
             </q-card-section>
           </div>
         </q-slide-transition>
@@ -124,16 +124,21 @@ export default {
       equalizeTitleHeights();
       window.addEventListener('resize', equalizeTitleHeights);
     });
-
     // Cleanup the event listener when the component is unmounted
     onBeforeUnmount(() => {
       window.removeEventListener('resize', equalizeTitleHeights);
     });
 
+    // Helper function to truncate text and add ellipsis
+    const truncateText = (text, maxLength) => {
+      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+
     return {
       rooms,
       toggleExpanded,
       formatAmenities,
+      truncateText,
       equalizeTitleHeights
     };
   }
