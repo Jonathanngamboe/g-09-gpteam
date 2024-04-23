@@ -23,7 +23,7 @@
         <q-card-actions>
           <q-btn flat round color="red" icon="favorite" />
           <q-btn flat round color="primary" icon="share" />
-          <q-btn flat color="primary" label="Book" />
+          <q-btn color="primary" label="Book" />
           
           <q-space />
 
