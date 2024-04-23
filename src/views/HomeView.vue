@@ -10,7 +10,7 @@
         <!-- Card content -->
         <q-card-section>
           <div class="text-overline text-secondary">{{ room.location }}</div>
-          <q-rating v-model="stars" :max="5" size="16px" />
+          <q-rating v-model="room.rating" :max="5" size="16px" />
           <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
           <div class="text-subtitle1 q-mb-xs">{{ room.surfaceArea }} m²</div>
           <div class="text-h7 text-dark q-mb-xs">From CHF {{ room.price }}.-</div>
@@ -69,6 +69,7 @@ export default {
         surfaceArea: 55,
         price: 100,
         amenities: ['Bed', '1 bath', '1 TV', 'Wi-Fi'],
+        rating: 2,
         expanded: false
       },
       {
@@ -80,6 +81,7 @@ export default {
         surfaceArea: 20,
         price: 120,
         amenities: ['Pool', 'Gym', 'Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
+        rating: 3,
         expanded: false
       },
       {
@@ -91,6 +93,7 @@ export default {
         surfaceArea: 35,
         price: 920,
         amenities: ['Pool', 'Gym', 'Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
+        rating: 5,
         expanded: false
       },
     ]);
