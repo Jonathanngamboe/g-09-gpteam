@@ -67,7 +67,6 @@
               icon: 'thumb_up' 
             });
           }).catch((error) => {
-            console.error(error);
             $q.notify({
               message: 'Failed to share. Please try again.',
               color: 'red-14',
