@@ -21,8 +21,8 @@
         color="primary"
         id="price-range"
         v-model="filters.priceRange"
-        :min="priceRange.min"
-        :max="priceRange.max"
+        :min="1"
+        :max="2000"
         :label-value="labelValue"
       />
       <div class="row justify-between q-mt-xs" style="align-items: center;">
@@ -133,86 +133,76 @@
 </template>
 
 <script>
-import { ref, computed, defineComponent } from 'vue';
+import { ref, reactive, computed, defineComponent } from 'vue';
 
 export default defineComponent({
   emits: ['on-filter', 'on-reset'],
 
   setup(props, { emit }) {
-    const priceRange = ref({ min: 1, max: 2000 });
+    const filters = reactive({
+      location: '',
+      priceRange: { min: 1, max: 2000 }, 
+      amenities: [],
+      rating: { min: 0, max: 5 }
+    });
 
-    const updateAmenities = (amenity, checked) => {
-      const index = filters.amenities.indexOf(amenity);
-      if (checked && index === -1) {
+    // Reactive property for ratingModel
+    const ratingModel = ref({
+      min: 0, // Initial minimum rating
+      max: 5  // Initial maximum rating
+    });
+
+    // Reactive property to control the display of all amenities
+    const showAllAmenities = ref(false);
+
+    // Full list of amenities
+    const allAmenitiesOptions = [
+      'Wi-Fi', 'Parking', 'Kitchen', 'Air conditioning', 'Breakfast',
+      'Pool', 'Gym', 'Spa', 'Pets allowed', 'Wheelchair accessible',
+      'Elevator', 'Balcony', 'Beachfront', 'Mountain view', 'City view',
+      'Garden view', 'Terrace', 'Fireplace', 'Bathtub', 'Sauna',
+      'Jacuzzi', 'TV', 'Netflix', 'Amazon Prime',
+    ];
+
+    // Computed list of amenities based on toggle
+    const displayedAmenities = computed(() => {
+      return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.slice(0, 9);
+    });
+
+    // Method to update selected amenities
+    const updateAmenities = (amenity, isChecked) => {
+      if (isChecked) {
         filters.amenities.push(amenity);
-      } else if (!checked && index !== -1) {
-        filters.amenities.splice(index, 1);
+      } else {
+        filters.amenities = filters.amenities.filter(a => a !== amenity);
       }
     };
 
-    const toggleShowAllAmenities = () => {
-      showAllAmenities.value = !showAllAmenities.value;
-    };
-
-    const showAllAmenities = ref(false);
-
-    const allAmenitiesOptions = ref([
-      'Wi-Fi',
-      'Parking',
-      'Kitchen',
-      'Air conditioning',
-      'Breakfast',
-      'Pool',
-      'Gym',
-      'Spa',
-      'Pets allowed',
-      'Wheelchair accessible',
-      'Elevator',
-      'Balcony',
-      'Beachfront',
-      'Mountain view',
-      'City view',
-      'Garden view',
-      'Terrace',
-      'Fireplace',
-      'Bathtub',
-      'Sauna',
-      'Jacuzzi',
-      'TV',
-      'Netflix',
-      'Amazon Prime',
-    ]);
-
-    const displayedAmenities = computed(() => {
-      return showAllAmenities.value ? allAmenitiesOptions.value : allAmenitiesOptions.value.slice(0, 9);
-    });
-
-    const filters = ref({
-      location: '',
-      priceRange: { min: 1, max: 2000 },
-      amenities: [],
-      rating: 3
-    });
-
+    // Computed property for displaying price range label
     const labelValue = computed(() => {
-      return `${filters.value.priceRange.min}€ - ${filters.value.priceRange.max}€`;
+      return `${filters.priceRange.min} - ${filters.priceRange.max}`;
     });
 
+    // Method to apply filters
     const applyFilters = () => {
-      emit('on-filter', filters.value);
+      filters.rating.min = ratingModel.value.min;
+      filters.rating.max = ratingModel.value.max;
+      emit('on-filter', filters);
     };
 
+    // Method to reset filters to default
     const resetFilters = () => {
-      filters.value = {
-        location: '',
-        priceRange: { min: 1, max: 2000 },
-        amenities: [],
-        rating: 3
-      };
+      filters.location = '';
+      filters.priceRange = { min: 1, max: 2000 };
+      filters.amenities = [];
+      filters.rating = ratingModel.value.min;
       emit('on-reset');
     };
 
-    const ratingModel = ref({ min: 0, max: 5 });
+    // Method to toggle visibility of all amenities
+    const toggleShowAllAmenities = () => {
+      showAllAmenities.value = !showAllAmenities.value;
+    };
 
     return {
       filters,
@@ -223,8 +213,7 @@ export default defineComponent({
       applyFilters,
       resetFilters,
       labelValue,
-      priceRange,
-      ratingModel
+      ratingModel 
     };
   }
 });
