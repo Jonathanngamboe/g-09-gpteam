@@ -207,6 +207,7 @@ export default defineComponent({
         amenities: [],
         rating: ratingModel.value
       });
+      ratingModel.value = { min: 0, max: 5 };
       emit('on-reset');
       emit('toggle-filters');
     };
