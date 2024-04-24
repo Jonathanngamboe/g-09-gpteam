@@ -4,7 +4,9 @@
       <q-toolbar class="q-gutter-sm">
         <!-- Logo -->
         <q-toolbar-title>
-          <img src="~@/assets/logo-vue.png" style="height: 30px" />
+          <router-link to="/">
+            <img src="@/assets/logo-vue.png" alt="Logo" style="height: 30px"/>
+          </router-link>
         </q-toolbar-title>
         
         <!-- Search bar -->
@@ -24,7 +26,7 @@
           <q-list  class="q-ma-md">
 
             <template v-for="(menuItem, index) in menuList" :key="index">
-              <q-item clickable :active="menuItem.label === 'Outbox'" v-ripple>
+              <q-item clickable :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
                 <q-item-section avatar>
                   <q-icon :name="menuItem.icon" class="text-primary"/>
                 </q-item-section>
@@ -39,7 +41,7 @@
         </q-scroll-area>
     </q-drawer>
 
-    <q-page-container :class="`q-pl-${$q.screen.gt.sm ? 'xl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
+    <q-page-container :class="`q-pl-${$q.screen.gt.sm ? 'xxl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
         <router-view />
     </q-page-container>
   </q-layout>
@@ -55,14 +57,14 @@ export default {
     // Initialize the menu list
     // TODO: Replace with actual menu items
     const menuList = ref([
-      { label: 'Home', icon: 'home', separator: false },
-      { label: 'Profile', icon: 'account_circle', separator: true },
-      // Services
-      { label: 'Find a room to rent', icon: 'search', separator: false },
-      { label: 'Put a room for rent', icon: 'add', separator: true },
+      { label: 'Home', icon: 'home', separator: false, to: '/' },
+      { label: 'Profile', icon: 'account_circle', separator: true, to: '/profile' },
+      // Services section
+      { label: 'Find a room to rent', icon: 'search', separator: false, to: '/find-room' },
+      { label: 'Add a room for rent', icon: 'add', separator: true, to: '/add-room' },
       // Help section
-      { label: 'Help', icon: 'help', separator: false },
-      { label: 'Contact', icon: 'mail', separator: false },
+      { label: 'Help', icon: 'help', separator: false, to: '/help' },
+      { label: 'Contact', icon: 'mail', separator: false, to: '/contact' },
     ]);
 
     function toggleRightDrawer () {
