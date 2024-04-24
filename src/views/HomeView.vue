@@ -3,7 +3,7 @@
     <!-- Filters button -->
     <q-btn unelevated label="Filters" @click="toggleFilters" icon="tune" style="border: 1px solid LightGray; border-radius: 8px;" />
 
-    <FiltersForm
+    <FiltersDialog
       :is-visible="filtersVisible"
       @on-filter="onFilter"
       @on-reset="onReset"
@@ -31,12 +31,12 @@
 <script>
 import { ref, reactive, watch, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
 import RoomCard from '@/components/RoomCard.vue'; 
-import FiltersForm from '@/components/FiltersForm.vue';
+import FiltersDialog from '@/components/FiltersDialog.vue';
 
 export default defineComponent( {
   components: {
     RoomCard,
-    FiltersForm
+    FiltersDialog
   },
   
   setup() {
