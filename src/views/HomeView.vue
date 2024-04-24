@@ -1,15 +1,14 @@
 <template>
-  <div>
-    <!-- Filters button -->
-    <q-btn unelevated label="Filters" @click="toggleFilters" icon="tune" style="border: 1px solid LightGray; border-radius: 8px;" />
-
-    <FiltersDialog
-      :is-visible="filtersVisible"
-      @on-filter="onFilter"
-      @on-reset="onReset"
-      @close="filtersVisible = false"
-    />  
-  </div> 
+  <!-- Filters button -->
+  <div class="q-pa-md q-gutter-md row justify-end">
+    <q-btn unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
+  </div>
+  <FiltersDialog
+    :is-visible="filtersVisible"
+    @on-filter="onFilter"
+    @on-reset="onReset"
+    @close="filtersVisible = false"
+  />
 
   <!-- Room Cards -->
   <div :class="{'room-container': filteredRooms.length === 0}">
