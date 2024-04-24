@@ -1,6 +1,15 @@
 <template>
+  <div>
+    <!-- Filters button -->
+    <q-btn unelevated label="Filters" @click="toggleFilters" icon="tune" style="border: 1px solid LightGray; border-radius: 8px;" />
+
+    <q-dialog v-model="filtersVisible" :position="dialogPosition">
+      <FiltersForm @on-filter="onFilter" @on-reset="onReset" />
+    </q-dialog>
+  </div> 
+
+  <!-- Room Cards -->
   <div class="q-pa-md room-grid">
-    <!-- Using a v-for loop to iterate over a list of rooms -->
     <div v-for="room in rooms" :key="room.id">
       <RoomCard :room="room" @toggle-expanded="toggleExpanded"/>
     </div>
@@ -8,15 +17,41 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount, nextTick, defineComponent } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
+import { useQuasar } from 'quasar';
 import RoomCard from '@/components/RoomCard.vue'; 
+import FiltersForm from '@/components/FiltersForm.vue';
 
 export default defineComponent( {
   components: {
-    RoomCard
+    RoomCard,
+    FiltersForm
   },
   
   setup() {
+    // Filters logic
+    const $q = useQuasar();
+    const filtersVisible = ref(false);
+    const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
+
+    const toggleFilters = () => {
+      filtersVisible.value = !filtersVisible.value;
+    };
+
+    const onFilter = (filters) => {
+      console.log('Filters applied:', filters);
+      filtersVisible.value = false;
+    };
+
+    const onReset = () => {
+      console.log('Filters reset');
+      filtersVisible.value = false;
+    };
+
+    const closeFilterView = () => {
+      filtersVisible.value = false;
+    };
+
     // TODO: Replace with the actual list of rooms
     const rooms = ref([
       {
@@ -85,6 +120,11 @@ export default defineComponent( {
     return {
       rooms,
       toggleExpanded,
+      toggleFilters,
+      filtersVisible,
+      dialogPosition,
+      onFilter,
+      onReset
     };
   }
 });
