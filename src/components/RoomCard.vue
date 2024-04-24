@@ -6,7 +6,7 @@
       <!-- Card content -->
       <q-card-section>
         <div class="text-overline text-secondary">{{ room.location }}</div>
-        <q-rating v-model="room.rating" :max="5" size="16px" />
+        <q-rating readonly color="black" v-model="room.rating" :max="5" size="16px" />
         <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
         <div class="text-subtitle1 q-mb-xs">{{ room.surfaceArea }} m²</div>
         <div class="text-h7 text-dark q-mb-xs">From CHF {{ room.price }}.-</div>
@@ -19,7 +19,7 @@
       <q-card-actions>
         <q-btn flat round color="red" icon="favorite" />
         <q-btn flat round color="primary" icon="share" />
-        <q-btn color="primary" label="Book" />
+        <q-btn style="width: 130px" unelevated rounded color="green-14" label="Book" />
         
         <q-space />
   
