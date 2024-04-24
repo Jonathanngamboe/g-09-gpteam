@@ -41,7 +41,7 @@
         </q-scroll-area>
     </q-drawer>
 
-    <q-page-container :class="`q-pl-${$q.screen.gt.sm ? 'xxl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
+    <q-page-container :class="`q-pl-${$q.screen.gt.sm ? 'xl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
         <router-view />
     </q-page-container>
   </q-layout>
