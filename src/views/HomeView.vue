@@ -9,15 +9,24 @@
   </div> 
 
   <!-- Room Cards -->
-  <div class="q-pa-md room-grid">
-    <div v-for="room in rooms" :key="room.id">
-      <RoomCard :room="room" @toggle-expanded="toggleExpanded"/>
+  <div :class="{'room-container': filteredRooms.length === 0}">
+    <div class="q-pa-md room-grid">
+      <!-- Condition to check if there are no rooms after filtering -->
+      <div v-if="filteredRooms.length === 0">
+        <div class="no-results">
+          <q-icon name="search_off" size="100px" color="grey-5" />
+          <div>No rooms found. Please adjust your filters.</div>
+        </div>
+      </div>
+      <div v-else v-for="room in filteredRooms" :key="room.id">
+        <RoomCard :room="room" @toggle-expanded="toggleExpanded"/>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
+import { ref, reactive, watch, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import RoomCard from '@/components/RoomCard.vue'; 
 import FiltersForm from '@/components/FiltersForm.vue';
@@ -32,28 +41,57 @@ export default defineComponent( {
     // Filters logic
     const $q = useQuasar();
     const filtersVisible = ref(false);
+    const filtersApplied = ref(false);
     const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
+
+    const filters = reactive({
+      location: '',
+      priceRange: { min: 0, max: Infinity },
+      amenities: [],
+      rating: { min: 0, max: 5 }
+    });
+
+    const onReset = () => {
+      Object.assign(filters, {
+        location: '',
+        priceRange: { min: 0, max: Infinity },
+        amenities: [],
+        rating: 0
+      });
+      filtersVisible.value = false;
+      filtersApplied.value = false; 
+    };
+
+    const onFilter = newFilters => {
+      Object.assign(filters, newFilters);
+      filtersVisible.value = false;
+      filtersApplied.value = true; 
+    };
 
     const toggleFilters = () => {
       filtersVisible.value = !filtersVisible.value;
     };
 
-    const onFilter = (filters) => {
-      console.log('Filters applied:', filters);
-      filtersVisible.value = false;
-    };
+    watch(() => filters, () => {
 
-    const onReset = () => {
-      console.log('Filters reset');
-      filtersVisible.value = false;
-    };
+    }, { deep: true });
 
-    const closeFilterView = () => {
-      filtersVisible.value = false;
-    };
+    // Computed property to filter rooms based on active filters
+    const filteredRooms = computed(() => {
+      if (!filtersApplied.value) {
+        return allRooms.value; // Return all rooms if no filters are applied
+      }
+      return allRooms.value.filter(room => {
+        const locationMatch = !filters.location || room.location.toLowerCase().includes(filters.location.toLowerCase());
+        const priceMatch = room.price >= filters.priceRange.min && room.price <= filters.priceRange.max;
+        const amenitiesMatch = filters.amenities.length === 0 || filters.amenities.every(amenity => room.amenities.includes(amenity));
+        const ratingMatch = room.rating >= filters.rating.min && room.rating <= filters.rating.max;
+        return locationMatch && priceMatch && amenitiesMatch && ratingMatch;
+      });
+    });
 
     // TODO: Replace with the actual list of rooms
-    const rooms = ref([
+    const allRooms = ref([
       {
         id: 1,
         image: 'https://cdn.quasar.dev/img/parallax1.jpg',
@@ -62,7 +100,7 @@ export default defineComponent( {
         description: 'Detailed information about the room...',
         surfaceArea: 55,
         price: 100,
-        amenities: ['Bed', '1 bath', '1 TV', 'Wi-Fi'],
+        amenities: ['Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
         rating: 2,
         expanded: false
       },
@@ -74,7 +112,7 @@ export default defineComponent( {
         description: 'Detailed information about the room...',
         surfaceArea: 20,
         price: 120,
-        amenities: ['Pool', 'Gym', 'Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
+        amenities: ['Netflix', 'Wi-Fi', 'Parking', 'Kitchen'],
         rating: 3,
         expanded: false
       },
@@ -86,14 +124,15 @@ export default defineComponent( {
         description: 'Detailed information about the room...',
         surfaceArea: 35,
         price: 920,
-        amenities: ['Pool', 'Gym', 'Wi-Fi', 'Parking', 'Balcony', 'Kitchen'],
+        amenities: ['Balcony', 'Kitchen', 'Fireplace'],
         rating: 5,
         expanded: false
       },
     ]);
 
+    // Function to toggle the description visibility
     function toggleExpanded(roomId) {
-      const room = rooms.value.find(r => r.id === roomId);
+      const room = allRooms.value.find(r => r.id === roomId);
       if (room) {
         room.expanded = !room.expanded;
       }
@@ -118,7 +157,7 @@ export default defineComponent( {
     });
 
     return {
-      rooms,
+      filteredRooms,
       toggleExpanded,
       toggleFilters,
       filtersVisible,
@@ -131,6 +170,14 @@ export default defineComponent( {
 </script>
 
 <style scoped>
+.room-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh; /* Ensures centering is effective in an empty grid */
+}
+
 /* Define a grid layout with a fixed minimum column width */
 .room-grid {
   display: grid;
@@ -140,6 +187,21 @@ export default defineComponent( {
 
 .room-grid > div {
   display: flex; /* Use flex layout for the grid item to control the card height */
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.no-results q-icon {
+  font-size: 100px;
+  color: grey;
 }
 
 /* Define a media query for very small screens where cards should take full width */
