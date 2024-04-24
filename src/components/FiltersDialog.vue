@@ -21,15 +21,15 @@
         <q-range
           color="primary"
           id="price-range"
-          v-model="filters.priceRange"
+          v-model="tempFilters.priceRange"
           :min="1"
           :max="2000"
           :label-value="labelValue"
         />
         <div class="row justify-between q-mt-xs" style="align-items: center;">
-          <q-input filled v-model.number="filters.priceRange.min" label="Minimum" type="number" />
+          <q-input filled v-model.number="tempFilters.priceRange.min" label="Minimum" type="number" />
           -
-          <q-input filled v-model.number="filters.priceRange.max" label="Maximum" type="number" />
+          <q-input filled v-model.number="tempFilters.priceRange.max" label="Maximum" type="number" />
         </div>
       </div>
 
@@ -207,7 +207,7 @@ export default defineComponent({
         location: tempFilters.location,
         priceRange: { ...tempFilters.priceRange },
         amenities: [...tempFilters.amenities],
-        rating: { ...tempFilters.rating }
+        rating: { ...ratingModel.value }
       });
       emit('on-filter', filters);
       emit('toggle-filters');
@@ -218,13 +218,13 @@ export default defineComponent({
       filters.location = '';
       filters.priceRange = { min: 1, max: 2000 };
       filters.amenities = [];
-      filters.rating = ratingModel.value.min;
+      filters.rating = ratingModel.value;
       // Reset tempFilters as well
       Object.assign(tempFilters, {
         location: '',
         priceRange: { min: 1, max: 2000 },
         amenities: [],
-        rating: { min: 0, max: 5 }
+        rating: ratingModel.value
       });
       emit('on-reset');
       emit('toggle-filters');
