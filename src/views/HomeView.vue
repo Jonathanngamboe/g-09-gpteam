@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { ref, reactive, watch, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
 import RoomCard from '@/components/RoomCard.vue'; 
 import FiltersDialog from '@/components/FiltersDialog.vue';
 
@@ -71,10 +71,6 @@ export default defineComponent( {
     const toggleFilters = () => {
       filtersVisible.value = !filtersVisible.value;
     };
-
-    watch(() => filters, () => {
-
-    }, { deep: true });
 
     // Computed property to filter rooms based on active filters
     const filteredRooms = computed(() => {
