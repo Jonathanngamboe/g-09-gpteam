@@ -17,9 +17,10 @@
   
       <!-- Card actions -->
       <q-card-actions>
+        <!-- TODO : Implement favorite functionality -->
         <q-btn flat round color="red" icon="favorite" />
-        <q-btn flat round color="primary" icon="share" />
-        <q-btn style="width: 130px" unelevated rounded color="green-14" label="Book" />
+        <q-btn flat round color="primary" icon="share" @click="shareRoom"/>
+        <q-btn style="width: 130px" unelevated rounded color="green-14" label="Book" @click="bookRoom"/>
         
         <q-space />
   
@@ -47,7 +48,45 @@
 </template>
   
 <script>
+  import { useQuasar } from 'quasar';
   export default {
+    setup(props, { emit }) {
+      const $q = useQuasar();
+
+      const shareRoom = () => {
+        if (navigator.share) {
+          navigator.share({
+            title: `${props.room.title}`,
+            text: `Check out this room: ${props.room.title}, located at ${props.room.location}. Details: ${props.room.description}`,
+            url: `${window.location.origin}/room/${props.room.id}`
+          }).then(() => {
+            $q.notify({
+              message: 'Thanks for sharing!',
+              color: 'green-14',
+              position: 'top',
+              icon: 'thumb_up' 
+            });
+          }).catch((error) => {
+            console.error(error);
+            $q.notify({
+              message: 'Failed to share. Please try again.',
+              color: 'red-14',
+              position: 'top',
+              icon: 'error' 
+            });
+          });
+        } else {
+          $q.notify({
+            message: 'Sharing is not supported on this device',
+            color: 'orange-14',
+            position: 'top',
+            icon: 'warning' 
+          });
+        }
+      };
+
+      return { shareRoom };
+    },
     props: {
       room: Object
     },
@@ -55,6 +94,11 @@
       toggleExpanded() {
         this.$emit('toggle-expanded', this.room.id);
       },
+      bookRoom() {
+        // Redirect to the room detail page
+        this.$router.push(`/room/${this.room.id}`);
+      },
+    
       // Helper function to format amenities
       formatAmenities(amenities) {
         const maxVisibleAmenities = 3;
