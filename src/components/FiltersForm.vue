@@ -7,18 +7,29 @@
       lazy-rules
       :rules="[val => !!val || 'Field is required']"
     />
-    <q-input
-      type="number"
-      filled
-      v-model.number="filters.price"
-      label="Max Price"
-      lazy-rules
-      :rules="[val => val >= 0 || 'Price must be positive']"
-    />
+    <q-space />
+    <!-- Price range filter -->
+    <div class="price-range-selector">
+      <label for="price-range">Price Range</label>
+      <q-range
+        id="price-range"
+        v-model="filters.priceRange"
+        :min="priceRange.min"
+        :max="priceRange.max"
+        :label-value="labelValue"
+      />
+      <div class="row justify-between q-mt-xs">
+        <q-input filled v-model.number="filters.priceRange.min" label="Minimum" type="number" />
+        <q-input filled v-model.number="filters.priceRange.max" label="Maximum" type="number" />
+      </div>
+    </div>
+    <q-space />
+    <!-- Amenities selector -->
+    <label for="amenities">Amenities</label>
     <q-select
       filled
       v-model="filters.amenities"
-      label="Amenities"
+      label="Select Amenities"
       multiple
       :options="amenitiesOptions"
       option-value="value"
@@ -36,43 +47,50 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue';
+import { ref, computed, defineComponent } from 'vue';
 
 export default defineComponent({
   emits: ['on-filter', 'on-reset'],
 
-  setup(props) {
+  setup(props, { emit }) {
+    const priceRange = ref({ min: 50, max: 2000 });
     const amenitiesOptions = [
       { label: 'Wi-Fi', value: 'Wi-Fi' },
-      { label: 'Pool', value: 'Pool' },
+      { label: 'Piscine', value: 'Pool' },
     ];
 
     const filters = ref({
       location: '',
-      price: null,
+      priceRange: { min: 50, max: 2000 },
       amenities: [],
-      rating: 1
+      rating: 3
+    });
+
+    const labelValue = computed(() => {
+      return `${filters.value.priceRange.min}€ - ${filters.value.priceRange.max}€`;
     });
 
     const applyFilters = () => {
-      props.onFilter(filters.value); // Trigger the event to notify the parent component
+      emit('on-filter', filters.value);
     };
 
     const resetFilters = () => {
       filters.value = {
         location: '',
-        price: null,
+        priceRange: { min: 50, max: 2000 },
         amenities: [],
-        rating: 1
+        rating: 3
       };
-      props.onReset(); // Trigger the event to notify the parent component
+      emit('on-reset');
     };
 
     return {
       filters,
       amenitiesOptions,
       applyFilters,
-      resetFilters
+      resetFilters,
+      labelValue,
+      priceRange
     };
   }
 });
@@ -86,5 +104,9 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.price-range-selector label {
+  display: block;
 }
 </style>
