@@ -1,20 +1,6 @@
 <template>
   <q-dialog v-model="isVisible" :position="dialogPosition">
     <div class="filters-container">
-
-      <!-- Location search filter -->
-      <div class="location-search">
-        <label for="location">Location</label>
-        <q-input
-          filled
-          v-model="filters.location"
-          label="Search for a destination"
-          lazy-rules
-        />
-      </div>
-
-      <q-space />
-
       <!-- Price range filter -->
       <div class="price-range-selector">
         <label for="price-range">Price Range</label>
@@ -149,7 +135,6 @@ export default defineComponent({
     const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
 
     const filters = reactive({
-      location: '',
       priceRange: { min: 1, max: 2000 }, 
       amenities: [],
       rating: { min: 0, max: 5 }
@@ -157,7 +142,6 @@ export default defineComponent({
 
     // Copy of filters to store temporary changes before applying
     const tempFilters = reactive({
-    location: filters.location,
     priceRange: { ...filters.priceRange },
     amenities: [...filters.amenities],
     rating: { ...filters.rating }
@@ -204,7 +188,6 @@ export default defineComponent({
     // Method to apply filters
     const applyFilters = () => {
       Object.assign(filters, {
-        location: tempFilters.location,
         priceRange: { ...tempFilters.priceRange },
         amenities: [...tempFilters.amenities],
         rating: { ...ratingModel.value }
@@ -215,13 +198,11 @@ export default defineComponent({
 
     // Method to reset filters to default
     const resetFilters = () => {
-      filters.location = '';
       filters.priceRange = { min: 1, max: 2000 };
       filters.amenities = [];
       filters.rating = ratingModel.value;
       // Reset tempFilters as well
       Object.assign(tempFilters, {
-        location: '',
         priceRange: { min: 1, max: 2000 },
         amenities: [],
         rating: ratingModel.value
