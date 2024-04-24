@@ -12,9 +12,9 @@
           :max="2000"
           :label-value="labelValue"
         />
-        <div class="row justify-between q-mt-xs" style="align-items: center;">
+        <div class="price-inputs row justify-between q-mt-xs" style="align-items: center;">
           <q-input filled v-model.number="tempFilters.priceRange.min" label="Minimum" type="number" />
-          -
+          <span class="separator">-</span>
           <q-input filled v-model.number="tempFilters.priceRange.max" label="Maximum" type="number" />
         </div>
       </div>
@@ -254,4 +254,28 @@ export default defineComponent({
   min-width: 120px;
 }
 
+.price-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* adjust gap as needed */
+}
+
+.price-inputs .q-input {
+  flex: 1 1 100%; /* Make input fields full width on small screens */
+}
+
+.separator {
+  flex-basis: 100%; /* Force separator to next line on small screens */
+  text-align: center; /* Center separator text */
+}
+
+@media (min-width: 600px) { /* Adjust media query threshold as needed */
+  .price-inputs .q-input {
+    flex: 1 1 auto; /* Allow inputs to grow and shrink as needed */
+  }
+
+  .separator {
+    flex-basis: auto; /* Keep separator on the same line as inputs on larger screens */
+  }
+}
 </style>
