@@ -3,9 +3,12 @@
     <!-- Filters button -->
     <q-btn unelevated label="Filters" @click="toggleFilters" icon="tune" style="border: 1px solid LightGray; border-radius: 8px;" />
 
-    <q-dialog v-model="filtersVisible" :position="dialogPosition">
-      <FiltersForm @on-filter="onFilter" @on-reset="onReset" />
-    </q-dialog>
+    <FiltersForm
+      :is-visible="filtersVisible"
+      @on-filter="onFilter"
+      @on-reset="onReset"
+      @close="filtersVisible = false"
+    />  
   </div> 
 
   <!-- Room Cards -->
@@ -27,7 +30,6 @@
 
 <script>
 import { ref, reactive, watch, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
-import { useQuasar } from 'quasar';
 import RoomCard from '@/components/RoomCard.vue'; 
 import FiltersForm from '@/components/FiltersForm.vue';
 
@@ -39,10 +41,8 @@ export default defineComponent( {
   
   setup() {
     // Filters logic
-    const $q = useQuasar();
     const filtersVisible = ref(false);
     const filtersApplied = ref(false);
-    const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
 
     const filters = reactive({
       location: '',
@@ -161,7 +161,6 @@ export default defineComponent( {
       toggleExpanded,
       toggleFilters,
       filtersVisible,
-      dialogPosition,
       onFilter,
       onReset
     };
