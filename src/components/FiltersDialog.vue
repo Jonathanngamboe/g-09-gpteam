@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="isVisible" :position="dialogPosition">
+  <q-dialog v-model="visible" :position="dialogPosition">
     <div class="filters-container">
       <!-- Price range filter -->
       <div class="price-range-selector">
@@ -125,7 +125,7 @@ import { ref, reactive, computed, defineComponent } from 'vue';
 import { useQuasar } from 'quasar';
 
 export default defineComponent({
-  emits: ['on-filter', 'on-reset', 'toggle-filters'],
+  emits: ['on-filter', 'on-reset', 'toggle-filters', 'update:isVisible'],
 
   props: {
     isVisible: Boolean
@@ -133,6 +133,11 @@ export default defineComponent({
   setup(props, { emit }) {
     const $q = useQuasar();
     const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
+
+    const visible = computed({
+      get: () => props.isVisible,
+      set: (val) => emit('update:isVisible', val)
+    })
 
     const filters = reactive({
       priceRange: { min: 1, max: 2000 }, 
@@ -228,7 +233,8 @@ export default defineComponent({
       labelValue,
       ratingModel,
       dialogPosition,
-      tempFilters
+      tempFilters,
+      visible
     };
   }
 });

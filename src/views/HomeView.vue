@@ -4,7 +4,8 @@
     <q-btn unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
   </div>
   <FiltersDialog
-    :is-visible="filtersVisible"
+    :isVisible="filtersVisible"
+    @update:isVisible="val => filtersVisible = val"
     @on-filter="onFilter"
     @on-reset="onReset"
     @close="filtersVisible = false"
