@@ -14,15 +14,52 @@
 
 </template>
 <script>
+import authService from "../services/authService";
+
 export default {
   data() {
     return {
       showModal: true,
       username: "",
       password: "",
-
-
     }
+  },
+  async mounted() {
+    authService.getUser()
+    this.messages = await messageService.fetchMessages()
+  },
+  computed: {
+    user() {
+      return authService.user.value
+    }
+  },
+  methods: {
+    login() {
+      this.loginError = ""
+      authService
+        .login({
+          username: this.username,
+          password: this.password
+        })
+        .catch((err) => {
+          this.loginError = err.response.data
+        })
+    },
+    logout() {
+      authService.logout()
+    },
+    register() {
+      this.loginError = ""
+      authService
+        .register({
+          username: this.username,
+          password1: this.password,
+          password2: this.password
+        })
+        .catch((err) => {
+          this.loginError = err.response.data
+        })
+    },
   }
 }
 </script>
