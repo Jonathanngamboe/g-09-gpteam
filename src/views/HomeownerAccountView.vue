@@ -1,23 +1,31 @@
 <template>
-    <div>
-      <UserInformation v-if="utilisateur" :utilisateur="utilisateur" />
+    <div v-if="utilisateur">
+      <UserInformation :utilisateur="utilisateur" />
     </div>
   </template>
-    
+  
   <script>
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from "vue"
-import UserInformation from "@/components/UserInformation.vue"
+  import { ref, onMounted } from 'vue';
+  import authService from '@/services/authService';
+  import UserInformation from "@/components/UserInformation.vue"// Assurez-vous que le chemin est correct
   
   export default {
     components: {
       UserInformation
     },
     setup() {
-      const utilisateur = ref({
-        prenom: "David",
-        nom: "Bürki",
-        email: "d.burki@rpn.ch",
-        dateDeNaissance: "1990-01-01"
+      const utilisateur = ref(null);
+  
+      onMounted(async () => {
+        try {
+          // Call getUser to get the user data
+          await authService.getUser();
+  
+          // Extract the user data from the response
+          utilisateur.value = authService.user.value;
+        } catch (error) {
+          console.error('An error occurred:', error);
+        }
       });
   
       return { utilisateur };
