@@ -1,17 +1,35 @@
 import { createRouter, createWebHistory } from "vue-router"
-import MainLayout from '@/layouts/MainLayout.vue';
+import MainLayout from "@/layouts/MainLayout.vue"
+import HomeownerAccountView from '@/views/HomeownerAccountView.vue'
+import MessagesView from '../views/MessagesView.vue';
+
 
 const routes = [
+
   {
-    path: '/',
+    path: '/messages',
+    name: 'Messages',
+    component: MessagesView
+  },
+  {
+    path: "/",
     component: MainLayout,
     children: [
-      { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
-      { path: '/messages', name: 'messages', component: () => import(/* webpackChunkName: "about" */'@/views/MessagesView.vue') },
-      { path: '/room/:id', name: 'room', component: () => import('@/views/RoomView.vue') },
-      { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') }
+      { path: "", name: "home", component: () => import("@/views/HomeView.vue") },
+      {
+        path: "/messages",
+        name: "messages",
+        component: () => import(/* webpackChunkName: "about" */ "@/views/MessagesView.vue")
+      },
+      { path: "/room/:id", name: "room", component: () => import("@/views/RoomView.vue") },
+      {
+        path: "/:pathMatch(.*)*",
+        name: "not-found",
+        component: () => import("@/views/404View.vue")
+      }
     ]
   },
+  { path: "/HomeownerAccount", name: "HomeownerAccount", component: HomeownerAccountView }
 ]
 
 const router = createRouter({

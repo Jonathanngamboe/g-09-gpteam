@@ -5,7 +5,9 @@
       <div class="col-md-4" v-for="room in rooms" :key="room.id">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title"><b>{{ room.title }}</b></h5>
+            <h5 class="card-title">
+              <b>{{ room.title }}</b>
+            </h5>
             <p class="card-text">{{ room.description }}</p>
             <p class="card-text">Price: CHF {{ room.price }}.-</p>
             <p class="card-text">Location: {{ room.location }}</p>
@@ -20,32 +22,33 @@
 </template>
 
 <script>
-import axios from '@/services/api';
+import axios from "@/services/api"
 export default {
   name: "HelloWorld",
   data() {
     return {
-      rooms: [],
-    };
+      rooms: []
+    }
   },
   props: {
     msg: String
   },
   mounted() {
-      axios.get('/rooms/')
-          .then(response => {
-              this.rooms = response.data;
-          })
-          .catch(error => {
-              console.error('There was an error!', error);
-          });
+    axios
+      .get("/rooms/")
+      .then((response) => {
+        this.rooms = response.data
+      })
+      .catch((error) => {
+        console.error("There was an error!", error)
+      })
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-@import 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
+@import "https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css";
 
 .card {
   margin-bottom: 1rem;
