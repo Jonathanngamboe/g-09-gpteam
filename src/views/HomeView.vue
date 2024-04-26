@@ -190,7 +190,7 @@ export default defineComponent( {
     const allRooms = ref([
       {
         id: 1,
-        image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+        images: ['https://cdn.quasar.dev/img/parallax1.jpg', 'https://cdn.quasar.dev/img/parallax2.jpg'],
         location: 'Venice',
         title: 'Beautiful Room with a View',
         description: 'Detailed information about the room...',
@@ -202,7 +202,7 @@ export default defineComponent( {
       },
       {
         id: 2,
-        image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+        images: ['https://cdn.quasar.dev/img/parallax2.jpg', 'https://cdn.quasar.dev/img/parallax1.jpg'],
         location: 'New York',
         title: 'Cozy Apartment in the Heart of the City',
         description: 'Detailed information about the room...',
@@ -214,7 +214,7 @@ export default defineComponent( {
       },
       {
         id: 3,
-        image: 'https://cdn.quasar.dev/img/mountains.jpg',
+        images: ['https://cdn.quasar.dev/img/mountains.jpg', 'https://cdn.quasar.dev/img/parallax1.jpg'],
         location: 'Martigny',
         title: 'Mountain Chalet with a Stunning View',
         description: 'Detailed information about the room...',

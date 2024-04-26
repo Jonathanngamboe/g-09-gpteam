@@ -1,7 +1,7 @@
 <template>
     <q-card flat bordered>
       <!-- Room image -->
-      <q-img :src="room.image" />
+      <q-img :src="room.images[0]" />
   
       <!-- Card content -->
       <q-card-section>
