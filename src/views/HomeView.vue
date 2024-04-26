@@ -11,35 +11,132 @@
     @close="filtersVisible = false"
   />
 
-  <!-- Room Cards -->
-  <div :class="{'room-container': filteredRooms.length === 0}">
-    <div class="q-pa-md room-grid">
-      <!-- Condition to check if there are no rooms after filtering -->
-      <div v-if="filteredRooms.length === 0">
-        <div class="no-results">
-          <q-icon name="search_off" size="100px" color="grey-5" />
-          <div>No rooms found. Please adjust your filters.</div>
+  <!-- Room details for desktop -->
+  <div v-if="!isMobile">
+    <q-splitter v-model="splitterModel" :separator-style="separatorStyle">
+      <!-- Room cards grid for desktop -->
+      <template v-slot:before>
+        <div :class="{'room-container': filteredRooms.length === 0}">
+          <div class="q-pa-md room-grid">
+            <div v-if="filteredRooms.length === 0">
+              <div class="no-results">
+                <q-icon name="search_off" size="100px" color="grey-5" />
+                <div>No rooms found. Please adjust your filters.</div>
+              </div>
+            </div>
+            <div v-else v-for="room in filteredRooms" :key="room.id">
+              <RoomCard :room="room" @room-details="handleClickRoom"/>
+            </div>
+          </div>
         </div>
-      </div>
-      <div v-else v-for="room in filteredRooms" :key="room.id">
-        <RoomCard :room="room" @toggle-expanded="toggleExpanded"/>
+      </template>
+      <template v-slot:after v-if="selectedRoom">
+        <q-btn flat round icon="close" class="close-btn" @click="closeDetails"/>
+        <RoomCardDetail :room="selectedRoom"/>
+      </template>
+    </q-splitter>
+  </div>
+  <!-- Room cards grid for mobile -->
+  <div v-else>
+    <div :class="{'room-container': filteredRooms.length === 0}">
+      <div class="q-pa-md room-grid">
+        <div v-if="filteredRooms.length === 0">
+          <div class="no-results">
+            <q-icon name="search_off" size="100px" color="grey-5" />
+            <div>No rooms found. Please adjust your filters.</div>
+          </div>
+        </div>
+        <div v-else v-for="room in filteredRooms" :key="room.id">
+          <RoomCard :room="room" @room-details="handleClickRoom"/>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Room details dialog for mobile -->
+  <q-dialog v-model="dialogVisible" v-if="isMobile" position="bottom" @update:model-value="handleDialogVisibilityChange">
+    <RoomCardDetail :room="selectedRoom" />
+  </q-dialog>
+
 </template>
 
 <script>
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
+import { ref, watch, reactive, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
 import RoomCard from '@/components/RoomCard.vue'; 
 import FiltersDialog from '@/components/FiltersDialog.vue';
+import RoomCardDetail from '@/components/RoomCardDetail.vue';
+import { useQuasar } from 'quasar';
 
 export default defineComponent( {
   components: {
     RoomCard,
-    FiltersDialog
+    FiltersDialog,
+    RoomCardDetail
   },
-  
   setup() {
+    // Room details logic
+    const $q = useQuasar();
+    const isMobile = computed(() => $q.screen.lt.md);
+    const dialogVisible = ref(false);
+    const selectedRoom = ref(null);
+    const splitterModel = ref(100);
+
+    function handleClickRoom(roomId) {
+      const room = allRooms.value.find(r => r.id === roomId);
+      if (room) {
+        selectedRoom.value = room;
+        if (isMobile.value) {
+          dialogVisible.value = true;  // Open dialog on mobile
+        } else {
+          splitterModel.value = 30;  // Give 70% of the space to the room list, 30% to the details on desktop
+        }      
+      } else {
+        $q.notify({
+          message: 'Room not found. Please try again.',
+          color: 'red-14',
+          position: 'top',
+          icon: 'error' 
+        });
+      }
+    }
+
+    function handleDialogVisibilityChange(newVal) {
+      dialogVisible.value = newVal;
+      if (!newVal) {
+        closeDetails();  // This ensures all closing logic is handled
+      }
+    }
+
+    // Switch between dialog and splitter based on screen size
+    watch(isMobile, (newVal) => {
+      if (selectedRoom.value) {
+        if (newVal) {
+          // Mobile: Show dialog if room is selected
+          dialogVisible.value = true;
+          splitterModel.value = 100;
+        } else {
+          // Desktop: Show splitter if room is selected
+          dialogVisible.value = false;
+          splitterModel.value = 30;
+        }
+      } else {
+        splitterModel.value = 100;
+        dialogVisible.value = false;
+      }
+    });
+
+    watch(() => splitterModel.value, (newVal, oldVal) => {
+      if (newVal === 90 && oldVal === 100) {
+        splitterModel.value = 100;  // Quick fix to prevent the splitter from not being closed completely
+      }
+    });
+
+    function closeDetails() {
+      dialogVisible.value = false;
+      selectedRoom.value = null;  // Reset selected room
+      splitterModel.value = 100;  // Reset splitter position to hide the detail view
+    }
+
     // Filters logic
     const filtersVisible = ref(false);
     const filtersApplied = ref(false);
@@ -90,7 +187,7 @@ export default defineComponent( {
     const allRooms = ref([
       {
         id: 1,
-        image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+        images: ['https://cdn.quasar.dev/img/parallax1.jpg', 'https://cdn.quasar.dev/img/parallax2.jpg'],
         location: 'Venice',
         title: 'Beautiful Room with a View',
         description: 'Detailed information about the room...',
@@ -102,7 +199,7 @@ export default defineComponent( {
       },
       {
         id: 2,
-        image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+        images: ['https://cdn.quasar.dev/img/parallax2.jpg', 'https://cdn.quasar.dev/img/parallax1.jpg'],
         location: 'New York',
         title: 'Cozy Apartment in the Heart of the City',
         description: 'Detailed information about the room...',
@@ -114,7 +211,7 @@ export default defineComponent( {
       },
       {
         id: 3,
-        image: 'https://cdn.quasar.dev/img/mountains.jpg',
+        images: ['https://cdn.quasar.dev/img/mountains.jpg', 'https://cdn.quasar.dev/img/parallax1.jpg'],
         location: 'Martigny',
         title: 'Mountain Chalet with a Stunning View',
         description: 'Detailed information about the room...',
@@ -125,14 +222,6 @@ export default defineComponent( {
         expanded: false
       },
     ]);
-
-    // Function to toggle the description visibility
-    function toggleExpanded(roomId) {
-      const room = allRooms.value.find(r => r.id === roomId);
-      if (room) {
-        room.expanded = !room.expanded;
-      }
-    }
 
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
@@ -153,14 +242,29 @@ export default defineComponent( {
     });
 
     return {
+      allRooms,
       filteredRooms,
-      toggleExpanded,
       toggleFilters,
       filtersVisible,
       onFilter,
-      onReset
+      onReset,
+      handleClickRoom,
+      selectedRoom,
+      dialogVisible,
+      isMobile,
+      splitterModel,
+      closeDetails,
+      closeDetails,
+      handleDialogVisibilityChange
     };
+  },
+  computed: {
+  separatorStyle() {
+    // Hide the separator when no room is selected and splitter is equal to 100
+    return { display: this.selectedRoom && this.splitterModel !== 100 ? 'block' : 'none' };
+    
   }
+}
 });
 </script>
 
