@@ -27,6 +27,8 @@
   
 <script>
   import { useQuasar } from 'quasar';
+  import RoomInformation from '@/components/RoomInformation.vue'
+
   export default {
     setup(props) {
       const $q = useQuasar();
