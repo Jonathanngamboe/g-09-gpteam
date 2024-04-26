@@ -1,7 +1,7 @@
 <template>
   <!-- Filters button -->
   <div class="q-pa-md q-gutter-md row justify-end">
-    <q-btn unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
+    <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
   </div>
   <FiltersDialog
     :isVisible="filtersVisible"
