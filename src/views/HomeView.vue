@@ -30,9 +30,6 @@
           </div>
         </div>
       </template>
-      <template v-slot:separator v-if="selectedRoom && splitterModel !== 100">
-        <q-avatar color="primary" text-color="white" size="40px" icon="drag_indicator"/>
-      </template>
       <template v-slot:after v-if="selectedRoom">
         <q-btn flat round icon="close" class="close-btn" @click="closeDetails"/>
         <RoomCardDetail :room="selectedRoom"/>
