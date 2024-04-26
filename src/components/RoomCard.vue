@@ -30,9 +30,12 @@
           round
           flat
           dense
-          :icon="room.expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+          :icon="drawerOpen ? 'keyboard_arrow_left' : 'keyboard_arrow_right'"
           @click="toggleExpanded"
         />
+        <q-drawer v-model="drawerOpen" side="right" overlay width="800">
+          <RoomInformation :room="room" v-if="drawerOpen"/>
+        </q-drawer>
       </q-card-actions>
   
       <!-- Slide transition for detailed view -->
@@ -49,7 +52,18 @@
   
 <script>
   import { useQuasar } from 'quasar';
+  import RoomInformation from '@/components/RoomInformation.vue'
+
   export default {
+    components:{
+      RoomInformation
+    },
+
+    data(){
+      return {
+        drawerOpen: false
+      };
+    },
     setup(props, { emit }) {
       const $q = useQuasar();
 
@@ -91,7 +105,7 @@
     },
     methods: {
       toggleExpanded() {
-        this.$emit('toggle-expanded', this.room.id);
+        this.drawerOpen = !this.drawerOpen;
       },
       bookRoom() {
         // Redirect to the room detail page
