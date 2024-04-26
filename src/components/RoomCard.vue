@@ -20,7 +20,7 @@
         <!-- TODO : Implement favorite functionality -->
         <q-btn flat round color="red" icon="favorite" />
         <q-btn flat round color="primary" icon="share" @click="shareRoom"/>
-        <q-btn style="width: 130px" unelevated rounded color="green-14" label="Book" @click="bookRoom"/>
+        <q-btn style="width: 130px" unelevated rounded color="primary" label="Details" @click="$emit('room-details', room.id)"/>
         
         <q-space />
   
@@ -92,10 +92,6 @@
     methods: {
       toggleExpanded() {
         this.$emit('toggle-expanded', this.room.id);
-      },
-      bookRoom() {
-        // Redirect to the room detail page
-        this.$router.push(`/room/${this.room.id}`);
       },
     
       // Helper function to format amenities
