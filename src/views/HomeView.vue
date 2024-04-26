@@ -25,14 +25,7 @@
         <RoomCard :room="room" @toggle-expanded="toggleExpanded"/>
       </div>
     </div>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo-vue.png" />
-    
-    <button @click="showModal = true">Login / Sign Up</button>
-    <modal :show.sync="showModal">
-      <auth-form @close="showModal = false" />
-    </modal>
-  </div>
+  
     <HelloWorld msg="Welcome to Your Vue.js App." />
   </div>
 </template>
@@ -41,8 +34,7 @@
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick, defineComponent, computed } from 'vue';
 import RoomCard from '@/components/RoomCard.vue'; 
 import FiltersDialog from '@/components/FiltersDialog.vue';;
-import Modal from '../components/Modal.vue';
-import LoginForm from '../components/LoginForm.vue';
+
 
 
 
@@ -50,8 +42,7 @@ export default defineComponent( {
   components: {
     RoomCard,
     FiltersDialog,
-    'modal': Modal,
-    'auth-form': LoginForm
+    
   },
   
   setup() {
