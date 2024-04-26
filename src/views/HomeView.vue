@@ -226,14 +226,6 @@ export default defineComponent( {
       },
     ]);
 
-    // Function to toggle the description visibility
-    function toggleExpanded(roomId) {
-      const room = allRooms.value.find(r => r.id === roomId);
-      if (room) {
-        room.expanded = !room.expanded;
-      }
-    }
-
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
       nextTick(() => {
@@ -255,7 +247,6 @@ export default defineComponent( {
     return {
       allRooms,
       filteredRooms,
-      toggleExpanded,
       toggleFilters,
       filtersVisible,
       onFilter,
