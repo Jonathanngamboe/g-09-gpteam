@@ -30,7 +30,7 @@
           </div>
         </div>
       </template>
-      <template v-slot:separator v-if="selectedRoom">
+      <template v-slot:separator v-if="selectedRoom && splitterModel !== 100">
         <q-avatar color="primary" text-color="white" size="40px" icon="drag_indicator"/>
       </template>
       <template v-slot:after v-if="selectedRoom">
@@ -57,7 +57,7 @@
   </div>
 
   <!-- Room details dialog for mobile -->
-  <q-dialog v-model="dialogVisible" v-if="isMobile" position="bottom">
+  <q-dialog v-model="dialogVisible" v-if="isMobile" position="bottom" @update:model-value="handleDialogVisibilityChange">
     <RoomCardDetail :room="selectedRoom" />
   </q-dialog>
 
@@ -103,6 +103,31 @@ export default defineComponent( {
       }
     }
 
+    function handleDialogVisibilityChange(newVal) {
+      dialogVisible.value = newVal;
+      if (!newVal) {
+        closeDetails();  // This ensures all closing logic is handled
+      }
+    }
+
+    // Switch between dialog and splitter based on screen size
+    watch(isMobile, (newVal) => {
+      if (selectedRoom.value) {
+        if (newVal) {
+          // Mobile: Show dialog if room is selected
+          dialogVisible.value = true;
+          splitterModel.value = 100;
+        } else {
+          // Desktop: Show splitter if room is selected
+          dialogVisible.value = false;
+          splitterModel.value = 30;
+        }
+      } else {
+        splitterModel.value = 100;
+        dialogVisible.value = false;
+      }
+    });
+
     watch(() => splitterModel.value, (newVal, oldVal) => {
       if (newVal === 90 && oldVal === 100) {
         splitterModel.value = 100;  // Quick fix to prevent the splitter from not being closed completely
@@ -110,6 +135,7 @@ export default defineComponent( {
     });
 
     function closeDetails() {
+      dialogVisible.value = false;
       selectedRoom.value = null;  // Reset selected room
       splitterModel.value = 100;  // Reset splitter position to hide the detail view
     }
@@ -239,12 +265,16 @@ export default defineComponent( {
       dialogVisible,
       isMobile,
       splitterModel,
-      closeDetails
+      closeDetails,
+      closeDetails,
+      handleDialogVisibilityChange
     };
   },
   computed: {
   separatorStyle() {
-    return this.selectedRoom ? {} : { width: '0px', borderColor: 'transparent', cursor: 'auto' };
+    // Hide the separator when no room is selected and splitter is equal to 100
+    return { display: this.selectedRoom && this.splitterModel !== 100 ? 'block' : 'none' };
+    
   }
 }
 });
