@@ -1,22 +1,24 @@
-import { createRouter, createWebHistory } from "vue-router"
-import MainLayout from '@/layouts/MainLayout.vue';
+import { createRouter, createWebHashHistory } from "vue-router"
+import HomeView from "../views/HomeView.vue"
 
 const routes = [
   {
-    path: '/',
-    component: MainLayout,
-    children: [
-      { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
-      { path: '/messages', name: 'messages', component: () => import(/* webpackChunkName: "about" */'@/views/MessagesView.vue') },
-      { path: '/room/:id', name: 'room', component: () => import('@/views/RoomView.vue') },
-      { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') },
-      { path: '/room-information/:id', name: 'RoomInformation', component: () => import('@/components/RoomInformation.vue')}
-    ]
+    path: "/",
+    name: "home",
+    component: HomeView
   },
+  {
+    path: "/messages",
+    name: "messages",
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ "../views/MessagesView.vue")
+  }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 
