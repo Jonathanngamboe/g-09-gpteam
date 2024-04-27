@@ -171,11 +171,7 @@
     methods: {
       // Helper function to format amenities
       formatAmenities(amenities) {
-        const maxVisibleAmenities = 3;
-        const visibleAmenities = amenities.slice(0, maxVisibleAmenities).join(' · ');
-        return amenities.length > maxVisibleAmenities
-          ? `·${visibleAmenities} and ${amenities.length - maxVisibleAmenities} more`
-          : visibleAmenities;
+        return amenities.join(' · ');
       },
     }
   });
