@@ -32,7 +32,7 @@
                     </template>
                 </q-carousel>
                 <!-- Room details -->
-                <div class="text-overline text-secondary">{{ room.location }}</div>
+                <div class="text-overline text-secondary q-pt-md">{{ room.location }}</div>
                 <q-rating readonly color="black" v-model="room.rating" :max="5" size="16px" />
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
                 <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surfaceArea) }} m²</div>
