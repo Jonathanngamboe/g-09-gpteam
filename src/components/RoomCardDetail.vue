@@ -32,11 +32,11 @@
                     </template>
                 </q-carousel>
                 <!-- Room details -->
-                <div class="text-overline text-secondary">{{ room.location }}</div>
+                <div class="text-overline text-secondary q-pt-md">{{ room.location }}</div>
                 <q-rating readonly color="black" v-model="room.rating" :max="5" size="16px" />
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
-                <div class="text-subtitle1 q-mb-xs">{{ room.surfaceArea }} m²</div>
-                <div class="text-h7 text-dark q-mb-xs">CHF {{ room.price }}.- per night</div>
+                <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surfaceArea) }} m²</div>
+                <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price) }}.- per night</div>
                 <div class="text-caption text-grey">{{ formatAmenities(room.amenities) }}</div>
                 <div class="text-subtitle2 q-mt-md">{{ room.description }}</div>
             </q-card-section>
@@ -57,6 +57,7 @@
                         <q-input
                             dense
                             label="Check-out"
+                            :disable="!checkIn"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -83,8 +84,8 @@
                         <div class="text-h7 text-dark q-mb-xs">Number of nights</div>
                     </div>
                     <div>
-                        <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">CHF {{ room.price }}.-</div>
-                        <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">{{ totalNights }}</div>
+                        <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">CHF {{ formatNumber(room.price) }}.-</div>
+                        <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">{{ formatNumber(totalNights) }}</div>
                     </div>
                 </div>
                 <q-separator class="q-my-md" />
@@ -93,7 +94,7 @@
                         <div class="text-h7 text-dark q-mb-xs"><b>Total price</b></div>
                     </div>
                     <div>
-                        <div class="text-h7 text-dark q-mb-xs"><b>CHF {{ room.price * totalNights }}.-</b></div>
+                        <div class="text-h7 text-dark q-mb-xs"><b>CHF {{ formatNumber(room.price * totalNights) }}.-</b></div>
                     </div>
                 </div>
             </q-card-section>
@@ -103,7 +104,8 @@
   </template>
   
   <script>
-  import { ref, computed, watch, defineComponent } from 'vue';
+  import { format } from 'prettier';
+import { ref, computed, watch, defineComponent } from 'vue';
   
   export default defineComponent({
     emits: ['book-room'],
@@ -171,12 +173,12 @@
     methods: {
       // Helper function to format amenities
       formatAmenities(amenities) {
-        const maxVisibleAmenities = 3;
-        const visibleAmenities = amenities.slice(0, maxVisibleAmenities).join(' · ');
-        return amenities.length > maxVisibleAmenities
-          ? `·${visibleAmenities} and ${amenities.length - maxVisibleAmenities} more`
-          : visibleAmenities;
+        return amenities.join(' · ');
       },
+      // Helper function to format number with ''' separator
+      formatNumber(number) {
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      }
     }
   });
   </script>

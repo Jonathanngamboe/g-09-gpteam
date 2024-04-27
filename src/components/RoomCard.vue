@@ -8,8 +8,8 @@
         <div class="text-overline text-secondary">{{ room.location }}</div>
         <q-rating readonly color="black" v-model="room.rating" :max="5" size="16px" />
         <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
-        <div class="text-subtitle1 q-mb-xs">{{ room.surfaceArea }} m²</div>
-        <div class="text-h7 text-dark q-mb-xs">CHF {{ room.price }}.- per night</div>
+        <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surfaceArea) }} m²</div>
+        <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price) }}.- per night</div>
         <div class="text-caption text-grey">
           {{ formatAmenities(room.amenities) }}
         </div>
@@ -78,6 +78,9 @@
           ? `·${visibleAmenities} and ${amenities.length - maxVisibleAmenities} more`
           : visibleAmenities;
       },
+      formatNumber(number) {
+          return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      }
     }
   }
 </script>
