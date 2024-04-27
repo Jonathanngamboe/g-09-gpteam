@@ -112,7 +112,6 @@ export default {
     const rightDrawerOpen = ref(false);
     const loginVisible = ref(false);
     const toggleLogin = () => {
-      console.log(loginVisible.value);
       loginVisible.value = !loginVisible.value;
     };
     // Initialize the menu list
