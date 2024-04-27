@@ -59,7 +59,7 @@ export default defineComponent({
         });
         if (result) {
           visible.value = false; // Close the dialog
-          router.push({ name: 'Profile' });  // Go to the user's profile page
+          router.push({ name: 'profile' });  // Go to the user's profile page
         } else {
           loginError.value = "An error occurred. Please try again.";
         }
