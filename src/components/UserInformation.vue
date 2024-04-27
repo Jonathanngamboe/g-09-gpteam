@@ -1,11 +1,13 @@
 <template>
   <div class="flex flex-center full-height">
-    <q-card flat bordered>
-      <!-- Contenu de la carte -->
+    <q-card flat bordered class="q-pa-lg">
       <q-card-section>
-        <div class="text-h5 q-mt-sm q-mb-xs">{{ utilisateur.prenom }} {{ utilisateur.nom }}</div>
-        <div class="text-subtitle1 q-mb-xs">{{ formaterDate(utilisateur.dateDeNaissance) }}</div>
-        <div class="text-h7 text-dark q-mb-xs">{{ utilisateur.email }}</div>
+        <div class="text-h2 q-mb-md">{{ utilisateur.first_name }} {{ utilisateur.last_name }}</div>
+        <div class="text-h4 q-mb-md">{{ utilisateur.email }}</div>
+        <div class="row justify-around">
+          <q-btn color="primary" icon="edit" @click="editField('name')" label="Edit Name" />
+          <q-btn color="primary" icon="edit" @click="editField('email')" label="Edit Email" />
+        </div>
       </q-card-section>
     </q-card>
   </div>
@@ -17,9 +19,9 @@ export default {
     utilisateur: Object
   },
   methods: {
-    formaterDate(date) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return new Date(date).toLocaleDateString(undefined, options);
+    editField(field) {
+      // Navigate to the edit page for the specified field
+      this.$router.push(`/edit/${field}`);
     }
   }
 }
