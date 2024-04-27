@@ -12,7 +12,6 @@
 
         <!-- Search bar -->
         <!-- TODO: Implement search bar -->
-        <q-btn unelevated outline label="Login" @click="toggleLogin" icon="login" />
         <LoginDialog :isVisible="loginVisible" @update:isVisible="val => loginVisible = val"
           @close="loginVisible = false" />
         <!-- Avatar icon (Only visible on large screens) -->
@@ -44,29 +43,17 @@
               <div class="text-subtitle1 q-mt-md q-mb-xs">John Doe</div>
 
               <!-- Display the login and sign up buttons in column with a gap between them -->
-              <div class="q-pa-md flex flex-center">
-                <div class="column q-gutter-y-sm">
-                  <q-btn
+              <div class="q-pa-md">
+                <q-btn
                     rounded
                     unelevated
                     color="primary"
-                    label="Login"
+                    label="My Profile"
                     push
                     size="sm"
                     v-close-popup
-                    to="/login"
+                    @click="toggleLogin"
                   />
-                  <q-btn
-                    rounded
-                    unelevated
-                    color="primary"
-                    label="Sign Up"
-                    push
-                    size="sm"
-                    v-close-popup
-                    to="/signup"
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -81,9 +68,17 @@
       <!-- drawer content -->
       <q-scroll-area class="fit">
         <q-list class="q-ma-md">
-
           <template v-for="(menuItem, index) in menuList" :key="index">
-            <q-item clickable :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
+            <!-- Conditional rendering based on the item label -->
+            <q-item clickable v-if="menuItem.label !== 'My Profile'" :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
+              <q-item-section avatar>
+                <q-icon :name="menuItem.icon" class="text-primary" />
+              </q-item-section>
+              <q-item-section>
+                {{ menuItem.label }}
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-else @click="toggleLogin" v-ripple>
               <q-item-section avatar>
                 <q-icon :name="menuItem.icon" class="text-primary" />
               </q-item-section>
@@ -93,10 +88,10 @@
             </q-item>
             <q-separator :key="'sep' + index" v-if="menuItem.separator" />
           </template>
-
         </q-list>
       </q-scroll-area>
     </q-drawer>
+
 
     <q-page-container :class="`q-pl-${$q.screen.gt.sm ? 'xl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
       <router-view />
@@ -124,7 +119,7 @@ export default {
     // TODO: Replace with actual menu items
     const menuList = ref([
       { label: 'Home', icon: 'home', separator: false, to: '/' },
-      { label: 'My Profile', icon: 'account_circle', separator: true, to: '/profile' },
+      { label: 'My Profile', icon: 'account_circle', separator: true },
       // Services section
       { label: 'Find a room to rent', icon: 'search', separator: false, to: '/find-room' },
       { label: 'Add a room for rent', icon: 'add', separator: true, to: '/add-room' },
