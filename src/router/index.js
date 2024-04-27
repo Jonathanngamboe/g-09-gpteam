@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router"
 import MainLayout from "@/layouts/MainLayout.vue"
-import HomeownerAccountView from '@/views/HomeownerAccountView.vue'
+import UserAccountView from '@/views/UserAccountView.vue'
 import MessagesView from '../views/MessagesView.vue';
 
 
@@ -22,7 +22,7 @@ const routes = [
       { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') }
     ]
   },
-  { path: "/HomeownerAccount", name: "HomeownerAccount", component: HomeownerAccountView }
+  { path: "/UserAccount", name: "UserAccount", component: UserAccountView }
 ]
 
 const router = createRouter({
