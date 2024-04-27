@@ -57,6 +57,7 @@
                         <q-input
                             dense
                             label="Check-out"
+                            :disable="!checkIn"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
