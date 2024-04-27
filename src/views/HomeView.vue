@@ -51,6 +51,8 @@
         </div>
       </div>
     </div>
+  
+    <HelloWorld msg="Welcome to Your Vue.js App." />
   </div>
 
   <!-- Room details dialog for mobile -->
