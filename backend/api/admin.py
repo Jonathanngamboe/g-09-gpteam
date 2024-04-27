@@ -16,15 +16,15 @@ class PropertyModelAdmin(admin.ModelAdmin):
 
 @admin.register(Group)
 class GroupModelAdmin(admin.ModelAdmin):
-    list_display = ('name')
+    list_display = ('name',)
 
 @admin.register(Property_Type)
 class TypeModelAdmin(admin.ModelAdmin):
-    list_display = ('name')
+    list_display = ('name',)
 
 @admin.register(Amenity)
 class AmenitiesModelAdmin(admin.ModelAdmin):
-    list_display=('name')
+    list_display=('name',)
 
 @admin.register(Image)
 class ImageModelAdmin(admin.ModelAdmin):
@@ -48,7 +48,7 @@ class ReviewModelAdmin(admin.ModelAdmin):
 
 @admin.register(Status)
 class StatusModelAdmin(admin.ModelAdmin):
-    list_display = ('name')
+    list_display = ('name',)
 
 @admin.register(Message)
 class MessageModelAdmin(admin.ModelAdmin):
