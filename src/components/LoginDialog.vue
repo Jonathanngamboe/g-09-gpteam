@@ -2,10 +2,15 @@
   <q-dialog v-model="visible" :position="Position">
     <div class="form-dimension">
       <img alt="Vue logo" src="../assets/logo-vue.png" class="modal-logo" />
-      <q-input type="text" v-model="username" placeholder="username" style="margin-bottom: 5%;" />
-      <q-input type="password" v-model="password" placeholder="password" style="margin-bottom: 5%;" />
+      <q-input type="text" v-model="username" placeholder="username" style="margin-bottom: 5%;" :rules="[val => !!val || 'Please enter your username']" />
+      <q-input type="password" v-model="password" placeholder="password" style="margin-bottom: 5%;" :rules="[val => !!val || 'Please enter your password']" />
+      <!-- Error message -->
+      <div v-if="loginError" class="text-negative q-my-md" style="text-align: center;">
+        {{ loginError }}
+      </div>
+      <!-- Buttons -->
       <div class="button-group">
-        <q-btn style="width: 130px" unelevated rounded color="primary" label="Login" @click="login"/>
+        <q-btn style="width: 130px" unelevated rounded color="primary" label="Login" @click="login" :disable="!username || !password" />
         <q-btn style="width: 130px" unelevated rounded color="primary" label="Register" @click="register"/>
         <!----<input type="submit" value="Login" @click="login"  />
         <input type="submit" value="Register" @click="register" />-->
@@ -51,7 +56,19 @@ export default defineComponent({
           password: password.value
         });
       } catch (err) {
-        loginError.value = err.response.data;
+        if(err.response) {
+          const errors = err.response.data;
+          for (const key in errors) {
+            if (errors[key] instanceof Array) {
+              loginError.value = errors[key].join(' '); 
+            } else {
+              loginError.value = errors[key]; 
+            }
+            break; 
+          }
+        } else {
+          loginError.value = err.message; 
+        }
       }
     };
 
@@ -70,7 +87,19 @@ export default defineComponent({
           password2: password.value
         });
       } catch (err) {
-        loginError.value = err.response.data;
+        if(err.response) {
+          const errors = err.response.data;
+          for (const key in errors) {
+            if (errors[key] instanceof Array) {
+              loginError.value = errors[key].join(' '); 
+            } else {
+              loginError.value = errors[key]; 
+            }
+            break; 
+          }
+        } else {
+          loginError.value = err.message;
+        }
       }
     };
 
