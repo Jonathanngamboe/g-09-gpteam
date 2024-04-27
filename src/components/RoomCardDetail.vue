@@ -11,6 +11,7 @@
                     v-model:fullscreen="fullscreen"
                     infinite
                     thumbnails
+                    class="q-pb-md"
                     >
                     <q-carousel-slide
                         v-for="(image, index) in room.images"
