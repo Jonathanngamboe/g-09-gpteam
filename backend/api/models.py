@@ -1,24 +1,15 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator
 from django.core.validators import MaxValueValidator
 
-class Group(models.Model):
-    name = models.CharField(max_length=50, primary_key=True)
-
-class User(models.Model):
-    id = models.AutoField(primary_key=True)
-    firstname = models.CharField(max_length=100)
-    lastname = models.CharField(max_length=100)
-    date_of_birth = models.DateField()
-    email = models.EmailField()
-    password = models.CharField(max_length=200)
+class CustomUser(AbstractUser):
+    date_of_birth = models.DateField(blank=True, null=True)
+    email = models.EmailField(blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
-    profil_image = models.ImageField(upload_to='profil_image/', default='profil_image/default.jpg')
-    groups = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='users', null=True, default=None)
-    
-    def __str__(self):
-        return self.firstname + " " + self.lastname
+    profil_image = models.ImageField(upload_to='profil_image/', default='profil_image/default.jpg', blank=True)
+    customGroups = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='users', null=True, default=None, blank=True)
     
 
 class Property(models.Model):
@@ -35,7 +26,7 @@ class Property(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 class Property_Type(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -57,7 +48,7 @@ class Booking(models.Model):
     check_out = models.DateField()  #End date
     created_at = models.DateTimeField(auto_now_add=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 class Review(models.Model):
     id = models.AutoField(primary_key=True)
@@ -65,7 +56,7 @@ class Review(models.Model):
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 class Status(models.Model):
     name = models.CharField(max_length=50, primary_key=True)

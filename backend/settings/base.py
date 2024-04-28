@@ -127,6 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -188,3 +189,5 @@ REST_AUTH = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=6),
 }
+# Specify the User model
+AUTH_USER_MODEL = 'api.CustomUser'

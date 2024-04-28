@@ -1,10 +1,11 @@
 from django.contrib import admin
 
-from .models import Message, Property, User, Group, Property_Type, Amenity, Image, City, Booking, Review, Status
+from .models import Message, Property, CustomUser, Property_Type, Amenity, Image, City, Booking, Review, Status
 
-@admin.register(User)
+
+@admin.register(CustomUser)
 class UserModelAdmin(admin.ModelAdmin):
-    list_display = ('firstname', 'lastname', 'email', 'date_joined', 'groups')
+    list_display = ('username', 'email', 'date_joined')
     list_filter = ('date_joined', 'last_login')
     search_fields = ('firstname', 'lastname', 'email')
 
@@ -14,9 +15,6 @@ class PropertyModelAdmin(admin.ModelAdmin):
     list_filter = ('price_per_night', 'surface', 'is_active')
     search_fields = ('title', 'description', 'address')
 
-@admin.register(Group)
-class GroupModelAdmin(admin.ModelAdmin):
-    list_display = ('name',)
 
 @admin.register(Property_Type)
 class TypeModelAdmin(admin.ModelAdmin):

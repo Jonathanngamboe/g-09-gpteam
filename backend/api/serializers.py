@@ -1,10 +1,5 @@
 from rest_framework import serializers
-from .models import User, Group, Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
+from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -45,12 +40,6 @@ class ReviewSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Review
         fields = ['url', 'rating', 'comment', 'created_at', 'property', 'user']
-
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ['url', 'name']
 
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
