@@ -1,4 +1,14 @@
-from .models import User, Group, Property_Type, Amenity, City, Image,  Property, Booking, Review
+from django.core.management.base import BaseCommand
+
+from backend.api.models import User, Group, Property_Type, Amenity, City, Image,  Property, Booking, Review
+
+
+class Command(BaseCommand):
+    help = 'Seeds the database with initial data'
+
+    def handle(self, *args, **options):
+        seed_data()
+        self.stdout.write(self.style.SUCCESS('Data successfully seeded'))
 
 def seed_data():
     # Create groups
@@ -7,12 +17,8 @@ def seed_data():
     administrator = Group.objects.create(name='Administrator')
     
     # Create users
-    johnDoe_user = User.objects.create_user(firstname='John', lastname='Doe', date_of_birth='1990-01-01', email='john@example.com', password='password', profil_image='profil_image/default.jpg')
-    janeDoe_user = User.objects.create_user(firstname='Jane', lastname='Doe', date_of_birth='1990-01-01', email='jane@example.com', password='password', profil_image='profil_image/default.jpg')
-
-    # Assign users to groups
-    johnDoe_user.groups.add(homeowner_group)
-    janeDoe_user.groups.add(students_group)
+    johnDoe_user = User.objects.create(firstname='John', lastname='Doe', date_of_birth='1990-01-01', email='john@example.com', password='password', profil_image='profil_image/default.jpg', groups=homeowner_group)
+    janeDoe_user = User.objects.create(firstname='Jane', lastname='Doe', date_of_birth='1990-01-01', email='jane@example.com', password='password', profil_image='profil_image/default.jpg', groups=students_group)
 
     # Create property types
     house = Property_Type.objects.create(name='House')
@@ -42,8 +48,7 @@ def seed_data():
     image3 = Image.objects.create(image='property_image/3.jpg')
 
     # Create properties
-    property1 = Property.objects.create(title='House in Venice', description='Beautiful house in Venice', address='Venice', price_per_night=100.00, surface=100, is_active=True, owner=johnDoe_user)
-    property1.property_type.add(house)
+    property1 = Property.objects.create(title='House in Venice', description='Beautiful house in Venice', address='Venice', price_per_night=100.00, surface=100, is_active=True, owner=johnDoe_user, property_Type=house)
     property1.amenities.add(wifi)
     property1.amenities.add(parking)
     property1.amenities.add(kitchen)
@@ -53,8 +58,7 @@ def seed_data():
     property1.images.add(image2)
     property1.save()
 
-    property2 = Property.objects.create(title='Apartment in Paris', description='Beautiful apartment in Paris', address='Paris', price_per_night=200.00, surface=50, is_active=True, owner=johnDoe_user)
-    property2.property_type.add(apartement)
+    property2 = Property.objects.create(title='Apartment in Paris', description='Beautiful apartment in Paris', address='Paris', price_per_night=200.00, surface=50, is_active=True, owner=johnDoe_user, property_Type=apartement)
     property2.amenities.add(parking)
     property2.amenities.add(kitchen)
     property2.city=paris
