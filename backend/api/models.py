@@ -9,9 +9,7 @@ class CustomUser(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
     profil_image = models.ImageField(upload_to='profil_image/', default='profil_image/default.jpg', blank=True)
-    customGroups = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='users', null=True, default=None, blank=True)
     
-
 class Property(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=50)

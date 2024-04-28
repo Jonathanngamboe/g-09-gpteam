@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
+from django.contrib.auth.models import Group
 
-from backend.api.models import User, Group, Property_Type, Amenity, City, Image,  Property, Booking, Review
+from backend.api.models import CustomUser, Property_Type, Amenity, City, Image,  Property, Booking, Review
 
 
 class Command(BaseCommand):
@@ -12,13 +13,30 @@ class Command(BaseCommand):
 
 def seed_data():
     # Create groups
-    homeowner_group = Group.objects.create(name='Homeowner')
-    students_group = Group.objects.create(name='Student')
+    homeowner = Group.objects.create(name='Homeowner')
+    students = Group.objects.create(name='Student')
     administrator = Group.objects.create(name='Administrator')
     
     # Create users
-    johnDoe_user = User.objects.create(firstname='John', lastname='Doe', date_of_birth='1990-01-01', email='john@example.com', password='password', profil_image='profil_image/default.jpg', groups=homeowner_group)
-    janeDoe_user = User.objects.create(firstname='Jane', lastname='Doe', date_of_birth='1990-01-01', email='jane@example.com', password='password', profil_image='profil_image/default.jpg', groups=students_group)
+    john_doe = CustomUser.objects.create(
+        first_name='John',
+        last_name='Doe',
+        username='johndoe',
+        password='password',
+        date_of_birth='1990-01-01',
+        email='john@example.com',
+        profil_image='profil_image/default.jpg',
+    )
+    john_doe.groups.add(homeowner)
+    jane_doe = CustomUser.objects.create(
+        first_name='Jane', 
+        last_name='Doe',
+        username='janedoe',
+        password='password', 
+        date_of_birth='1990-01-01',
+        email='jane@example.com', 
+        profil_image='profil_image/default.jpg')
+    jane_doe.groups.add(students)
 
     # Create property types
     house = Property_Type.objects.create(name='House')
@@ -48,7 +66,7 @@ def seed_data():
     image3 = Image.objects.create(image='property_image/3.jpg')
 
     # Create properties
-    property1 = Property.objects.create(title='House in Venice', description='Beautiful house in Venice', address='Venice', price_per_night=100.00, surface=100, is_active=True, owner=johnDoe_user, property_Type=house)
+    property1 = Property.objects.create(title='House in Venice', description='Beautiful house in Venice', address='Venice', price_per_night=100.00, surface=100, is_active=True, owner=john_doe, property_Type=house)
     property1.amenities.add(wifi)
     property1.amenities.add(parking)
     property1.amenities.add(kitchen)
@@ -58,7 +76,7 @@ def seed_data():
     property1.images.add(image2)
     property1.save()
 
-    property2 = Property.objects.create(title='Apartment in Paris', description='Beautiful apartment in Paris', address='Paris', price_per_night=200.00, surface=50, is_active=True, owner=johnDoe_user, property_Type=apartement)
+    property2 = Property.objects.create(title='Apartment in Paris', description='Beautiful apartment in Paris', address='Paris', price_per_night=200.00, surface=50, is_active=True, owner=john_doe, property_Type=apartement)
     property2.amenities.add(parking)
     property2.amenities.add(kitchen)
     property2.city=paris
@@ -67,7 +85,7 @@ def seed_data():
     property2.save()
 
     # Create bookings
-    booking1 = Booking.objects.create(check_in='2021-01-01', check_out='2021-01-10', property=property1, user=janeDoe_user)
-    booking2 = Booking.objects.create(check_in='2021-02-01', check_out='2021-02-10', property=property2, user=janeDoe_user)
+    booking1 = Booking.objects.create(check_in='2021-01-01', check_out='2021-01-10', property=property1, user=jane_doe)
+    booking2 = Booking.objects.create(check_in='2021-02-01', check_out='2021-02-10', property=property2, user=jane_doe)
     booking1.save()
     booking2.save()

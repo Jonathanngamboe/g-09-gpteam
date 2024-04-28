@@ -5,9 +5,12 @@ from .models import Message, Property, CustomUser, Property_Type, Amenity, Image
 
 @admin.register(CustomUser)
 class UserModelAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'date_joined')
+    list_display = ('username', 'email', 'date_joined', 'get_groups')
     list_filter = ('date_joined', 'last_login')
-    search_fields = ('firstname', 'lastname', 'email')
+    search_fields = ('first_name', 'last_name', 'email', 'get_groups')
+
+    def get_groups(self, obj):
+        return ', '.join([group.name for group in obj.groups.all()])
 
 @admin.register(Property)
 class PropertyModelAdmin(admin.ModelAdmin):
