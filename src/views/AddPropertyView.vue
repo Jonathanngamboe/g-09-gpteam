@@ -53,10 +53,10 @@ export default {
             console.log('property:', property.value.owner);
             const response = await propertyService.addProperty(property.value);
             console.log('Property added successfully:', response);
-            // Reset the form or handle the success (redirect, show a message, etc.)
+            // Reset the form or handle the success 
           } catch (error) {
             console.error('Error adding property:', error);
-            // Handle the error (show a message to the user, etc.)
+            // Handle the error 
           }
         }
       };
