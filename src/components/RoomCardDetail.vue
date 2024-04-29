@@ -53,11 +53,12 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
+                            :disable="isRoomBooked"
                         />
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn"
+                            :disable="!checkIn || isRoomBooked"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -108,6 +109,21 @@
 import { ref, computed, watch, defineComponent } from 'vue';
   
   export default defineComponent({
+    data(){
+        return{
+            checkIn: '',
+            checkOut: '',
+            bookings: []
+        }
+    },
+    computed:{
+        isRoomBooked(){
+            return this.bookings.some(booking =>
+                (new Date(booking.checkIn) <= new Date(this.checkIn) && new Date(booking.checkOut) >= new Date(this.checkIn)) ||
+                (new Date(booking.checkIn) <= new Date(this.checkOut) && new Date(booking.checkOut) >= new Date(this.checkOut))
+            );
+        }
+    },
     emits: ['book-room'],
     props: {
       room: {
@@ -178,7 +194,14 @@ import { ref, computed, watch, defineComponent } from 'vue';
       // Helper function to format number with ''' separator
       formatNumber(number) {
         return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      },
+      async fetchBookings() {
+        const response = await fetch('https://localhost:8000/api/bookings');
+        this.bookings = await response.json();
       }
+    },
+    created(){
+        this.fetchBookings();
     }
   });
   </script>
