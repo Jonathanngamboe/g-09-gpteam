@@ -15,7 +15,7 @@
         </q-card>
         <q-card class="col-12 q-ma-md" flat bordered>
           <q-card-section>
-            <div class="text-h6">078/456/78/90</div> <!-- Fictive phone number -->
+            <div class="text-h6">18/10/1981</div> <!-- Fictive phone number -->
           </q-card-section>
         </q-card>
         <q-card class="col-12 q-ma-md" flat bordered>
@@ -39,7 +39,7 @@ export default {
   methods: {
     editField(field) {
       // Navigate to the edit page for the specified field
-      this.$router.push(`/edit/${field}`);
+      this.$router.push('/EditUserInformations');
     }
   }
 }

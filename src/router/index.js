@@ -3,6 +3,7 @@ import MainLayout from "@/layouts/MainLayout.vue"
 import UserAccountView from '@/views/UserAccountView.vue'
 import AddPropertyView from '@/views/AddPropertyView.vue'
 import MessagesView from '../views/MessagesView.vue';
+import EditUserInformationsView from '@/views/EditUserInformationsView.vue'
 
 
 const routes = [
@@ -22,11 +23,17 @@ const routes = [
       { path: '/room/:id', name: 'room', component: () => import('@/views/RoomView.vue') },
       { path: "/Add-Room", name: "Add-Room", component: AddPropertyView },
       { path: "/UserAccount", name: "UserAccount", component: UserAccountView },
+      { path: "/EditUserInformations", name: "EditUserInformations", component: EditUserInformationsView },
       { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') },
       
       
     ]
   },
+  
+
+
+
+
   
   
   
