@@ -18,12 +18,11 @@ from django.urls import path, include
 from rest_framework import routers
 from django.conf.urls.static import static
 from django.conf import settings
-from .api.views import index_view, UserViewSet, GroupViewSet, MessageViewSet, BookingViewSet, PropertyViewSet, Property_TypeViewSet, AmenityViewSet, ImageViewSet, CityViewSet, ReviewViewSet, StatusViewSet
+from .api.views import index_view, MessageViewSet, BookingViewSet, PropertyViewSet, Property_TypeViewSet, AmenityViewSet, ImageViewSet, CityViewSet, ReviewViewSet, StatusViewSet, CustomUserViewSet
 
 router = routers.DefaultRouter()
+router.register('customusers', CustomUserViewSet)
 router.register('messages', MessageViewSet)
-router.register('users', UserViewSet)
-router.register('groups', GroupViewSet)
 router.register('bookings', BookingViewSet)
 router.register('properties', PropertyViewSet)
 router.register('property_types', Property_TypeViewSet)

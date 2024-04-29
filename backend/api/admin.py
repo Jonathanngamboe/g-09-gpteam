@@ -1,22 +1,23 @@
 from django.contrib import admin
 
-from .models import Message, Property, User, Group, Property_Type, Amenity, Image, City, Booking, Review, Status
+from .models import Message, Property, CustomUser, Property_Type, Amenity, Image, City, Booking, Review, Status
 
-@admin.register(User)
+
+@admin.register(CustomUser)
 class UserModelAdmin(admin.ModelAdmin):
-    list_display = ('firstname', 'lastname', 'email', 'date_joined')
+    list_display = ('username', 'email', 'date_joined', 'get_groups')
     list_filter = ('date_joined', 'last_login')
-    search_fields = ('firstname', 'lastname', 'email')
+    search_fields = ('first_name', 'last_name', 'email', 'get_groups')
+
+    def get_groups(self, obj):
+        return ', '.join([group.name for group in obj.groups.all()])
 
 @admin.register(Property)
 class PropertyModelAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price_per_night', 'surface', 'is_active')
+    list_display = ('title', 'price_per_night', 'surface', 'is_active', 'owner', 'city')
     list_filter = ('price_per_night', 'surface', 'is_active')
     search_fields = ('title', 'description', 'address')
 
-@admin.register(Group)
-class GroupModelAdmin(admin.ModelAdmin):
-    list_display = ('name',)
 
 @admin.register(Property_Type)
 class TypeModelAdmin(admin.ModelAdmin):
@@ -28,7 +29,7 @@ class AmenitiesModelAdmin(admin.ModelAdmin):
 
 @admin.register(Image)
 class ImageModelAdmin(admin.ModelAdmin):
-    list_display=('id', 'property')
+    list_display=('id', 'image')
 
 @admin.register(City)
 class CityModelAdmin(admin.ModelAdmin):
