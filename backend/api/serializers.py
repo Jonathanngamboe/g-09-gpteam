@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
+from django.db.models import Avg
 
 class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -19,9 +20,14 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
 
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
+    average_rating = serializers.SerializerMethodField()
     class Meta:
         model = Property
-        fields = ['url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images']
+        fields = ['id', 'url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating']
+
+    def get_average_rating(self, obj):
+        average = Review.objects.filter(property=obj).aggregate(Avg('rating'))
+        return average['rating__avg'] if average['rating__avg'] is not None else 0
 
 class Property_TypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
