@@ -18,12 +18,18 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
         model = Image
         fields = ['url', 'image']
 
+class CitySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = City
+        fields = ['url', 'name', 'zip']
+
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    city = CitySerializer(read_only=True)
     class Meta:
         model = Property
-        fields = ['id', 'url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating']
+        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating']
 
     def get_average_rating(self, obj):
         average = Review.objects.filter(property=obj).aggregate(Avg('rating'))
@@ -44,10 +50,6 @@ class StatusSerializer(serializers.HyperlinkedModelSerializer):
         model = Status
         fields = ['url', 'name']
 
-class CitySerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = City
-        fields = ['url', 'name', 'zip']
 
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
