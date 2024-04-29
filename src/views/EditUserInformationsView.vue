@@ -8,10 +8,10 @@
       Last Name:
       <input v-model="user.last_name" type="text" />
     </label>
-    <label>
+    <!-- <label>
       Email:
       <input v-model="user.email" type="email" />
-    </label>
+    </label> -->
     <button type="submit">Update</button>
   </form>
 </template>
@@ -48,16 +48,16 @@ export default {
         return;
       }
 
-      try {
-        const response = await api.put('dj-rest-auth/user/', this.user);
+      // try {
+        const response = await api.patch('dj-rest-auth/user/', this.user);
         authService.user.value = response.data;
         this.user.first_name = authService.user.value.first_name;
         this.user.last_name = authService.user.value.last_name;
         this.user.email = authService.user.value.email;
         console.log('User details updated:', authService.user.value);
-      } catch (error) {
+      /* } catch (error) {
         console.error('An error occurred:', error);
-      }
+      } */
     }
   },
   created() {
