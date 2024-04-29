@@ -95,3 +95,14 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+# def add_property_view(request):
+#    if request.method == 'POST':
+#        property_data = request.POST  
+#        try:
+#            new_property = propertyService.addProperty(property_data)
+#            return JsonResponse({'success': True, 'message': 'Property added successfully', 'property': new_property})
+#        except Exception as e:
+#            return JsonResponse({'success': False, 'error': str(e)})
+#    else:
+#        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed for this endpoint'}, status=405)

@@ -1,20 +1,31 @@
 from rest_framework import serializers
 from .models import User, Group, Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+# class UserSerializer(serializers.HyperlinkedModelSerializer):
+#    class Meta:
+#        model = User
+#        fields = ['url', 'username', 'email','first_name','last_name', 'groups']
+
+class UserSerializer(serializers.ModelSerializer):  
     class Meta:
         model = User
-        fields = ['url', 'username', 'email','first_name','last_name', 'groups']
+        fields = ['id', 'username', 'email','first_name','last_name', 'groups']
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Booking
         fields = ['url', 'check_in', 'check_out', 'created_at', 'property', 'user']
 
-class PropertySerializer(serializers.HyperlinkedModelSerializer):
+# class PropertySerializer(serializers.HyperlinkedModelSerializer):
+#    class Meta:
+#        model = Property
+#        fields = ['url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner']
+
+class PropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
-        fields = ['url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner']
+        fields = ['id', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner']
+
 
 class Property_TypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
