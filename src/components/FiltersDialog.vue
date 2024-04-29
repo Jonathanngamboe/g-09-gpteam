@@ -22,7 +22,7 @@
       <q-space />
 
       <!-- Amenities selector -->
-      <div class="amenities-checkboxes">
+      <div class="amenities-checkboxes" v-if="displayedAmenities.length > 0">
         <label>Amenities</label>
         <div class="amenities-list">
           <div v-for="amenity in displayedAmenities" :key="amenity" class="amenity-item">
@@ -121,8 +121,9 @@
 </template>
 
 <script>
-import { ref, reactive, computed, defineComponent } from 'vue';
+import { ref, reactive, computed, defineComponent, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import api from '@/services/api';
 
 export default defineComponent({
   emits: ['on-filter', 'on-reset', 'toggle-filters', 'update:isVisible'],
@@ -133,6 +134,8 @@ export default defineComponent({
   setup(props, { emit }) {
     const $q = useQuasar();
     const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
+    const apiUrl = 'localhost:8000/api';
+    const allAmenitiesOptions = ref([]);
 
     const visible = computed({
       get: () => props.isVisible,
@@ -162,17 +165,35 @@ export default defineComponent({
     const showAllAmenities = ref(false);
 
     // Full list of amenities
-    const allAmenitiesOptions = [
-      'Wi-Fi', 'Parking', 'Kitchen', 'Air conditioning', 'Breakfast',
-      'Pool', 'Gym', 'Spa', 'Pets allowed', 'Wheelchair accessible',
-      'Elevator', 'Balcony', 'Beachfront', 'Mountain view', 'City view',
-      'Garden view', 'Terrace', 'Fireplace', 'Bathtub', 'Sauna',
-      'Jacuzzi', 'TV', 'Netflix', 'Amazon Prime',
-    ];
+    async function fetchAmenities() {
+      try {
+        const response = await api.get(`${apiUrl}/amenities`);
+        allAmenitiesOptions.value = response.data;
+      } catch (error) {
+        $q.notify({
+          message: 'Failed to load amenities from the server',
+          color: 'negative',
+          position: 'top',
+          icon: 'error'
+        });
+      }
+    }
+
+    onMounted(fetchAmenities);
 
     // Computed list of amenities based on toggle
     const displayedAmenities = computed(() => {
-      return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.slice(0, 9);
+      try {
+        return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.slice(0, 9);
+      } catch (error) {
+        $q.notify({
+          message: 'Failed to load amenities from the server',
+          color: 'negative',
+          position: 'top',
+          icon: 'error'
+        });
+        return [];
+      }
     });
 
     // Method to update selected amenities
