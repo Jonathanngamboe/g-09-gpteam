@@ -1,31 +1,26 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator
 from django.core.validators import MaxValueValidator
 
-class User(models.Model):
-    id = models.AutoField(primary_key=True)
-    firstname = models.CharField(max_length=100)
-    lastname = models.CharField(max_length=100)
-    date_of_birth = models.DateField()
-    email = models.EmailField()
-    password = models.CharField(max_length=200)
+class CustomUser(AbstractUser):
+    date_of_birth = models.DateField(blank=True, null=True)
+    email = models.EmailField(blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
-    profil_image = models.ImageField(upload_to='profil_image/', default='profil_image/default.jpg')
+    profil_image = models.ImageField(upload_to='profil_image/', default='profil_image/default.jpg', blank=True)
     
-    def __str__(self):
-        return self.firstname + " " + self.lastname
-    
-class Group(models.Model):
-    name = models.CharField(max_length=50, primary_key=True)
-
 class Property(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=50)
     description = models.TextField()
     address = models.CharField(max_length=100)
+    city = models.ForeignKey('City', on_delete=models.CASCADE, related_name='properties', null=True, default=None)
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)])
     surface = models.PositiveIntegerField(validators=[MaxValueValidator(999)])
+    amenities = models.ManyToManyField('Amenity')
+    property_Type = models.ForeignKey ('Property_Type', on_delete=models.CASCADE, related_name='properties', null=True, default=None)
+    images = models.ManyToManyField('Image')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -40,7 +35,6 @@ class Amenity(models.Model):
 class Image(models.Model):
     id = models.AutoField(primary_key=True)
     image = models.ImageField(upload_to='property_image/')
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
 
 class City(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -52,7 +46,7 @@ class Booking(models.Model):
     check_out = models.DateField()  #End date
     created_at = models.DateTimeField(auto_now_add=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 class Review(models.Model):
     id = models.AutoField(primary_key=True)
@@ -60,7 +54,7 @@ class Review(models.Model):
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 class Status(models.Model):
     name = models.CharField(max_length=50, primary_key=True)

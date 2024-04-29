@@ -66,6 +66,7 @@ import RoomCard from '@/components/RoomCard.vue';
 import FiltersDialog from '@/components/FiltersDialog.vue';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import { useQuasar } from 'quasar';
+import api from '@/services/api';
 
 export default defineComponent({
   components: {
@@ -80,6 +81,26 @@ export default defineComponent({
     const dialogVisible = ref(false);
     const selectedRoom = ref(null);
     const splitterModel = ref(100);
+    const apiUrl = 'http://localhost:8000/api';
+    const allRooms = ref([]);
+
+    async function fetchRooms() {
+      try {
+        const response = await api.get(`${apiUrl}/properties`);
+        console.log('Rooms fetched:', response.data);
+        allRooms.value = response.data;
+      } catch (error) {
+        console.error('Failed to fetch rooms:', error);
+        $q.notify({
+          message: 'Failed to load rooms from the server',
+          color: 'negative',
+          position: 'top',
+          icon: 'error'
+        });
+      }
+    }
+
+    onMounted(fetchRooms);
 
     function handleClickRoom(roomId) {
       const room = allRooms.value.find(r => r.id === roomId);
@@ -174,58 +195,14 @@ export default defineComponent({
       if (!filtersApplied.value) {
         return allRooms.value // Return all rooms if no filters are applied
       }
-      return allRooms.value.filter((room) => {
-        const locationMatch =
-          !filters.location || room.location.toLowerCase().includes(filters.location.toLowerCase())
-        const priceMatch =
-          room.price >= filters.priceRange.min && room.price <= filters.priceRange.max
-        const amenitiesMatch =
-          filters.amenities.length === 0 ||
-          filters.amenities.every((amenity) => room.amenities.includes(amenity))
-        const ratingMatch = room.rating >= filters.rating.min && room.rating <= filters.rating.max
-        return locationMatch && priceMatch && amenitiesMatch && ratingMatch
-      })
-    })
-
-    // TODO: Replace with the actual list of rooms
-    const allRooms = ref([
-      {
-        id: 1,
-        images: ['https://cdn.quasar.dev/img/parallax1.jpg', 'https://cdn.quasar.dev/img/parallax2.jpg'],
-        location: 'Venice',
-        title: 'Beautiful Room with a View',
-        description: 'Detailed information about the room...',
-        surfaceArea: 55,
-        price: 100,
-        amenities: ["Wi-Fi", "Parking", "Balcony", "Kitchen"],
-        rating: 2,
-        expanded: false
-      },
-      {
-        id: 2,
-        images: ['https://cdn.quasar.dev/img/parallax2.jpg', 'https://cdn.quasar.dev/img/parallax1.jpg'],
-        location: 'New York',
-        title: 'Cozy Apartment in the Heart of the City',
-        description: 'Detailed information about the room...',
-        surfaceArea: 20,
-        price: 120,
-        amenities: ["Netflix", "Wi-Fi", "Parking", "Kitchen"],
-        rating: 3,
-        expanded: false
-      },
-      {
-        id: 3,
-        images: ['https://cdn.quasar.dev/img/mountains.jpg', 'https://cdn.quasar.dev/img/parallax1.jpg'],
-        location: 'Martigny',
-        title: 'Mountain Chalet with a Stunning View',
-        description: 'Detailed information about the room...',
-        surfaceArea: 35,
-        price: 920,
-        amenities: ["Balcony", "Kitchen", "Fireplace"],
-        rating: 5,
-        expanded: false
-      },
-    ]);
+      return allRooms.value.filter(room => {
+        const locationMatch = !filters.location || room.location.toLowerCase().includes(filters.location.toLowerCase());
+        const priceMatch = room.price >= filters.priceRange.min && room.price <= filters.priceRange.max;
+        const amenitiesMatch = filters.amenities.length === 0 || filters.amenities.every(amenity => room.amenities.includes(amenity));
+        const ratingMatch = room.rating >= filters.rating.min && room.rating <= filters.rating.max;
+        return locationMatch && priceMatch && amenitiesMatch && ratingMatch;
+      });
+    });
 
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
