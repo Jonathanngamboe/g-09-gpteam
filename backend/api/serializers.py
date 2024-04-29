@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message
+from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
+
+class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['url', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'is_owner', 'is_client', 'date_joined', 'last_login']
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

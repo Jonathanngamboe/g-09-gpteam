@@ -1,12 +1,19 @@
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions
-from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message
-from .serializers import   BookingSerializer, PropertySerializer, Property_TypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer
+from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
+from .serializers import   BookingSerializer, PropertySerializer, Property_TypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
+class CustomUserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows custom users to be viewed or edited.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class BookingViewSet(viewsets.ModelViewSet):
     """
