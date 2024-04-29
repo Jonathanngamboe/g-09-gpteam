@@ -6,7 +6,7 @@ from .models import  Booking, Property, Property_Type, Amenity, Status, Image, C
 #        model = User
 #        fields = ['url', 'username', 'email','first_name','last_name', 'groups']
 
-class UserSerializer(serializers.ModelSerializer):  
+class CustomUserSerializer(serializers.ModelSerializer):  
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email','first_name','last_name', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'is_owner', 'is_client', 'date_joined', 'last_login']

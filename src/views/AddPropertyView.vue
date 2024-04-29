@@ -48,7 +48,7 @@ export default {
             await authService.getUser();
             const user = authService.user.value;
            
-            property.value.owner = user.username;
+            property.value.owner = user.pk;
             console.log('user:', user);
             console.log('property:', property.value.owner);
             const response = await propertyService.addProperty(property.value);
