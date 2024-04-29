@@ -11,10 +11,17 @@ class BookingSerializer(serializers.HyperlinkedModelSerializer):
         model = Booking
         fields = ['url', 'check_in', 'check_out', 'created_at', 'property', 'user']
 
+
+class ImageSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Image
+        fields = ['url', 'image']
+
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
+    images = ImageSerializer(many=True, read_only=True)
     class Meta:
         model = Property
-        fields = ['url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner']
+        fields = ['url', 'title', 'description', 'address', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images']
 
 class Property_TypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -30,11 +37,6 @@ class StatusSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Status
         fields = ['url', 'name']
-
-class ImageSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Image
-        fields = ['url', 'image', 'property']
 
 class CitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
