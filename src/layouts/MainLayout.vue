@@ -103,6 +103,8 @@
 import { ref } from 'vue'
 //import LoginDialog from '@/components/LoginDialog.vue';
 import LoginDialog from '../components/LoginDialog.vue';
+import authService from "@/services/authService"; 
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
@@ -111,8 +113,13 @@ export default {
   setup() {
     const rightDrawerOpen = ref(false);
     const loginVisible = ref(false);
+    const router = useRouter();
     const toggleLogin = () => {
-      loginVisible.value = !loginVisible.value;
+      if (authService.user.value) {
+        router.push('/my-account');
+      } else {
+        loginVisible.value = !loginVisible.value;
+      }
     };
     // Initialize the menu list
     // TODO: Replace with actual menu items
