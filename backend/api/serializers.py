@@ -5,7 +5,7 @@ from django.db.models import Avg
 class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'url', 'username', 'email','first_name','last_name', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'is_owner', 'is_client', 'date_joined', 'last_login']
+        fields = ['id', 'url', 'username', 'email','first_name','last_name', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'is_owner',  'date_joined', 'last_login']
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

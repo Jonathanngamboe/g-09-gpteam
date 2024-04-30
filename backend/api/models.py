@@ -9,6 +9,7 @@ class CustomUser(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
     profil_image = models.ImageField(upload_to='profil_image/', default='profil_image/default.jpg', blank=True)
+    is_owner = models.BooleanField(default=False)
     
 class Property(models.Model):
     id = models.AutoField(primary_key=True)

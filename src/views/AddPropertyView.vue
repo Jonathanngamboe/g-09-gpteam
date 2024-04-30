@@ -48,9 +48,10 @@ export default {
         if (isFormValid.value) {
           try {
             await authService.getUser();
+            console.log('user:', authService.user.url);
             const user = authService.user.value;
            
-            property.value.owner = user.id;
+            property.value.owner = user.url;
             console.log('user:', user);
             console.log('property:', property.value.owner);
             const response = await propertyService.addProperty(property.value);
