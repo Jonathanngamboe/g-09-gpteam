@@ -34,7 +34,7 @@ export default {
             price_per_night: null,
             surface: null,
             is_active: true,
-            owner: '',
+            //owner: '',
             image: ''
         });
         // Check if the form is valid

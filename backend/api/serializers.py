@@ -28,15 +28,16 @@ class AmenitySerializer(serializers.HyperlinkedModelSerializer):
         model = Amenity
         fields = ['url', 'name']
 
-class PropertySerializer(serializers.HyperlinkedModelSerializer):
+# class PropertySerializer(serializers.HyperlinkedModelSerializer):
+class PropertySerializer(serializers.ModelSerializer):    
     images = ImageSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     city = CitySerializer(read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
     class Meta:
         model = Property
-        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
-
+        # fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
+        fields = ['id', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
     def get_average_rating(self, obj):
         average = Review.objects.filter(property=obj).aggregate(Avg('rating'))
         return average['rating__avg'] if average['rating__avg'] is not None else 0
