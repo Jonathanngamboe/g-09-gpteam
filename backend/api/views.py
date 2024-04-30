@@ -3,9 +3,23 @@ from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions
 from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
 from .serializers import   BookingSerializer, PropertySerializer, Property_TypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    """
+    Retrieve the currently logged in user.
+    """
+    serializer = CustomUserSerializer(request.user, context={'request': request})
+    return Response(serializer.data)
+
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     """
@@ -14,6 +28,13 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Restrict non-staff users to only access their own user object
+        if self.request.user.is_staff:
+            return CustomUser.objects.all()
+        else:
+            return CustomUser.objects.filter(id=self.request.user.id)
 
 class BookingViewSet(viewsets.ModelViewSet):
     """
