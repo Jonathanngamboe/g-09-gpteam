@@ -34,11 +34,12 @@
 
 
 <script>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import authService from '@/services/authService';
 import UserInformation from "@/components/UserInformation.vue";
 import MyRooms from "@/components/MyRooms.vue";
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
@@ -46,6 +47,7 @@ export default {
     MyRooms,
   },
   setup() {
+    const router = useRouter();
     const user = ref(null);
     const room = ref(null); // Define room
     const $q = useQuasar();
@@ -60,12 +62,18 @@ export default {
           router.push('/'); // Redirect to home page if user is not logged in
         }
         user.value = authService.user.value;
-        // TODO: Fetch room data
-      } catch (error) {
-        console.error('An error occurred:', error);
-        router.push('/'); // Redirect on error or if user data cannot be fetched
-      }
-    });
+
+        // TODO: Fetch user's rooms
+
+        } catch (error) {
+          router.push('/'); // Redirect on error or if user data cannot be fetched
+          $q.notify({
+            color: 'negative',
+            position: 'top',
+            message: `${error.message}`
+          });
+        }
+      });
 
     return { 
       user, 
