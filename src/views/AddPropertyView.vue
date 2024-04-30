@@ -45,10 +45,9 @@ export default {
       const submitForm = async () => {
         if (isFormValid.value) {
           try {
-            await authService.getUser();
-            const user = authService.user.value;
-           
-            property.value.owner = user.pk;
+            await authService.getCustomuser();
+            const user = authService.user.value;         
+            property.value.owner = user.url;
             console.log('user:', user);
             console.log('property:', property.value.owner);
             const response = await propertyService.addProperty(property.value);
