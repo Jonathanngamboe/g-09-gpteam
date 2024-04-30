@@ -10,6 +10,7 @@
                 style="margin-bottom: 2%;" />
             <q-input v-model="property.price_per_night" label="Price per Night" outlined dense required />
             <q-input v-model="property.address" label="Address" outlined dense required />
+            <q-input v-model="property.city" label="City" outlined dense required />
             <q-input v-model="property.surface" label="Surface (sqm)" outlined dense required />
             <q-input v-model="property.image" label="Image URL" outlined dense required />
             <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room" @click=""
@@ -31,6 +32,7 @@ export default {
             title: '',
             description: '',
             address: '',
+            city: '',
             price_per_night: null,
             surface: null,
             is_active: true,
