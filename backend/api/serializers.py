@@ -10,7 +10,7 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     )
     class Meta:
         model = CustomUser
-        fields = ['id', 'url', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'last_login', 'groups']
+        fields = ['id', 'url', 'username', 'email', 'first_name', 'last_name', 'date_of_birth', 'date_joined', 'last_login', 'groups']
 
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
