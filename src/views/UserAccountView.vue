@@ -1,20 +1,44 @@
 <template>
-  <div class="container">
-    <div v-if="utilisateur" class="user-information-container">
-      <UserInformation :utilisateur="utilisateur" />
-    </div>
-    <div v-if="room" class="MyRooms-container">
-      <MyRooms :room="room" />
-    </div>
-  </div>
+    <template v-if="$q.screen.width >= 600">
+      <!-- Desktop and Tablet Layout with Splitter -->
+      <q-splitter v-model="splitterModel" class="full-width">
+        <template v-slot:before>
+          <div class="full-height q-pa-md">
+            <UserInformation :user="user" />
+          </div>
+        </template>
+        <q-separator />
+        <template v-slot:after>
+          <div class="full-height q-pa-md">
+            <MyRooms :room="room" />
+          </div>
+        </template>
+      </q-splitter>
+    </template>
+    <template v-else>
+      <!-- Mobile Layout with Tabs -->
+      <q-tabs aligned="justify" v-model="tab">
+        <q-tab name="user-info" icon="person" />
+        <q-tab name="rooms" icon="bed" />
+      </q-tabs>
+      <q-tab-panels v-model="tab" animated>
+        <q-tab-panel name="user-info">
+          <UserInformation :user="user" />
+        </q-tab-panel>
+        <q-tab-panel name="rooms">
+          <MyRooms :room="room" />
+        </q-tab-panel>
+      </q-tab-panels>
+    </template>
 </template>
 
+
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import authService from '@/services/authService';
 import UserInformation from "@/components/UserInformation.vue";
 import MyRooms from "@/components/MyRooms.vue";
-
+import { useQuasar } from 'quasar';
 
 export default {
   components: {
@@ -22,48 +46,33 @@ export default {
     MyRooms,
   },
   setup() {
-    const utilisateur = ref(null);
+    const user = ref(null);
     const room = ref(null); // Define room
+    const $q = useQuasar();
+    const splitterModel = ref(40);
+    const tab = ref('user-info');
 
     onMounted(async () => {
       try {
-        // Call getUser to get the user data
         await authService.getUser();
 
-        // Extract the user data from the response
-        utilisateur.value = authService.user.value;
-
-        // Set room data
-        room.value = { title: 'Room 1' }; // Replace this with your actual room data
+        if (!authService.user.value) {
+          router.push('/'); // Redirect to home page if user is not logged in
+        }
+        user.value = authService.user.value;
+        // TODO: Fetch room data
       } catch (error) {
         console.error('An error occurred:', error);
+        router.push('/'); // Redirect on error or if user data cannot be fetched
       }
     });
 
-    return { utilisateur, room };
+    return { 
+      user, 
+      room, 
+      splitterModel,
+      tab
+    };
   }
 }
 </script>
-
-<style scoped>
-.container {
-  display: flex;
-  flex-direction: row; /* Make the main axis horizontal */
-  height: 100vh; /* Make sure the parent container has a defined height */
-  width: 100%;
-  align-items: flex-start; /* Align the child containers at the top of the page */
-}
-.user-information-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 30vw; /* UserInformation takes up 1/4 of the viewport width */
-}
-.MyRooms-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 50vw; /* MyRooms takes up the remaining width of the viewport */
-
-}
-</style>
