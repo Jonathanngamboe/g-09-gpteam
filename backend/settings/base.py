@@ -30,7 +30,7 @@ SECRET_KEY = "django-insecure-o#i0s2v!-&@-b5j5*#q1ao6_^)4*brwc!w!81ii-@2=52$_fgh
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-# CSRF_TRUSTED_ORIGINS = ['http://localhost:8080', 'http://localhost:5173']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8080', 'http://localhost:5173','https://09-gpteam.rxq.ch']
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
@@ -127,6 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -188,3 +189,5 @@ REST_AUTH = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=6),
 }
+# Specify the User model
+AUTH_USER_MODEL = 'api.CustomUser'

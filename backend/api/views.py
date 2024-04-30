@@ -1,29 +1,83 @@
-from django.contrib.auth.models import User, Group
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions
-from .models import Message, Room
-from .serializers import UserSerializer, GroupSerializer, MessageSerializer, RoomSerializer
+from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
+from .serializers import   BookingSerializer, PropertySerializer, Property_TypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
-class UserViewSet(viewsets.ModelViewSet):
+class CustomUserViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows custom users to be viewed or edited.
     """
-    queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+class BookingViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows bookings to be viewed or edited.
+    """
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-class GroupViewSet(viewsets.ModelViewSet):
+class PropertyViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that allows properties to be viewed or edited.
     """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAdminUser]
+    queryset = Property.objects.all()
+    serializer_class = PropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class Property_TypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows property types to be viewed or edited.
+    """
+    queryset = Property_Type.objects.all()
+    serializer_class = Property_TypeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class AmenityViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows amenities to be viewed or edited.
+    """
+    queryset = Amenity.objects.all()
+    serializer_class = AmenitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class StatusViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows statuses to be viewed or edited.
+    """
+    queryset = Status.objects.all()
+    serializer_class = StatusSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class ImageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows images to be viewed or edited.
+    """
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class CityViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows cities to be viewed or edited.
+    """
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows reviews to be viewed or edited.
+    """
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class MessageViewSet(viewsets.ModelViewSet):
     """
@@ -31,8 +85,15 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    # SHOULD IMPLEMENT CUSTOM PERMISSIONS FOR OBJECT LEVEL SECURITY
-
-class RoomViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+# def add_property_view(request):
+#    if request.method == 'POST':
+#        property_data = request.POST  
+#        try:
+#            new_property = propertyService.addProperty(property_data)
+#            return JsonResponse({'success': True, 'message': 'Property added successfully', 'property': new_property})
+#        except Exception as e:
+#            return JsonResponse({'success': False, 'error': str(e)})
+#    else:
+#        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed for this endpoint'}, status=405)

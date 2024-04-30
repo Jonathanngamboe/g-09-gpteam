@@ -12,6 +12,7 @@ export default {
 
     return api.post(`dj-rest-auth/login/`, payload).then((response) => {
       user.value = response.data.user
+      
       return response.data.user
     })
   },
