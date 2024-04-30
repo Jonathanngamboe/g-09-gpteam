@@ -53,12 +53,12 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
-                            :disable="isRoomBooked"
+                            :disable="isDateBooked"
                         />
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn || isRoomBooked"
+                            :disable="!checkIn || isDateBooked"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -106,6 +106,7 @@
   
 <script>
 import { ref, computed, watch, defineComponent } from 'vue';
+import bookingService from '../services/bookingService';
   
   export default defineComponent({
     data(){
@@ -116,10 +117,11 @@ import { ref, computed, watch, defineComponent } from 'vue';
         }
     },
     computed:{
-        isRoomBooked(){
-            return this.bookings.some(booking =>
-                (new Date(booking.checkIn) <= new Date(this.checkIn) && new Date(booking.checkOut) >= new Date(this.checkIn)) ||
-                (new Date(booking.checkIn) <= new Date(this.checkOut) && new Date(booking.checkOut) >= new Date(this.checkOut))
+        // Checking if the dates are available
+        isDateBooked(){
+            return this.bookedDates.some(dateRange =>
+                (new Date(dateRange.start) <= new Date(this.checkIn) && new Date(dateRange.end) >= new Date(this.checkIn)) ||
+                (new Date(dateRange.start) <= new Date(this.checkOut) && new Date(dateRange.end) >= new Date(this.checkOut))
             );
         }
     },
@@ -198,13 +200,12 @@ import { ref, computed, watch, defineComponent } from 'vue';
         }
         return 0;
       },
-      async fetchBookings() {
-        const response = await fetch('https://localhost:8000/api/bookings');
-        this.bookings = await response.json();
+      async fetchBookedDates(){
+        this.bookedDates = await bookingService.getBookedDates(this.room.id);
       }
     },
     created(){
-        this.fetchBookings();
+        this.fetchBookedDates();
     }
   });
   </script>
