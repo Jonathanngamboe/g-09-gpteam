@@ -1,6 +1,6 @@
 <template>
   <!-- Filters button -->
-  <div class="q-pa-md q-gutter-md row justify-end">
+  <!--<div class="q-pa-md q-gutter-md row justify-end">
     <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
   </div>
   <FiltersDialog
@@ -9,7 +9,7 @@
     @on-filter="onFilter"
     @on-reset="onReset"
     @close="filtersVisible = false"
-  />
+  />-->
 
   <!-- Room details for desktop -->
   <div v-if="!isMobile">
