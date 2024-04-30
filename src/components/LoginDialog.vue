@@ -59,7 +59,7 @@ export default defineComponent({
         });
         if (result) {
           visible.value = false; // Close the dialog
-          router.push({ name: 'profile' });  // Go to the user's profile page
+          router.push({ name: 'My-account' });  // Go to the user's account page
         } else {
           loginError.value = "An error occurred. Please try again.";
         }
@@ -96,7 +96,7 @@ export default defineComponent({
         });
         if (result) {
           visible.value = false; // Close the dialog
-          router.push({ name: 'Profile' });  // Go to the user's profile page
+          router.push({ name: 'My-account' });  // Go to the user's account page
         } else {
           loginError.value = "An error occurred. Please try again.";
         }

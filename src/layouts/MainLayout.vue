@@ -19,7 +19,7 @@
           <div class="row no-wrap q-pa-md">
             <div class="column">
               <template v-for="(menuItem, index) in menuList" :key="index">
-                <div v-if="menuItem.label !== 'My Profile'">
+                <div v-if="menuItem.label !== 'My account'">
                   <q-item clickable :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
                     <q-item-section avatar>
                       <q-icon :name="menuItem.icon" class="text-primary"/>
@@ -48,7 +48,7 @@
                     rounded
                     unelevated
                     color="primary"
-                    label="My Profile"
+                    label="My account"
                     push
                     size="sm"
                     v-close-popup
@@ -70,7 +70,7 @@
         <q-list class="q-ma-md">
           <template v-for="(menuItem, index) in menuList" :key="index">
             <!-- Conditional rendering based on the item label -->
-            <q-item clickable v-if="menuItem.label !== 'My Profile'" :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
+            <q-item clickable v-if="menuItem.label !== 'My account'" :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
               <q-item-section avatar>
                 <q-icon :name="menuItem.icon" class="text-primary" />
               </q-item-section>
@@ -118,7 +118,7 @@ export default {
     // TODO: Replace with actual menu items
     const menuList = ref([
       { label: 'Home', icon: 'home', separator: false, to: '/' },
-      { label: 'My Profile', icon: 'account_circle', separator: true },
+      { label: 'My account', icon: 'account_circle', separator: true },
       // Services section
       { label: "Find a room to rent", icon: "search", separator: false, to: "/find-room" },
       { label: "Add a room for rent", icon: "add", separator: true, to: "/add-room" },
