@@ -93,6 +93,9 @@ export default defineComponent({
         roomService.getAllRooms()
           .then(data => {
             cachedRooms = data;
+            // Do not import a room with missing data
+            data = data.filter(room => room.title && room.description && room.price_per_night && room.amenities && room.amenities.length > 0 && room.images && room.images.length > 0 && room.address && room.city);
+            // Filter active rooms only
             allActiveRooms.value = data.filter(room => room.is_active);
             // Transform amenities into an array of names
             allActiveRooms.value.forEach(room => {
@@ -103,7 +106,7 @@ export default defineComponent({
             $q.notify({
               color: 'negative',
               position: 'top',
-              message:  err.response.data.message || 'Failed to load rooms from the server', 
+              message:  err.response || 'Failed to load rooms from the server', 
               icon: 'error'
             });
           });
