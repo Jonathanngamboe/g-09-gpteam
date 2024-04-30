@@ -1,15 +1,15 @@
 <template>
     <q-card flat bordered>
       <!-- Room image -->
-      <q-img :src="room.images[0]" />
+      <q-img :src="room.images[0].image" />
   
       <!-- Card content -->
       <q-card-section>
-        <div class="text-overline text-secondary">{{ room.location }}</div>
-        <q-rating readonly color="black" v-model="room.rating" :max="5" size="16px" />
+        <div class="text-overline text-secondary">{{ room.city.name }}</div>
+        <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" />
         <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
-        <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surfaceArea) }} m²</div>
-        <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price) }}.- per night</div>
+        <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
+        <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
         <div class="text-caption text-grey">
           {{ formatAmenities(room.amenities) }}
         </div>
@@ -18,7 +18,7 @@
       <!-- Card actions -->
       <q-card-actions>
         <!-- TODO : Implement favorite functionality -->
-        <q-btn flat round color="red" icon="favorite" />
+        <!--<q-btn flat round color="red" icon="favorite" />-->
         <q-btn flat round color="primary" icon="share" @click="shareRoom"/>
         <q-btn style="width: 130px" unelevated rounded color="primary" label="Details" @click="$emit('room-details', room.id)"/>
       </q-card-actions>
@@ -36,7 +36,7 @@
         if (navigator.share) {
           navigator.share({
             title: `${props.room.title}`,
-            text: `Check out this room: ${props.room.title}, located at ${props.room.location}. Details: ${props.room.description}`,
+            text: `Check out this room: ${props.room.title}, located at ${props.room.city.name}. Details: ${props.room.description}`,
             url: `${window.location.origin}/room/${props.room.id}`
           }).then(() => {
             $q.notify({
@@ -71,6 +71,7 @@
     methods: {
       // Helper function to format amenities
       formatAmenities(amenities) {
+        if (!amenities) return '';
         const maxVisibleAmenities = 3;
         const visibleAmenities = amenities.slice(0, maxVisibleAmenities).join(' · ');
         return amenities.length > maxVisibleAmenities
@@ -78,7 +79,11 @@
           : visibleAmenities;
       },
       formatNumber(number) {
+        if(number) {
           return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        } else {
+          return 0;
+        }
       }
     }
   }

@@ -66,7 +66,9 @@ import RoomCard from '@/components/RoomCard.vue';
 import FiltersDialog from '@/components/FiltersDialog.vue';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import { useQuasar } from 'quasar';
-import api from '@/services/api';
+import roomService from '../services/roomService';
+import reviewService from '../services/reviewService';  
+import { all } from 'axios';
 
 export default defineComponent( {
   components: {
@@ -81,24 +83,32 @@ export default defineComponent( {
     const dialogVisible = ref(false);
     const selectedRoom = ref(null);
     const splitterModel = ref(100);
-    const apiUrl = 'http://localhost:8000/api';
     const allRooms = ref([]);
+    let cachedRooms = null;
 
-    async function fetchRooms() {
-      try {
-        const response = await api.get(`${apiUrl}/properties`);
-        console.log('Rooms fetched:', response.data);
-        allRooms.value = response.data;
-      } catch (error) {
-        console.error('Failed to fetch rooms:', error);
-        $q.notify({
-          message: 'Failed to load rooms from the server',
-          color: 'negative',
-          position: 'top',
-          icon: 'error'
-        });
+    const fetchRooms = () => {
+      if (cachedRooms) {
+        allRooms.value = cachedRooms;
+      } else {
+        roomService.getAllRooms()
+          .then(data => {
+            cachedRooms = data;
+            allRooms.value = data;
+            // Transform amenities into an array of names
+            allRooms.value.forEach(room => {
+              room.amenities = room.amenities.map(amenity => amenity.name);
+            });
+          })
+          .catch(err => {
+            $q.notify({
+              color: 'negative',
+              position: 'top',
+              message:  err.response.data.message || 'Failed to load rooms from the server', 
+              icon: 'error'
+            });
+          });
       }
-    }
+    };
 
     onMounted(fetchRooms);
 
@@ -193,14 +203,14 @@ export default defineComponent( {
     // Computed property to filter rooms based on active filters
     const filteredRooms = computed(() => {
       if (!filtersApplied.value) {
-        return allRooms.value; // Return all rooms if no filters are applied
+        return allRooms.value;
       }
       return allRooms.value.filter(room => {
-        const locationMatch = !filters.location || room.location.toLowerCase().includes(filters.location.toLowerCase());
-        const priceMatch = room.price >= filters.priceRange.min && room.price <= filters.priceRange.max;
-        const amenitiesMatch = filters.amenities.length === 0 || filters.amenities.every(amenity => room.amenities.includes(amenity));
-        const ratingMatch = room.rating >= filters.rating.min && room.rating <= filters.rating.max;
-        return locationMatch && priceMatch && amenitiesMatch && ratingMatch;
+        const pricePerNightNumber = parseFloat(room.price_per_night); // Convertir en nombre
+        const priceMatch = !isNaN(pricePerNightNumber) && pricePerNightNumber >= filters.priceRange.min && pricePerNightNumber <= filters.priceRange.max;
+        const amenitiesMatch = filters.amenities.length === 0 || (Array.isArray(room.amenities) && filters.amenities.every(amenity => room.amenities.includes(amenity)));
+        const ratingMatch = typeof room.average_rating === 'number' && room.average_rating >= filters.rating.min && room.average_rating <= filters.rating.max;
+        return priceMatch && amenitiesMatch && ratingMatch;
       });
     });
 
