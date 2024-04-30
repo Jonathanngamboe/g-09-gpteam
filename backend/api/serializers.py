@@ -3,9 +3,15 @@ from .models import  Booking, Property, Property_Type, Amenity, Status, Image, C
 from django.db.models import Avg
 
 class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
+    groups = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email','first_name','last_name', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'is_owner', 'is_client', 'date_joined', 'last_login']
+        fields = ['id', 'url', 'username', 'email', 'first_name', 'last_name', 'date_of_birth', 'date_joined', 'last_login', 'groups']
+
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -36,7 +42,6 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Property
         fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
-
     def get_average_rating(self, obj):
         average = Review.objects.filter(property=obj).aggregate(Avg('rating'))
         return average['rating__avg'] if average['rating__avg'] is not None else 0

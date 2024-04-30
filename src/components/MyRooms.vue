@@ -1,32 +1,39 @@
 <template>
-  <div class="flex flex-center full-height q-pa-md">
-    <q-card flat bordered class="q-pa-lg">
-      <q-card-section class="row items-center q-gutter-sm">
-        <div class="col-12 text-h4 bg-dark text-white text-center rounded-borders q-pa-md">My Rooms</div>
-        <div class="col-12 col-md-6 q-ma-md flex flex-column">
-          <q-card class="flex flex-column" flat bordered>
-            <q-card-section class="flex flex-column">
-              <div class="text-h6">{{ room.title }}</div>
-            </q-card-section>
-            <q-btn class="q-ml-md q-pa-xs" color="primary" icon="edit" @click="editField('title')" label="Edit Room" /> <!-- Changed this line -->
-          </q-card>
-          <q-btn class="align-self-end q-mt-lg" color="primary" icon="add" @click="addRoom" label="Add a Room" />
-        </div>
-      </q-card-section>
-    </q-card>
-  </div>
+  <q-page class="flex flex-center full-height q-pa-md">
+    <div class="q-pa-md full-width">
+      <q-toolbar>
+        <q-toolbar-title>
+          <q-icon name="home" class="q-mr-sm" v-if="$q.screen.gt.sm" />
+          My Rooms
+        </q-toolbar-title>
+      </q-toolbar>      <!-- Check if room exists and display card -->
+      <div v-if="room">
+        <room-card :room="room" @room-details="goToRoomDetails" />
+      </div>
+      <!-- Display message if no rooms are available -->
+      <div v-else class="text-h6 text-center q-my-md">
+        It's currently not possible to view your rooms but you can add a new room an viw it from the main page.
+      </div>
+      <div class="text-center q-mt-lg">
+        <q-btn unelevated rounded color="primary" icon="add" @click="addRoom" label="Add a Room" />
+      </div>
+    </div>
+  </q-page>
 </template>
 
-
-
 <script>
+import RoomCard from '@/components/RoomCard.vue'; // Adjust the path as necessary
+
 export default {
+  components: {
+    RoomCard
+  },
   props: {
     room: Object
   },
   methods: {
-    editField(field) {
-      this.$router.push(`/edit/${field}`);
+    goToRoomDetails(roomId) {
+      this.$router.push(`/room/${roomId}`);
     },
     addRoom() {
       this.$router.push('/add-room');
@@ -34,16 +41,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.rounded-borders {
-  border-radius: 25px;
-}
-.align-self-end {
-  align-self: flex-end;
-}
-.edit-button {
-  font-size: 0.8rem; /* Reduce the font size */
-  margin-left: 1rem; /* Add margin to the left */
-}
-</style>
