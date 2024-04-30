@@ -22,7 +22,7 @@
 
 </template>
 <script>
-import { defineComponent, ref, reactive, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import authService from '@/services/authService';  
 import { useQuasar } from 'quasar'; 
 import { useRouter } from 'vue-router';
@@ -135,4 +135,4 @@ export default defineComponent({
 });
 
 </script>
-<style src="..\assets\css\Component.css"></style>
+<style src="@/assets/css/Component.css"></style>
