@@ -45,15 +45,9 @@
           </div>
         </div>
         <div class="row justify-center">
-          <q-btn
-            flat
-            rounded
-            label="More"
-            @click="toggleShowAllAmenities"
-            v-if="!showAllAmenities"
-          />
-          <q-btn flat rounded label="Less" @click="toggleShowAllAmenities" v-else />
-        </div>
+          <q-btn flat rounded label="More" @click="toggleShowAllAmenities" v-if="!showAllAmenities.value && amenitiesLength.value > 9" />
+          <q-btn flat rounded label="Less" @click="toggleShowAllAmenities" v-else-if="showAllAmenities.value"/>
+        </div>  
       </div>
 
       <q-space />
@@ -134,7 +128,7 @@
 <script>
 import { ref, reactive, computed, defineComponent, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import api from '@/services/api';
+import amenitiesService from '../services/amenitiesService';
 
 export default defineComponent({
   emits: ["on-filter", "on-reset", "toggle-filters", "update:isVisible"],
@@ -145,8 +139,9 @@ export default defineComponent({
   setup(props, { emit }) {
     const $q = useQuasar();
     const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
-    const apiUrl = 'localhost:8000/api';
     const allAmenitiesOptions = ref([]);
+    const amenitiesLength = ref(0);
+    let cachedAmenities = [];
 
     const visible = computed({
       get: () => props.isVisible,
@@ -164,7 +159,7 @@ export default defineComponent({
       priceRange: { ...filters.priceRange },
       amenities: [...filters.amenities],
       rating: { ...filters.rating }
-    })
+    });
 
     // Reactive property for ratingModel
     const ratingModel = ref({
@@ -176,35 +171,34 @@ export default defineComponent({
     const showAllAmenities = ref(false)
 
     // Full list of amenities
-    async function fetchAmenities() {
-      try {
-        const response = await api.get(`${apiUrl}/amenities`);
-        allAmenitiesOptions.value = response.data;
-      } catch (error) {
-        $q.notify({
-          message: 'Failed to load amenities from the server',
-          color: 'negative',
-          position: 'top',
-          icon: 'error'
-        });
+    const fetchAmenities = async () => {
+      if(cachedAmenities.length > 0) {
+        allAmenitiesOptions.value  = [...cachedAmenities];
+        return;
+      } else {
+        try {
+          const response = await amenitiesService.getAllAmenities();
+          const amenities = response.map(amenity => amenity.name);
+          allAmenitiesOptions.value = [...amenities];
+          amenitiesLength.value = amenities.length;
+          cachedAmenities = [...amenities];
+        } catch (error) {
+          allAmenitiesOptions.value = [];
+          $q.notify({
+            message: error.response.data.message || 'Failed to load amenities from the server',
+            color: 'negative',
+            position: 'top',
+            icon: 'error'
+          });
+        }
       }
-    }
+    };
 
     onMounted(fetchAmenities);
 
     // Computed list of amenities based on toggle
     const displayedAmenities = computed(() => {
-      try {
-        return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.slice(0, 9);
-      } catch (error) {
-        $q.notify({
-          message: 'Failed to load amenities from the server',
-          color: 'negative',
-          position: 'top',
-          icon: 'error'
-        });
-        return [];
-      }
+      return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.value.slice(0, 9);
     });
 
     // Method to update selected amenities
@@ -266,8 +260,9 @@ export default defineComponent({
       ratingModel,
       dialogPosition,
       tempFilters,
-      visible
-    }
+      visible,
+      amenitiesLength
+    };
   }
 })
 </script>
