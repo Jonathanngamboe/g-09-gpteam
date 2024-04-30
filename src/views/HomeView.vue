@@ -83,19 +83,19 @@ export default defineComponent({
     const dialogVisible = ref(false);
     const selectedRoom = ref(null);
     const splitterModel = ref(100);
-    const allRooms = ref([]);
+    const allActiveRooms = ref([]);
     let cachedRooms = null;
 
     const fetchRooms = () => {
       if (cachedRooms) {
-        allRooms.value = cachedRooms;
+        allActiveRooms.value = cachedRooms;
       } else {
         roomService.getAllRooms()
           .then(data => {
             cachedRooms = data;
-            allRooms.value = data;
+            allActiveRooms.value = data.filter(room => room.is_active);
             // Transform amenities into an array of names
-            allRooms.value.forEach(room => {
+            allActiveRooms.value.forEach(room => {
               room.amenities = room.amenities.map(amenity => amenity.name);
             });
           })
@@ -113,7 +113,7 @@ export default defineComponent({
     onMounted(fetchRooms);
 
     function handleClickRoom(roomId) {
-      const room = allRooms.value.find(r => r.id === roomId);
+      const room = allActiveRooms.value.find(r => r.id === roomId);
       if (room) {
         selectedRoom.value = room;
         if (isMobile.value) {
@@ -203,9 +203,9 @@ export default defineComponent({
     // Computed property to filter rooms based on active filters
     const filteredRooms = computed(() => {
       if (!filtersApplied.value) {
-        return allRooms.value // Return all rooms if no filters are applied
+        return allActiveRooms.value // Return all rooms if no filters are applied
       }
-      return allRooms.value.filter(room => {
+      return allActiveRooms.value.filter(room => {
         const pricePerNightNumber = parseFloat(room.price_per_night); // Convertir en nombre
         const priceMatch = !isNaN(pricePerNightNumber) && pricePerNightNumber >= filters.priceRange.min && pricePerNightNumber <= filters.priceRange.max;
         const amenitiesMatch = filters.amenities.length === 0 || (Array.isArray(room.amenities) && filters.amenities.every(amenity => room.amenities.includes(amenity)));
@@ -233,7 +233,7 @@ export default defineComponent({
     })
 
     return {
-      allRooms,
+      allActiveRooms,
       filteredRooms,
       toggleFilters,
       filtersVisible,
