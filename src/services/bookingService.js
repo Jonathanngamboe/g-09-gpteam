@@ -12,17 +12,17 @@ export default {
     },
     getBookedDates(){
         return api.get(`${endpoint}`)
-            .then(response => response.data){
-                //Get all reservations
+            .then(response => {
+                // Get all reservations
                 const bookings = response.data;
 
-                //Create an array to store the dates
+                // Create an array to store the booked dates
                 const bookedDates = bookings.map(booking => ({
-                    start: booking.checkIn,
-                    end: booking.checkOut
-            }));
-
-            }
+                    startDate: booking.checkIn,
+                    endDate: booking.checkOut
+                }));
+                return bookedDates;
+            })
             .catch(error => {
                 throw new Error('Failed to fetch bookings: ' + error.message);
             });
