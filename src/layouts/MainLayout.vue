@@ -140,10 +140,9 @@ export default {
     const router = useRouter();
     const userLoggedIn = ref(false);
 
-    watch(() => authService.user.value, (newValue) => {
+    watch(() => authService.user.value, (newValue, oldValue) => {
       userLoggedIn.value = newValue != null;
-      if (userLoggedIn.value) {
-        console.log('Redirecting to My Account...');
+      if (newValue !== null && oldValue === null) {
         router.push('/my-account');
         rightDrawerOpen.value = false;
       }
