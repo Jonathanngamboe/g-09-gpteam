@@ -12,10 +12,20 @@
           :max="2000"
           :label-value="labelValue"
         />
-        <div class="price-inputs row justify-between q-mt-xs" style="align-items: center;">
-          <q-input filled v-model.number="tempFilters.priceRange.min" label="Minimum" type="number" />
+        <div class="price-inputs row justify-between q-mt-xs" style="align-items: center">
+          <q-input
+            filled
+            v-model.number="tempFilters.priceRange.min"
+            label="Minimum"
+            type="number"
+          />
           <span class="separator">-</span>
-          <q-input filled v-model.number="tempFilters.priceRange.max" label="Maximum" type="number" />
+          <q-input
+            filled
+            v-model.number="tempFilters.priceRange.max"
+            label="Maximum"
+            type="number"
+          />
         </div>
       </div>
 
@@ -62,12 +72,7 @@
               :class="markerMap[ratingModel.min].classes"
               :style="markerMap[ratingModel.min].style"
             >
-              <q-icon
-                v-if="ratingModel.min === 0"
-                size="xs"
-                color="primary"
-                name="star_outline"
-              />
+              <q-icon v-if="ratingModel.min === 0" size="xs" color="primary" name="star_outline" />
 
               <template v-else>
                 <q-icon
@@ -126,7 +131,7 @@ import { useQuasar } from 'quasar';
 import amenitiesService from '../services/amenitiesService';
 
 export default defineComponent({
-  emits: ['on-filter', 'on-reset', 'toggle-filters', 'update:isVisible'],
+  emits: ["on-filter", "on-reset", "toggle-filters", "update:isVisible"],
 
   props: {
     isVisible: Boolean
@@ -140,14 +145,14 @@ export default defineComponent({
 
     const visible = computed({
       get: () => props.isVisible,
-      set: (val) => emit('update:isVisible', val)
+      set: (val) => emit("update:isVisible", val)
     })
 
     const filters = reactive({
-      priceRange: { min: 1, max: 2000 }, 
+      priceRange: { min: 1, max: 2000 },
       amenities: [],
       rating: { min: 0, max: 5 }
-    });
+    })
 
     // Copy of filters to store temporary changes before applying
     const tempFilters = reactive({
@@ -159,11 +164,11 @@ export default defineComponent({
     // Reactive property for ratingModel
     const ratingModel = ref({
       min: 0, // Initial minimum rating
-      max: 5  // Initial maximum rating
-    });
+      max: 5 // Initial maximum rating
+    })
 
     // Reactive property to control the display of all amenities
-    const showAllAmenities = ref(false);
+    const showAllAmenities = ref(false)
 
     // Full list of amenities
     const fetchAmenities = async () => {
@@ -198,18 +203,18 @@ export default defineComponent({
 
     // Method to update selected amenities
     const updateAmenities = (amenity, isChecked) => {
-      const index = tempFilters.amenities.indexOf(amenity);
+      const index = tempFilters.amenities.indexOf(amenity)
       if (isChecked && index === -1) {
-        tempFilters.amenities.push(amenity);
+        tempFilters.amenities.push(amenity)
       } else if (!isChecked && index !== -1) {
-        tempFilters.amenities.splice(index, 1);
+        tempFilters.amenities.splice(index, 1)
       }
-    };
+    }
 
     // Computed property for displaying price range label
     const labelValue = computed(() => {
-      return `${filters.priceRange.min} - ${filters.priceRange.max}`;
-    });
+      return `${filters.priceRange.min} - ${filters.priceRange.max}`
+    })
 
     // Method to apply filters
     const applyFilters = () => {
@@ -217,31 +222,31 @@ export default defineComponent({
         priceRange: { ...tempFilters.priceRange },
         amenities: [...tempFilters.amenities],
         rating: { ...ratingModel.value }
-      });
-      emit('on-filter', filters);
-      emit('toggle-filters');
-    };
+      })
+      emit("on-filter", filters)
+      emit("toggle-filters")
+    }
 
     // Method to reset filters to default
     const resetFilters = () => {
-      filters.priceRange = { min: 1, max: 2000 };
-      filters.amenities = [];
-      filters.rating = ratingModel.value;
+      filters.priceRange = { min: 1, max: 2000 }
+      filters.amenities = []
+      filters.rating = ratingModel.value
       // Reset tempFilters as well
       Object.assign(tempFilters, {
         priceRange: { min: 1, max: 2000 },
         amenities: [],
         rating: ratingModel.value
-      });
-      ratingModel.value = { min: 0, max: 5 };
-      emit('on-reset');
-      emit('toggle-filters');
-    };
+      })
+      ratingModel.value = { min: 0, max: 5 }
+      emit("on-reset")
+      emit("toggle-filters")
+    }
 
     // Method to toggle visibility of all amenities
     const toggleShowAllAmenities = () => {
-      showAllAmenities.value = !showAllAmenities.value;
-    };
+      showAllAmenities.value = !showAllAmenities.value
+    }
 
     return {
       filters,
@@ -259,7 +264,7 @@ export default defineComponent({
       amenitiesLength
     };
   }
-});
+})
 </script>
 
 <style scoped>
@@ -298,7 +303,8 @@ export default defineComponent({
   text-align: center; /* Center separator text */
 }
 
-@media (min-width: 600px) { /* Adjust media query threshold as needed */
+@media (min-width: 600px) {
+  /* Adjust media query threshold as needed */
   .price-inputs .q-input {
     flex: 1 1 auto; /* Allow inputs to grow and shrink as needed */
   }

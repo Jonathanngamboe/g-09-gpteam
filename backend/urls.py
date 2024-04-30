@@ -44,6 +44,13 @@ urlpatterns = [
     path('api/dj-rest-auth/', include('dj_rest_auth.urls')),
     path('api/dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
 
+    #path('api/properties/add/', add_property_view, name='add-property'),
+    #path('api/properties/<int:id>/edit/', edit_property_view, name='edit-property'),
+    #path('api/properties/<int:id>/delete/', delete_property_view, name='delete-property'),
+    #path('api/properties/<int:id>/book/', book_property_view, name='book-property'),
+    
+    
+    
     # http://localhost:8000/api/admin/
     path('api/admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # https://docs.djangoproject.com/en/5.0/howto/static-files/#serving-files-uploaded-by-a-user-during-development

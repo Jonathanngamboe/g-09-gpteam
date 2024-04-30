@@ -5,7 +5,7 @@
   </div>
   <FiltersDialog
     :isVisible="filtersVisible"
-    @update:isVisible="val => filtersVisible = val"
+    @update:isVisible="(val) => (filtersVisible = val)"
     @on-filter="onFilter"
     @on-reset="onReset"
     @close="filtersVisible = false"
@@ -70,7 +70,7 @@ import roomService from '../services/roomService';
 import reviewService from '../services/reviewService';  
 import { all } from 'axios';
 
-export default defineComponent( {
+export default defineComponent({
   components: {
     RoomCard,
     FiltersDialog,
@@ -169,41 +169,41 @@ export default defineComponent( {
     }
 
     // Filters logic
-    const filtersVisible = ref(false);
-    const filtersApplied = ref(false);
+    const filtersVisible = ref(false)
+    const filtersApplied = ref(false)
 
     const filters = reactive({
-      location: '',
+      location: "",
       priceRange: { min: 0, max: Infinity },
       amenities: [],
       rating: { min: 0, max: 5 }
-    });
+    })
 
     const onReset = () => {
       Object.assign(filters, {
-        location: '',
+        location: "",
         priceRange: { min: 0, max: Infinity },
         amenities: [],
         rating: 0
-      });
-      filtersVisible.value = false;
-      filtersApplied.value = false; 
-    };
+      })
+      filtersVisible.value = false
+      filtersApplied.value = false
+    }
 
-    const onFilter = newFilters => {
-      Object.assign(filters, newFilters);
-      filtersVisible.value = false;
-      filtersApplied.value = true; 
-    };
+    const onFilter = (newFilters) => {
+      Object.assign(filters, newFilters)
+      filtersVisible.value = false
+      filtersApplied.value = true
+    }
 
     const toggleFilters = () => {
-      filtersVisible.value = !filtersVisible.value;
-    };
+      filtersVisible.value = !filtersVisible.value
+    }
 
     // Computed property to filter rooms based on active filters
     const filteredRooms = computed(() => {
       if (!filtersApplied.value) {
-        return allRooms.value;
+        return allRooms.value // Return all rooms if no filters are applied
       }
       return allRooms.value.filter(room => {
         const pricePerNightNumber = parseFloat(room.price_per_night); // Convertir en nombre
@@ -217,20 +217,20 @@ export default defineComponent( {
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
       nextTick(() => {
-        const titles = Array.from(document.querySelectorAll('.text-h5'));
-        const maxHeight = Math.max(...titles.map(el => el.clientHeight));
-        titles.forEach(el => el.style.height = `${maxHeight}px`);
-      });
-    };
+        const titles = Array.from(document.querySelectorAll(".text-h5"))
+        const maxHeight = Math.max(...titles.map((el) => el.clientHeight))
+        titles.forEach((el) => (el.style.height = `${maxHeight}px`))
+      })
+    }
     // Use mounted lifecycle hook to call the function after the component is mounted
     onMounted(() => {
-      equalizeTitleHeights();
-      window.addEventListener('resize', equalizeTitleHeights);
-    });
+      equalizeTitleHeights()
+      window.addEventListener("resize", equalizeTitleHeights)
+    })
     // Cleanup the event listener when the component is unmounted
     onBeforeUnmount(() => {
-      window.removeEventListener('resize', equalizeTitleHeights);
-    });
+      window.removeEventListener("resize", equalizeTitleHeights)
+    })
 
     return {
       allRooms,
@@ -271,7 +271,10 @@ export default defineComponent( {
 /* Define a grid layout with a fixed minimum column width */
 .room-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Create a responsive number of grid columns */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(300px, 1fr)
+  ); /* Create a responsive number of grid columns */
   gap: 16px; /* This sets the gap between cards */
 }
 

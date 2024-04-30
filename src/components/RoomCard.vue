@@ -24,7 +24,7 @@
       </q-card-actions>
     </q-card>
 </template>
-  
+
 <script>
   import { useQuasar } from 'quasar';
 
@@ -32,20 +32,23 @@
     setup(props) {
       const $q = useQuasar();
 
-      const shareRoom = () => {
-        if (navigator.share) {
-          navigator.share({
+    const shareRoom = () => {
+      if (navigator.share) {
+        navigator
+          .share({
             title: `${props.room.title}`,
             text: `Check out this room: ${props.room.title}, located at ${props.room.city.name}. Details: ${props.room.description}`,
             url: `${window.location.origin}/room/${props.room.id}`
-          }).then(() => {
+          })
+          .then(() => {
             $q.notify({
-              message: 'Thanks for sharing!',
-              color: 'green-14',
-              position: 'top',
-              icon: 'thumb_up' 
-            });
-          }).catch((error) => {
+              message: "Thanks for sharing!",
+              color: "green-14",
+              position: "top",
+              icon: "thumb_up"
+            })
+          })
+          .catch((error) => {
             $q.notify({
               message: 'Failed to share. Please try again.',
               color: 'red-14',
@@ -88,7 +91,7 @@
     }
   }
 </script>
-  
+
 <style scoped>
     .q-card {
       width: 100%; /* Make sure the card stretches to fill the grid item */
@@ -107,4 +110,3 @@
       object-fit: cover; /* Cover ensures the image covers the area, might crop */
     }  
 </style>
-  

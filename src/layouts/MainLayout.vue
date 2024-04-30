@@ -120,12 +120,12 @@ export default {
       { label: 'Home', icon: 'home', separator: false, to: '/' },
       { label: 'My Profile', icon: 'account_circle', separator: true },
       // Services section
-      { label: 'Find a room to rent', icon: 'search', separator: false, to: '/find-room' },
-      { label: 'Add a room for rent', icon: 'add', separator: true, to: '/add-room' },
+      { label: "Find a room to rent", icon: "search", separator: false, to: "/find-room" },
+      { label: "Add a room for rent", icon: "add", separator: true, to: "/add-room" },
       // Help section
-      { label: 'Help', icon: 'help', separator: false, to: '/help' },
-      { label: 'Contact', icon: 'mail', separator: false, to: '/contact' },
-    ]);
+      { label: "Help", icon: "help", separator: false, to: "/help" },
+      { label: "Contact", icon: "mail", separator: false, to: "/contact" }
+    ])
 
     function toggleRightDrawer() {
       rightDrawerOpen.value = !rightDrawerOpen.value
