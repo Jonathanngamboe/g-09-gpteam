@@ -12,10 +12,20 @@
           :max="2000"
           :label-value="labelValue"
         />
-        <div class="price-inputs row justify-between q-mt-xs" style="align-items: center;">
-          <q-input filled v-model.number="tempFilters.priceRange.min" label="Minimum" type="number" />
+        <div class="price-inputs row justify-between q-mt-xs" style="align-items: center">
+          <q-input
+            filled
+            v-model.number="tempFilters.priceRange.min"
+            label="Minimum"
+            type="number"
+          />
           <span class="separator">-</span>
-          <q-input filled v-model.number="tempFilters.priceRange.max" label="Maximum" type="number" />
+          <q-input
+            filled
+            v-model.number="tempFilters.priceRange.max"
+            label="Maximum"
+            type="number"
+          />
         </div>
       </div>
 
@@ -35,8 +45,8 @@
           </div>
         </div>
         <div class="row justify-center">
-          <q-btn flat rounded label="More" @click="toggleShowAllAmenities" v-if="!showAllAmenities" />
-          <q-btn flat rounded label="Less" @click="toggleShowAllAmenities" v-else />
+          <q-btn flat rounded label="More" @click="toggleShowAllAmenities" v-if="!showAllAmenities.value && amenitiesLength.value > 9" />
+          <q-btn flat rounded label="Less" @click="toggleShowAllAmenities" v-else-if="showAllAmenities.value"/>
         </div>  
       </div>
 
@@ -62,12 +72,7 @@
               :class="markerMap[ratingModel.min].classes"
               :style="markerMap[ratingModel.min].style"
             >
-              <q-icon
-                v-if="ratingModel.min === 0"
-                size="xs"
-                color="primary"
-                name="star_outline"
-              />
+              <q-icon v-if="ratingModel.min === 0" size="xs" color="primary" name="star_outline" />
 
               <template v-else>
                 <q-icon
@@ -123,10 +128,10 @@
 <script>
 import { ref, reactive, computed, defineComponent, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import api from '@/services/api';
+import amenitiesService from '../services/amenitiesService';
 
 export default defineComponent({
-  emits: ['on-filter', 'on-reset', 'toggle-filters', 'update:isVisible'],
+  emits: ["on-filter", "on-reset", "toggle-filters", "update:isVisible"],
 
   props: {
     isVisible: Boolean
@@ -134,82 +139,82 @@ export default defineComponent({
   setup(props, { emit }) {
     const $q = useQuasar();
     const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
-    const apiUrl = 'localhost:8000/api';
     const allAmenitiesOptions = ref([]);
+    const amenitiesLength = ref(0);
+    let cachedAmenities = [];
 
     const visible = computed({
       get: () => props.isVisible,
-      set: (val) => emit('update:isVisible', val)
+      set: (val) => emit("update:isVisible", val)
     })
 
     const filters = reactive({
-      priceRange: { min: 1, max: 2000 }, 
+      priceRange: { min: 1, max: 2000 },
       amenities: [],
       rating: { min: 0, max: 5 }
-    });
+    })
 
     // Copy of filters to store temporary changes before applying
     const tempFilters = reactive({
-    priceRange: { ...filters.priceRange },
-    amenities: [...filters.amenities],
-    rating: { ...filters.rating }
-  });
+      priceRange: { ...filters.priceRange },
+      amenities: [...filters.amenities],
+      rating: { ...filters.rating }
+    });
 
     // Reactive property for ratingModel
     const ratingModel = ref({
       min: 0, // Initial minimum rating
-      max: 5  // Initial maximum rating
-    });
+      max: 5 // Initial maximum rating
+    })
 
     // Reactive property to control the display of all amenities
-    const showAllAmenities = ref(false);
+    const showAllAmenities = ref(false)
 
     // Full list of amenities
-    async function fetchAmenities() {
-      try {
-        const response = await api.get(`${apiUrl}/amenities`);
-        allAmenitiesOptions.value = response.data;
-      } catch (error) {
-        $q.notify({
-          message: 'Failed to load amenities from the server',
-          color: 'negative',
-          position: 'top',
-          icon: 'error'
-        });
+    const fetchAmenities = async () => {
+      if(cachedAmenities.length > 0) {
+        allAmenitiesOptions.value  = [...cachedAmenities];
+        return;
+      } else {
+        try {
+          const response = await amenitiesService.getAllAmenities();
+          const amenities = response.map(amenity => amenity.name);
+          allAmenitiesOptions.value = [...amenities];
+          amenitiesLength.value = amenities.length;
+          cachedAmenities = [...amenities];
+        } catch (error) {
+          allAmenitiesOptions.value = [];
+          $q.notify({
+            message: error.response.data.message || 'Failed to load amenities from the server',
+            color: 'negative',
+            position: 'top',
+            icon: 'error'
+          });
+        }
       }
-    }
+    };
 
     onMounted(fetchAmenities);
 
     // Computed list of amenities based on toggle
     const displayedAmenities = computed(() => {
-      try {
-        return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.slice(0, 9);
-      } catch (error) {
-        $q.notify({
-          message: 'Failed to load amenities from the server',
-          color: 'negative',
-          position: 'top',
-          icon: 'error'
-        });
-        return [];
-      }
+      return showAllAmenities.value ? allAmenitiesOptions : allAmenitiesOptions.value.slice(0, 9);
     });
 
     // Method to update selected amenities
     const updateAmenities = (amenity, isChecked) => {
-      const index = tempFilters.amenities.indexOf(amenity);
+      const index = tempFilters.amenities.indexOf(amenity)
       if (isChecked && index === -1) {
-        tempFilters.amenities.push(amenity);
+        tempFilters.amenities.push(amenity)
       } else if (!isChecked && index !== -1) {
-        tempFilters.amenities.splice(index, 1);
+        tempFilters.amenities.splice(index, 1)
       }
-    };
+    }
 
     // Computed property for displaying price range label
     const labelValue = computed(() => {
-      return `${filters.priceRange.min} - ${filters.priceRange.max}`;
-    });
+      return `${filters.priceRange.min} - ${filters.priceRange.max}`
+    })
 
     // Method to apply filters
     const applyFilters = () => {
@@ -217,31 +222,31 @@ export default defineComponent({
         priceRange: { ...tempFilters.priceRange },
         amenities: [...tempFilters.amenities],
         rating: { ...ratingModel.value }
-      });
-      emit('on-filter', filters);
-      emit('toggle-filters');
-    };
+      })
+      emit("on-filter", filters)
+      emit("toggle-filters")
+    }
 
     // Method to reset filters to default
     const resetFilters = () => {
-      filters.priceRange = { min: 1, max: 2000 };
-      filters.amenities = [];
-      filters.rating = ratingModel.value;
+      filters.priceRange = { min: 1, max: 2000 }
+      filters.amenities = []
+      filters.rating = ratingModel.value
       // Reset tempFilters as well
       Object.assign(tempFilters, {
         priceRange: { min: 1, max: 2000 },
         amenities: [],
         rating: ratingModel.value
-      });
-      ratingModel.value = { min: 0, max: 5 };
-      emit('on-reset');
-      emit('toggle-filters');
-    };
+      })
+      ratingModel.value = { min: 0, max: 5 }
+      emit("on-reset")
+      emit("toggle-filters")
+    }
 
     // Method to toggle visibility of all amenities
     const toggleShowAllAmenities = () => {
-      showAllAmenities.value = !showAllAmenities.value;
-    };
+      showAllAmenities.value = !showAllAmenities.value
+    }
 
     return {
       filters,
@@ -255,10 +260,11 @@ export default defineComponent({
       ratingModel,
       dialogPosition,
       tempFilters,
-      visible
+      visible,
+      amenitiesLength
     };
   }
-});
+})
 </script>
 
 <style scoped>
@@ -297,7 +303,8 @@ export default defineComponent({
   text-align: center; /* Center separator text */
 }
 
-@media (min-width: 600px) { /* Adjust media query threshold as needed */
+@media (min-width: 600px) {
+  /* Adjust media query threshold as needed */
   .price-inputs .q-input {
     flex: 1 1 auto; /* Allow inputs to grow and shrink as needed */
   }

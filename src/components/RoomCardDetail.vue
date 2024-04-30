@@ -16,7 +16,7 @@
                         v-for="(image, index) in room.images"
                         :key="index"
                         :name="index"
-                        :img-src="image"
+                        :img-src="image.image"
                     />                
                     <template v-slot:control>
                         <q-carousel-control
@@ -32,11 +32,11 @@
                     </template>
                 </q-carousel>
                 <!-- Room details -->
-                <div class="text-overline text-secondary q-pt-md">{{ room.location }}</div>
-                <q-rating readonly color="black" v-model="room.rating" :max="5" size="16px" />
+                <div class="text-overline text-secondary q-pt-md">{{ room.city.name }}</div>
+                <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" />
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
-                <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surfaceArea) }} m²</div>
-                <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price) }}.- per night</div>
+                <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
+                <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
                 <div class="text-caption text-grey">{{ formatAmenities(room.amenities) }}</div>
                 <div class="text-subtitle2 q-mt-md">{{ room.description }}</div>
             </q-card-section>
@@ -85,7 +85,7 @@
                         <div class="text-h7 text-dark q-mb-xs">Number of nights</div>
                     </div>
                     <div>
-                        <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">CHF {{ formatNumber(room.price) }}.-</div>
+                        <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">CHF {{ formatNumber(room.price_per_night) }}.-</div>
                         <div class="text-h7 text-dark q-mb-xs" style="text-align: right;">{{ formatNumber(totalNights) }}</div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                         <div class="text-h7 text-dark q-mb-xs"><b>Total price</b></div>
                     </div>
                     <div>
-                        <div class="text-h7 text-dark q-mb-xs"><b>CHF {{ formatNumber(room.price * totalNights) }}.-</b></div>
+                        <div class="text-h7 text-dark q-mb-xs"><b>CHF {{ formatNumber(room.price_per_night * totalNights) }}.-</b></div>
                     </div>
                 </div>
             </q-card-section>
@@ -104,8 +104,7 @@
     </div>
   </template>
   
-  <script>
-  import { format } from 'prettier';
+<script>
 import { ref, computed, watch, defineComponent } from 'vue';
   
   export default defineComponent({
@@ -189,11 +188,15 @@ import { ref, computed, watch, defineComponent } from 'vue';
     methods: {
       // Helper function to format amenities
       formatAmenities(amenities) {
+        if (!amenities) return '';
         return amenities.join(' · ');
       },
       // Helper function to format number with ''' separator
       formatNumber(number) {
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        if(number) {
+           return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+        return 0;
       },
       async fetchBookings() {
         const response = await fetch('https://localhost:8000/api/bookings');

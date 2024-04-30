@@ -1,15 +1,15 @@
 <template>
   <!-- Filters button -->
-  <div class="q-pa-md q-gutter-md row justify-end">
+  <!--<div class="q-pa-md q-gutter-md row justify-end">
     <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
   </div>
   <FiltersDialog
     :isVisible="filtersVisible"
-    @update:isVisible="val => filtersVisible = val"
+    @update:isVisible="(val) => (filtersVisible = val)"
     @on-filter="onFilter"
     @on-reset="onReset"
     @close="filtersVisible = false"
-  />
+  />-->
 
   <!-- Room details for desktop -->
   <div v-if="!isMobile">
@@ -66,9 +66,11 @@ import RoomCard from '@/components/RoomCard.vue';
 import FiltersDialog from '@/components/FiltersDialog.vue';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import { useQuasar } from 'quasar';
-import api from '@/services/api';
+import roomService from '../services/roomService';
+import reviewService from '../services/reviewService';  
+import { all } from 'axios';
 
-export default defineComponent( {
+export default defineComponent({
   components: {
     RoomCard,
     FiltersDialog,
@@ -81,29 +83,37 @@ export default defineComponent( {
     const dialogVisible = ref(false);
     const selectedRoom = ref(null);
     const splitterModel = ref(100);
-    const apiUrl = 'http://localhost:8000/api';
-    const allRooms = ref([]);
+    const allActiveRooms = ref([]);
+    let cachedRooms = null;
 
-    async function fetchRooms() {
-      try {
-        const response = await api.get(`${apiUrl}/properties`);
-        console.log('Rooms fetched:', response.data);
-        allRooms.value = response.data;
-      } catch (error) {
-        console.error('Failed to fetch rooms:', error);
-        $q.notify({
-          message: 'Failed to load rooms from the server',
-          color: 'negative',
-          position: 'top',
-          icon: 'error'
-        });
+    const fetchRooms = () => {
+      if (cachedRooms) {
+        allActiveRooms.value = cachedRooms;
+      } else {
+        roomService.getAllRooms()
+          .then(data => {
+            cachedRooms = data;
+            allActiveRooms.value = data.filter(room => room.is_active);
+            // Transform amenities into an array of names
+            allActiveRooms.value.forEach(room => {
+              room.amenities = room.amenities.map(amenity => amenity.name);
+            });
+          })
+          .catch(err => {
+            $q.notify({
+              color: 'negative',
+              position: 'top',
+              message:  err.response.data.message || 'Failed to load rooms from the server', 
+              icon: 'error'
+            });
+          });
       }
-    }
+    };
 
     onMounted(fetchRooms);
 
     function handleClickRoom(roomId) {
-      const room = allRooms.value.find(r => r.id === roomId);
+      const room = allActiveRooms.value.find(r => r.id === roomId);
       if (room) {
         selectedRoom.value = room;
         if (isMobile.value) {
@@ -159,71 +169,71 @@ export default defineComponent( {
     }
 
     // Filters logic
-    const filtersVisible = ref(false);
-    const filtersApplied = ref(false);
+    const filtersVisible = ref(false)
+    const filtersApplied = ref(false)
 
     const filters = reactive({
-      location: '',
+      location: "",
       priceRange: { min: 0, max: Infinity },
       amenities: [],
       rating: { min: 0, max: 5 }
-    });
+    })
 
     const onReset = () => {
       Object.assign(filters, {
-        location: '',
+        location: "",
         priceRange: { min: 0, max: Infinity },
         amenities: [],
         rating: 0
-      });
-      filtersVisible.value = false;
-      filtersApplied.value = false; 
-    };
+      })
+      filtersVisible.value = false
+      filtersApplied.value = false
+    }
 
-    const onFilter = newFilters => {
-      Object.assign(filters, newFilters);
-      filtersVisible.value = false;
-      filtersApplied.value = true; 
-    };
+    const onFilter = (newFilters) => {
+      Object.assign(filters, newFilters)
+      filtersVisible.value = false
+      filtersApplied.value = true
+    }
 
     const toggleFilters = () => {
-      filtersVisible.value = !filtersVisible.value;
-    };
+      filtersVisible.value = !filtersVisible.value
+    }
 
     // Computed property to filter rooms based on active filters
     const filteredRooms = computed(() => {
       if (!filtersApplied.value) {
-        return allRooms.value; // Return all rooms if no filters are applied
+        return allActiveRooms.value // Return all rooms if no filters are applied
       }
-      return allRooms.value.filter(room => {
-        const locationMatch = !filters.location || room.location.toLowerCase().includes(filters.location.toLowerCase());
-        const priceMatch = room.price >= filters.priceRange.min && room.price <= filters.priceRange.max;
-        const amenitiesMatch = filters.amenities.length === 0 || filters.amenities.every(amenity => room.amenities.includes(amenity));
-        const ratingMatch = room.rating >= filters.rating.min && room.rating <= filters.rating.max;
-        return locationMatch && priceMatch && amenitiesMatch && ratingMatch;
+      return allActiveRooms.value.filter(room => {
+        const pricePerNightNumber = parseFloat(room.price_per_night); // Convertir en nombre
+        const priceMatch = !isNaN(pricePerNightNumber) && pricePerNightNumber >= filters.priceRange.min && pricePerNightNumber <= filters.priceRange.max;
+        const amenitiesMatch = filters.amenities.length === 0 || (Array.isArray(room.amenities) && filters.amenities.every(amenity => room.amenities.includes(amenity)));
+        const ratingMatch = typeof room.average_rating === 'number' && room.average_rating >= filters.rating.min && room.average_rating <= filters.rating.max;
+        return priceMatch && amenitiesMatch && ratingMatch;
       });
     });
 
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
       nextTick(() => {
-        const titles = Array.from(document.querySelectorAll('.text-h5'));
-        const maxHeight = Math.max(...titles.map(el => el.clientHeight));
-        titles.forEach(el => el.style.height = `${maxHeight}px`);
-      });
-    };
+        const titles = Array.from(document.querySelectorAll(".text-h5"))
+        const maxHeight = Math.max(...titles.map((el) => el.clientHeight))
+        titles.forEach((el) => (el.style.height = `${maxHeight}px`))
+      })
+    }
     // Use mounted lifecycle hook to call the function after the component is mounted
     onMounted(() => {
-      equalizeTitleHeights();
-      window.addEventListener('resize', equalizeTitleHeights);
-    });
+      equalizeTitleHeights()
+      window.addEventListener("resize", equalizeTitleHeights)
+    })
     // Cleanup the event listener when the component is unmounted
     onBeforeUnmount(() => {
-      window.removeEventListener('resize', equalizeTitleHeights);
-    });
+      window.removeEventListener("resize", equalizeTitleHeights)
+    })
 
     return {
-      allRooms,
+      allActiveRooms,
       filteredRooms,
       toggleFilters,
       filtersVisible,
@@ -261,7 +271,10 @@ export default defineComponent( {
 /* Define a grid layout with a fixed minimum column width */
 .room-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Create a responsive number of grid columns */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(300px, 1fr)
+  ); /* Create a responsive number of grid columns */
   gap: 16px; /* This sets the gap between cards */
 }
 
