@@ -106,7 +106,7 @@ export default defineComponent({
             $q.notify({
               color: 'negative',
               position: 'top',
-              message:  err.response || 'Failed to load rooms from the server', 
+              message:  `${err.message}`,
               icon: 'error'
             });
           });
