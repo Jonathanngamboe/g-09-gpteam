@@ -41,5 +41,25 @@ export default {
       .catch(error => {
         throw new Error(`Failed to delete room with ID ${id}: ` + error.message);
       });
+  },
+  getUserProperties(userId) {
+    const userEndpoint = `/customusers/${userId}/`;
+
+    return api.get(userEndpoint)
+      .then(response => {
+        const userData = response.data;
+        const propertyUrls = userData.properties;
+        const propertyPromises = propertyUrls.map(propertyUrl => api.get(propertyUrl));
+        return Promise.all(propertyPromises)
+          .then(propertyResponses => propertyResponses.map(response => response.data))
+          .catch(error => {
+            throw new Error('Failed to fetch user properties: ' + error.message);
+          });
+      })
+      .catch(error => {
+        throw new Error('Failed to fetch user data: ' + error.message);
+      });
   }
 };
+
+

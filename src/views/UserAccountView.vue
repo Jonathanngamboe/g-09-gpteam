@@ -40,6 +40,7 @@ import UserInformation from "@/components/UserInformation.vue";
 import MyRooms from "@/components/MyRooms.vue";
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
+import roomService from '@/services/roomService';
 
 export default {
   components: {
@@ -49,31 +50,53 @@ export default {
   setup() {
     const router = useRouter();
     const user = ref(null);
-    const room = ref(null); // Define room
+    const room = []; // Définissez la propriété room
     const $q = useQuasar();
     const splitterModel = ref(40);
     const tab = ref('user-info');
+
+    const fetchUserProperties = async () => {
+  try {
+    // Fonction hypothétique pour récupérer l'ID de l'utilisateur connecté
+    
+    const userProperties = await roomService.getUserProperties(4);
+    
+    console.log("User properties:", userProperties); 
+    // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
+    
+  } catch (error) {
+    router.push('/');
+    
+    $q.notify({
+      color: 'negative',
+      position: 'top',
+      message: `${error.message}`
+    });
+  }
+};
+
+
 
     onMounted(async () => {
       try {
         await authService.getUser();
 
         if (!authService.user.value) {
-          router.push('/'); // Redirect to home page if user is not logged in
+          router.push('/'); // Redirigez vers la page d'accueil si l'utilisateur n'est pas connecté
         }
         user.value = authService.user.value;
 
-        // TODO: Fetch user's rooms
+        fetchUserProperties(); // Appelez la fonction
 
-        } catch (error) {
-          router.push('/'); // Redirect on error or if user data cannot be fetched
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: `${error.message}`
-          });
-        }
-      });
+      } catch (error) {
+        router.push('/'); // Redirigez en cas d'erreur ou si les données de l'utilisateur ne peuvent pas être récupérées
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: `${error.message}`
+        });
+      }
+    });
 
     return { 
       user, 

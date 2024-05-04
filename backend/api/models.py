@@ -24,7 +24,7 @@ class Property(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE,related_name='properties')
     #owner = models.TextField()
 class Property_Type(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
