@@ -50,7 +50,7 @@ export default {
   setup() {
     const router = useRouter();
     const user = ref(null);
-    const room = []; // Définissez la propriété room
+    const room = ([]); // Définissez la propriété room
     const $q = useQuasar();
     const splitterModel = ref(40);
     const tab = ref('user-info');
@@ -62,8 +62,8 @@ export default {
     const userProperties = await roomService.getUserProperties(4);
     
     console.log("User properties:", userProperties); 
-    // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
-    
+    room.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
+    console.log("Value of room after assignment:", room.value);
   } catch (error) {
     router.push('/');
     

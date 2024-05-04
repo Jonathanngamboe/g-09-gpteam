@@ -29,7 +29,11 @@ export default {
     RoomCard
   },
   props: {
-    room: Object
+    room: Array
+  },
+
+  created() {
+    console.log('Valeur de la prop room dans MyRooms:', this.room);
   },
   methods: {
     goToRoomDetails(roomId) {
