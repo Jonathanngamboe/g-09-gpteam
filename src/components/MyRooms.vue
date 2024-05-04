@@ -33,11 +33,12 @@ export default {
   },
 
   created() {
-    console.log('Valeur de la prop room dans MyRooms:', this.room);
-  },
+    console.log("Value of 'room' prop:", this.room)},
+  
   methods: {
     goToRoomDetails(roomId) {
       this.$router.push(`/room/${roomId}`);
+
     },
     addRoom() {
       this.$router.push('/add-room');
