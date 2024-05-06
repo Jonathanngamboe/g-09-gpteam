@@ -29,7 +29,7 @@ class AmenitiesModelAdmin(admin.ModelAdmin):
 
 @admin.register(Image)
 class ImageModelAdmin(admin.ModelAdmin):
-    list_display=('id', 'image')
+    list_display=('id', 'image_url')
 
 @admin.register(City)
 class CityModelAdmin(admin.ModelAdmin):
@@ -53,7 +53,7 @@ class StatusModelAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageModelAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'subject', 'sent_at')
+    list_display = ('id', 'subject', 'sent_at')
     list_filter = ('sent_at',)
     search_fields = ('subject', 'body')
     
