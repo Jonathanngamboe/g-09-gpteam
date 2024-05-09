@@ -122,9 +122,8 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue'
-//import LoginDialog from '@/components/LoginDialog.vue';
-import LoginDialog from '../components/LoginDialog.vue';
+import { onMounted, ref, watch, provide } from 'vue'
+import LoginDialog from '@/components/LoginDialog.vue';
 import authService from "@/services/authService"; 
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
@@ -135,9 +134,10 @@ export default {
   },
   setup() {
     const $q = useQuasar();
+    const router = useRouter();
+
     const rightDrawerOpen = ref(false);
     const loginVisible = ref(false);
-    const router = useRouter();
     const userLoggedIn = ref(false);
 
     watch(() => authService.user.value, (newValue, oldValue) => {
@@ -149,7 +149,8 @@ export default {
     }, { immediate: true });
 
     onMounted(async () => {
-      await authService.getUser();
+      const user = await authService.getUser();
+      userLoggedIn.value = user != null;    
     });
 
     const toggleLogin = () => {
@@ -160,6 +161,7 @@ export default {
         rightDrawerOpen.value = false;
       }
     };
+    provide('toggleLogin', toggleLogin);
 
     const logout = () => {
       authService.logout().then(() => {
