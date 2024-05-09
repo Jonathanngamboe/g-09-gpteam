@@ -72,7 +72,7 @@
                         rounded
                         color="green-14"
                         label="Book"
-                        @click="$emit('book-room', room.id)"
+                        @click="handleBookRoom(room.id, checkIn, checkOut)"
                     />
                 </div>  
             </q-card-section>
@@ -104,85 +104,111 @@
   </template>
   
 <script>
-import { ref, computed, watch, defineComponent } from 'vue';
+    import { ref, computed, watch, defineComponent, onMounted, inject } from 'vue';
+    import { useRouter } from 'vue-router';
+    import authService from '@/services/authService';  
   
-  export default defineComponent({
-    emits: ['book-room'],
-    props: {
-      room: {
-        type: Object,
-        required: true
-      }
-    },
-    setup () {
-        const totalNights = ref(0);
-        const today = new Date();
-        const minDate = ref(today.toISOString().split('T')[0]);
-        const checkIn = ref('');
-        const checkOut = ref('');
+    export default defineComponent({
+        props: {
+        room: {
+            type: Object,
+            required: true
+        }
+        },
+        setup () {
+            const totalNights = ref(0);
+            const today = new Date();
+            const minDate = ref(today.toISOString().split('T')[0]);
+            const checkIn = ref('');
+            const checkOut = ref('');
+            const router = useRouter();
+            const user = ref(null);
 
-        const minCheckoutDate = computed(() => {
-            const todayPlusOne = new Date();
-            todayPlusOne.setDate(today.getDate() + 1); // Set to tomorrow
+            const toggleLogin = inject('toggleLogin');
 
-            let latestDate = todayPlusOne; // Default to tomorrow
-
-            if (checkIn.value) {
-                const dayAfterCheckIn = new Date(new Date(checkIn.value).getTime() + (24 * 3600 * 1000));
-                // Compare using getTime() and create a new Date from the maximum timestamp
-                latestDate = new Date(Math.max(dayAfterCheckIn.getTime(), todayPlusOne.getTime()));
-            }
-
-            return latestDate.toISOString().split('T')[0]; // Convert back to ISO string for the input min attribute
+            onMounted(async () => {
+                await authService.getUser();
+                user.value = authService.user.value;
             });
 
-        const checkInRules = computed(() => [
-            val => !!val || 'Check-in date is required',
-            val => new Date(val) >= new Date(minDate.value) || 'Check-in cannot be in the past'
-        ]);
-
-        const checkOutRules = computed(() => [
-            val => !!val || 'Check-out date is required',
-            val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in'
-        ]);
-
-
-        // Watchers to calculate totalNights based on valid date entries
-        watch([checkIn, checkOut], ([checkInDate, checkOutDate]) => {
-            if (new Date(checkOutDate) > new Date(checkInDate)) {
-                totalNights.value = (new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24);
-                totalNights.value = Math.max(0, Math.round(totalNights.value)); // Ensure no negative nights
-            } else {
-                totalNights.value = 0; // Reset to 0 if dates are invalid
+            function handleBookRoom(roomId, checkIn, checkOut) {
+                if(user.value) {
+                    router.push({
+                        name: 'room-booking-summary',
+                        query: {
+                            roomId,
+                            checkIn,
+                            checkOut
+                        }
+                    });
+                } else {
+                    toggleLogin();
+                }
             }
-            });
 
-        return {
-            slide: ref(0),
-            fullscreen: ref(false),
-            totalNights,
-            checkIn,
-            checkOut,
-            minDate,
-            minCheckoutDate,
-            checkInRules,
-            checkOutRules
+            const minCheckoutDate = computed(() => {
+                const todayPlusOne = new Date();
+                todayPlusOne.setDate(today.getDate() + 1); // Set to tomorrow
+
+                let latestDate = todayPlusOne; // Default to tomorrow
+
+                if (checkIn.value) {
+                    const dayAfterCheckIn = new Date(new Date(checkIn.value).getTime() + (24 * 3600 * 1000));
+                    // Compare using getTime() and create a new Date from the maximum timestamp
+                    latestDate = new Date(Math.max(dayAfterCheckIn.getTime(), todayPlusOne.getTime()));
+                }
+
+                return latestDate.toISOString().split('T')[0]; // Convert back to ISO string for the input min attribute
+                });
+
+            const checkInRules = computed(() => [
+                val => !!val || 'Check-in date is required',
+                val => new Date(val) >= new Date(minDate.value) || 'Check-in cannot be in the past'
+            ]);
+
+            const checkOutRules = computed(() => [
+                val => !!val || 'Check-out date is required',
+                val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in'
+            ]);
+
+
+            // Watchers to calculate totalNights based on valid date entries
+            watch([checkIn, checkOut], ([checkInDate, checkOutDate]) => {
+                if (new Date(checkOutDate) > new Date(checkInDate)) {
+                    totalNights.value = (new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24);
+                    totalNights.value = Math.max(0, Math.round(totalNights.value)); // Ensure no negative nights
+                } else {
+                    totalNights.value = 0; // Reset to 0 if dates are invalid
+                }
+                });
+
+            return {
+                slide: ref(0),
+                fullscreen: ref(false),
+                totalNights,
+                checkIn,
+                checkOut,
+                minDate,
+                minCheckoutDate,
+                checkInRules,
+                checkOutRules,
+                handleBookRoom
+            }
+        },
+        methods: {
+            // Helper function to format amenities
+            formatAmenities(amenities) {
+                if (!amenities) return '';
+                return amenities.join(' · ');
+            },
+            // Helper function to format number with ''' separator
+            formatNumber(number) {
+                if(number) {
+                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                }
+                return 0;
+            }
         }
-    },
-    methods: {
-      // Helper function to format amenities
-      formatAmenities(amenities) {
-        if (!amenities) return '';
-        return amenities.join(' · ');
-      },
-      // Helper function to format number with ''' separator
-      formatNumber(number) {
-        if(number) {
-           return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-        }
-        return 0;
-      }
-    }
-  });
-  </script>
+    });
+</script>
   
