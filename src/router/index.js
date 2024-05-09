@@ -24,8 +24,7 @@ const routes = [
       { path: "/My-account", name: "My-account", component: UserAccountView },
       { path: "/EditUserInformations", name: "EditUserInformations", component: EditUserInformationsView },
       { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') },
-      
-      
+      { path: '/room-booking-summary', name: 'room-booking-summary', component: () => import('@/views/RoomBookingSummaryView.vue') },   
     ]
   },
   
