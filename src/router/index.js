@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router"
+import { createRouter, createWebHashHistory } from "vue-router"
 import MainLayout from "@/layouts/MainLayout.vue"
 import UserAccountView from '@/views/UserAccountView.vue'
 import AddPropertyView from '@/views/AddPropertyView.vue'
@@ -39,7 +39,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 
