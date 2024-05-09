@@ -10,7 +10,7 @@
         <q-separator />
         <template v-slot:after>
           <div class="full-height q-pa-md">
-            <MyRooms :room="room" />
+            <MyRooms :rooms="rooms" />
           </div>
         </template>
       </q-splitter>
@@ -26,7 +26,7 @@
           <UserInformation :user="user" />
         </q-tab-panel>
         <q-tab-panel name="rooms">
-          <MyRooms :room="room" />
+          <MyRooms :rooms="rooms" />
         </q-tab-panel>
       </q-tab-panels>
     </template>
@@ -50,7 +50,7 @@ export default {
   setup() {
     const router = useRouter();
     const user = ref(null);
-    const room = ([]); // Définissez la propriété room
+    const rooms = ref([]); // Définissez la propriété room
     const $q = useQuasar();
     const splitterModel = ref(40);
     const tab = ref('user-info');
@@ -58,12 +58,12 @@ export default {
     const fetchUserProperties = async () => {
   try {
     // Fonction hypothétique pour récupérer l'ID de l'utilisateur connecté
-    
-    const userProperties = await roomService.getUserProperties(4);
+    console.log("User :", user);
+    const userProperties = await roomService.getUserProperties(user.value.pk);
     
     console.log("User properties:", userProperties); 
-    room.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
-    console.log("Value of room after assignment:", room.value);
+    rooms.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
+    console.log("Value of room after assignment:", rooms.value);
   } catch (error) {
     router.push('/');
     
@@ -100,7 +100,7 @@ export default {
 
     return { 
       user, 
-      room, 
+      rooms, 
       splitterModel,
       tab
     };
