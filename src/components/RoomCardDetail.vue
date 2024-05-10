@@ -72,6 +72,7 @@
                         rounded
                         color="green-14"
                         label="Book"
+                        :disabled="isBookButtonDisabled"
                         @click="handleBookRoom(room.id, checkIn, checkOut)"
                     />
                 </div>  
@@ -165,6 +166,11 @@
                 val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in'
             ]);
 
+            const isBookButtonDisabled = computed(() => {
+            return !checkIn.value || !checkOut.value ||
+                   !checkInRules.value.every(rule => rule(checkIn.value) === true) ||
+                   !checkOutRules.value.every(rule => rule(checkOut.value) === true);
+            });
 
             // Watchers to calculate totalNights based on valid date entries
             watch([checkIn, checkOut], ([checkInDate, checkOutDate]) => {
@@ -187,6 +193,7 @@
                 checkInRules,
                 checkOutRules,
                 handleBookRoom,
+                isBookButtonDisabled
             }
         },
         methods: {
