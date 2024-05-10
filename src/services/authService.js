@@ -1,7 +1,7 @@
 import api from "@/services/api"
 import { ref } from "vue"
 import router from "@/router"
-import lastIntent from '@/store/globalState';
+import { getLastIntent, clearLastIntent } from '@/store/globalState';
 
 let user = ref()
 
@@ -14,10 +14,12 @@ export default {
 
     return api.post(`dj-rest-auth/login/`, payload).then((response) => {
       user.value = response.data.user
+
       // Redirect after login based on the last intent or default to user account
-      if (lastIntent.value) {
-        router.push(lastIntent.value);
-        lastIntent.value = null; // Reset last intent after redirection
+      const intent = getLastIntent();
+      if (intent) {
+        router.push(intent);
+        clearLastIntent(); // Reset last intent after redirection
       } else {
         router.push('/my-account');
       }
@@ -27,6 +29,7 @@ export default {
   logout() {
     return api.post(`dj-rest-auth/logout/`).then((response) => {
       user.value = undefined
+      clearLastIntent();
       router.push('/');
       return response.data
     })
