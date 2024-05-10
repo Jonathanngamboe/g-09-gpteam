@@ -107,7 +107,8 @@
     import { ref, computed, watch, defineComponent, onMounted, inject } from 'vue';
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
-  
+    import { setLastIntent } from '@/store/globalState';
+
     export default defineComponent({
         props: {
         room: {
@@ -122,26 +123,19 @@
             const checkIn = ref('');
             const checkOut = ref('');
             const router = useRouter();
-            const user = ref(null);
-
             const toggleLogin = inject('toggleLogin');
 
-            onMounted(async () => {
-                await authService.getUser();
-                user.value = authService.user.value;
-            });
-
             function handleBookRoom(roomId, checkIn, checkOut) {
-                if(user.value) {
+                if(authService.user.value) {
                     router.push({
                         name: 'room-booking-summary',
-                        query: {
-                            roomId,
-                            checkIn,
-                            checkOut
-                        }
+                        query: { roomId, checkIn, checkOut }
                     });
                 } else {
+                    setLastIntent({
+                        name: 'room-booking-summary',
+                        query: { roomId, checkIn, checkOut }
+                    });
                     toggleLogin();
                 }
             }
@@ -192,7 +186,7 @@
                 minCheckoutDate,
                 checkInRules,
                 checkOutRules,
-                handleBookRoom
+                handleBookRoom,
             }
         },
         methods: {
