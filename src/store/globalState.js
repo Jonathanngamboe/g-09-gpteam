@@ -12,4 +12,6 @@ export function clearLastIntent() {
     state.lastIntent = null;
 }
 
+export const getLastIntent = () => state.lastIntent;
+
 export default state;
