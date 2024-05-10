@@ -129,12 +129,12 @@
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
                     router.push({
-                        name: 'room-booking-summary',
+                        name: 'Booking',
                         query: { roomId, checkIn, checkOut }
                     });
                 } else {
                     setLastIntent({
-                        name: 'room-booking-summary',
+                        name: 'Booking',
                         query: { roomId, checkIn, checkOut }
                     });
                     toggleLogin();
