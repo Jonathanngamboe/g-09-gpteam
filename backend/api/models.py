@@ -34,7 +34,8 @@ class Amenity(models.Model):
 
 class Image(models.Model):
     id = models.AutoField(primary_key=True)
-    image = models.ImageField(upload_to='property_image/')
+    image = models.ImageField(upload_to='property_image/', blank=True, null=True)
+    ext_url = models.URLField(null=True, blank=True)
 
 class City(models.Model):
     name = models.CharField(max_length=50, primary_key=True)

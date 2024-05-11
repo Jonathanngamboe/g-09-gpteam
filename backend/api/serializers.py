@@ -22,7 +22,7 @@ class BookingSerializer(serializers.HyperlinkedModelSerializer):
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
-        fields = ['url', 'image']
+        fields = ['url', 'image', 'ext_url']
 
 class CitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
