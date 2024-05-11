@@ -126,6 +126,7 @@ import { ref, provide } from 'vue'
 import LoginDialog from '@/components/LoginDialog.vue';
 import authService from "@/services/authService"; 
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
@@ -133,6 +134,7 @@ export default {
   },
   setup() {
     const $q = useQuasar();
+    const router = useRouter();
 
     const rightDrawerOpen = ref(false);
     const loginVisible = ref(false);
@@ -142,6 +144,7 @@ export default {
         loginVisible.value = !loginVisible.value;
       } else {
         rightDrawerOpen.value = false;
+        router.push("/My-account");
       }
     };
     provide('toggleLogin', toggleLogin);
