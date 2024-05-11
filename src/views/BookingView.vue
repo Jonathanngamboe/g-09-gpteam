@@ -50,7 +50,7 @@
                 </q-card-section>
                 <!-- Confirm and pay button -->
                 <q-card-section>
-                    <q-btn unelevated rounded label="Confirm and pay" color="green-14" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
+                    <q-btn unelevated rounded label="Confirm and pay" color="green" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
                 </q-card-section>
             </q-card>
         </div>
@@ -69,11 +69,13 @@
     </q-page>
   </template>
   
-  <script>
+<script>
   import { ref, onMounted, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import { date, useQuasar } from 'quasar';
+  import { useQuasar } from 'quasar';
   import roomService from '@/services/roomService';
+  import authService from '@/services/authService';
+  import mailService from '@/services/mailService';
   
   export default {
     setup() {
@@ -110,14 +112,19 @@
         });  
 
         onMounted(async () => {
-            if (route.query.roomId) {
-                room.value = await roomService.getRoomById(route.query.roomId);
-                updateDateRange(route.query.checkIn, route.query.checkOut);
-            } else {
-                notify('Please select a room first.', 'red');
+            if (!authService.user.value) {
+                notify('Please log in to book a room.', 'red');
                 router.push('/');
+            } else {
+                if (route.query.roomId) {
+                    room.value = await roomService.getRoomById(route.query.roomId);
+                    updateDateRange(route.query.checkIn, route.query.checkOut);
+                } else {
+                    notify('Please select a room first.', 'red');
+                    router.push('/');
+                }
+                paymentMethod.value = paymentOptions.value[0].value;
             }
-            paymentMethod.value = paymentOptions.value[0].value;
         });
 
         const editDates = () => {
@@ -220,28 +227,42 @@
             $q.notify({ color, textColor: 'white', icon: 'error', position: 'top', message });
         }
 
-        function submitBooking() {
-            notify('Booking confirmed. Thank you!', 'green-14');
+        async function submitBooking() {
+            let bookingDetails = {
+                email: authService.user.value.email,
+                roomTitle: room.value.title,
+                checkIn: dateRange.value.from,
+                checkOut: dateRange.value.to,
+                totalPrice: room.value.price_per_night * totalNights.value,
+            };
+            notify('Thank you for your booking.', 'green');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const response = await mailService.sendEmail(bookingDetails);
+            if (response.status === 'success') {
+                notify('Confirmation email sent.', 'green');
+            } else {
+                notify('Failed to send confirmation email : ' + response.data, 'red');
+            }
             router.push('My-account');
         }
 
         return {
-        room,
-        paymentMethod,
-        paymentOptions,
-        message,
-        totalNights,
-        router,
-        showDialog,
-        dateRange,
-        isConfirmButtonDisabled,
-        submitBooking,
-        editDates,
-        saveNewDates,
-        dateOptions,
-        formattedDateRange,
-        tempDateRange,
-        dialogPosition
+            room,
+            paymentMethod,
+            paymentOptions,
+            message,
+            totalNights,
+            router,
+            showDialog,
+            dateRange,
+            isConfirmButtonDisabled,
+            submitBooking,
+            editDates,
+            saveNewDates,
+            dateOptions,
+            formattedDateRange,
+            tempDateRange,
+            dialogPosition
         };
     },
     methods: {
