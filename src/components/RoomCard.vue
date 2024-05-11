@@ -1,7 +1,7 @@
 <template>
     <q-card flat bordered>
       <!-- Room image -->
-<q-img :src="room.images?.[0]?.image || 'default-room-image.jpg'" />
+      <img :src="room.images && room.images.length > 0 ? room.images[0].image : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'" alt="Room image"/>   
 
       <!-- Card content -->
       <q-card-section>
