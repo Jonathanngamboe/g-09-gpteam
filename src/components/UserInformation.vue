@@ -1,55 +1,113 @@
 <template>
-  <div class="flex flex-center full-height q-pa-md">
-    <q-card flat bordered class="q-pa-lg">
-      <q-card-section class="row items-center q-gutter-sm">
-        <div class="col-12 text-h4 bg-dark text-white text-center rounded-borders q-pa-md">Home Owner</div>
-        <q-card class="col-12 col-md-6 q-ma-md" flat bordered>
-          <q-card-section>
-            <div class="text-h6">{{ utilisateur.first_name }}</div>
-          </q-card-section>
-        </q-card>
-        <q-card class="col-12 col-md-6 q-ma-md" flat bordered>
-          <q-card-section>
-            <div class="text-h6">{{ utilisateur.last_name }}</div>
-          </q-card-section>
-        </q-card>
-        <q-card class="col-12 q-ma-md" flat bordered>
-          <q-card-section>
-            <div class="text-h6">18/10/1981</div> <!-- Fictive phone number -->
-          </q-card-section>
-        </q-card>
-        <q-card class="col-12 q-ma-md" flat bordered>
-          <q-card-section>
-            <div class="text-h6">{{ utilisateur.email }}</div>
-          </q-card-section>
-        </q-card>
-        <div class="col-12 text-center q-mt-lg">
-          <q-btn color="primary" icon="edit" @click="editField('informations')" label="Edit Informations" />
-        </div>
-      </q-card-section>
-    </q-card>
-  </div>
+  <q-page class="flex full-height column justify-center">
+    <!-- Title and user group chip -->
+    <div>
+      <q-toolbar>
+        <q-toolbar-title>
+          <q-icon name="person" class="q-mr-sm" v-if="$q.screen.gt.sm" />
+          Personal Details
+        </q-toolbar-title>
+      </q-toolbar>
+      <q-chip class="q-mb-md q-ml-md" color="secondary" style="color: white;" label="Home owner" />
+    </div>
+    
+    <!-- List of editable fields -->
+    <div class="flex flex-center full-width full-height">
+      <div class="q-pa-md full-width">
+        <q-list>
+          <q-item v-for="(value, key) in userEditable" :key="key">
+            <q-item-section>
+              <q-input :disable="!isEditing" v-model="userEditable[key]" :label="formatLabel(key)" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+
+      <!-- Action buttons at the bottom -->
+      <div class="text-center q-pa-md full-width">
+        <q-btn unelevated rounded v-if="!isEditing" color="primary" icon="edit" label="Edit" @click="toggleEdit(true)" class="full-width" />
+        <template v-else>
+          <q-btn unelevated rounded flat label="Cancel" @click="toggleEdit(false)" style="width: 48%;" />
+          <q-btn unelevated rounded color="primary" icon="save" label="Save" @click="updateUserDetails" style="width: 48%;" />
+        </template>
+      </div>
+    </div>
+  </q-page>
 </template>
 
-<script>
-export default {
-  props: {
-    utilisateur: Object
-  },
-  methods: {
-    editField(field) {
-      // Navigate to the edit page for the specified field
-      this.$router.push('/EditUserInformations');
-    }
-  }
-}
-</script>
 
-<style scoped>
-.rounded-borders {
-  border-radius: 25px;
-}
-.flex-center {
-  height: 100vh; /* Make the component take up the full height of the page */
-}
-</style>
+<script>
+import { ref, onMounted, reactive } from 'vue';
+import authService from '@/services/authService';
+import api from '@/services/api';
+import { useQuasar } from 'quasar';
+
+export default {
+  setup() {
+    const $q = useQuasar();
+    const userEditable = reactive({});
+    const userGroups = ref([]);
+    const isEditing = ref(false);
+
+    const getUserDetails = async () => {
+      try {
+        await authService.getUser();
+        if (authService.user.value) {
+          // Exclude the 'pk' field and populate user-editable fields
+          Object.entries(authService.user.value).forEach(([key, value]) => {
+            if (key !== 'pk' && key !== 'username') { // Exclude 'pk' and 'username' fields, they are not editable
+              userEditable[key] = value;
+            } 
+          });
+          userGroups.value = authService.user.value.groups || [];
+        }
+      } catch (error) {
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: 'An error occurred while fetching user details.',
+          icon: 'report_problem'
+        });
+      }
+    };
+
+    const updateUserDetails = async () => {
+      try {
+        const response = await api.patch('dj-rest-auth/user/', userEditable);
+        Object.assign(authService.user.value, response.data);
+        $q.notify({
+          color: 'positive',
+          position: 'top',
+          message: 'User details updated successfully.',
+          icon: 'check_circle'
+        });
+        toggleEdit(false); // Turn off editing mode after saving
+      } catch (error) {
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: 'An error occurred while updating user details.',
+          icon: 'error'
+        });
+      }
+    };
+
+    const toggleEdit = (editMode) => {
+      isEditing.value = editMode;
+      if (!editMode) {
+        getUserDetails(); // Reset to last saved state if cancelling
+      }
+    };
+
+    const formatLabel = (key) => {
+      // Improved label formatting to handle special cases
+      if (key === 'date_of_birth') return 'Date of Birth';
+      return key.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
+    onMounted(getUserDetails);
+
+    return { userEditable, updateUserDetails, toggleEdit, isEditing, formatLabel, userGroups };
+  }
+};
+</script>

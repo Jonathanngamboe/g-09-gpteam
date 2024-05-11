@@ -1,17 +1,17 @@
 <template>
     <q-card flat bordered>
       <!-- Room image -->
-      <q-img :src="room.images[0].image" />
-  
+<q-img :src="room.images?.[0]?.image || 'default-room-image.jpg'" />
+
       <!-- Card content -->
       <q-card-section>
-        <div class="text-overline text-secondary">{{ room.city.name }}</div>
-        <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" />
-        <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
-        <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
-        <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
+        <div class="text-overline text-secondary">{{ room.city?.name || 'Unknown city' }}</div>
+        <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" v-if="room.average_rating" />
+        <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title || 'No title available' }}</div>
+        <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) || 'N/A' }} m²</div>
+        <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) || 'N/A' }}.- per night</div>
         <div class="text-caption text-grey">
-          {{ formatAmenities(room.amenities) }}
+          {{ formatAmenities(room.amenities) || 'No amenities listed'}}
         </div>
       </q-card-section>
   
@@ -37,8 +37,8 @@
         navigator
           .share({
             title: `${props.room.title}`,
-            text: `Check out this room: ${props.room.title}, located at ${props.room.city.name}. Details: ${props.room.description}`,
-            url: `${window.location.origin}/room/${props.room.id}`
+            text: `Check out this room: ${props.room.title}, located at ${props.room.city.name}. Details: ${props.room.description || "No details available"}`,
+            url: `${window.location.origin}/room/${props.room.id || ''}`
           })
           .then(() => {
             $q.notify({

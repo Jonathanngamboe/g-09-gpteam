@@ -42,5 +42,19 @@ export default {
       .catch(() => {
         user.value = undefined
       })
+  },
+
+  getCustomuser() {
+    return api.get(`/customusers/me/`) 
+      .then((response) => {
+        user.value = response.data;
+        console.log("Current user data fetched:", user.value);
+        return user.value;
+      })
+      .catch((error) => {
+        console.error("Failed to fetch current user data:", error);
+        user.value = undefined;
+      });
   }
+
 }

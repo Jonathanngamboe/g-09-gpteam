@@ -19,7 +19,8 @@
           <div class="row no-wrap q-pa-md">
             <div class="column">
               <template v-for="(menuItem, index) in menuList" :key="index">
-                <div v-if="menuItem.label !== 'My Profile'">
+                <!-- My account button -->
+                <div v-if="menuItem.label !== 'My account'">
                   <q-item clickable :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
                     <q-item-section avatar>
                       <q-icon :name="menuItem.icon" class="text-primary"/>
@@ -35,25 +36,36 @@
 
             <q-separator vertical inset class="q-mx-lg" />
 
-            <div class="column items-center">
-              <q-avatar size="48px">
-                <img src="https://cdn.quasar.dev/img/boy-avatar.png">
-              </q-avatar>
+            <div class="column items-center justify-center">
+              <div class="column items-center" v-if="userLoggedIn">
+                <q-avatar size="48px">
+                  <img src="https://cdn.quasar.dev/img/boy-avatar.png">
+                </q-avatar>
 
-              <div class="text-subtitle1 q-mt-md q-mb-xs">John Doe</div>
-
+                <div class="text-subtitle1 q-mt-md q-mb-xs">John Doe</div>
+              </div>
               <!-- Display the login and sign up buttons in column with a gap between them -->
-              <div class="q-pa-md">
+              <div class="q-pa-md column items-center q-gutter-sm">
                 <q-btn
                     rounded
                     unelevated
                     color="primary"
-                    label="My Profile"
-                    push
+                    label="My account"
                     size="sm"
                     v-close-popup
                     @click="toggleLogin"
                   />
+                <!-- Logout button -->
+                <q-btn
+                  rounded
+                  flat
+                  size="sm"
+                  class="text-negative"
+                  label="Logout"
+                  icon="logout"
+                  @click="logout"
+                  v-if="userLoggedIn"
+                />
               </div>
             </div>
           </div>
@@ -70,7 +82,7 @@
         <q-list class="q-ma-md">
           <template v-for="(menuItem, index) in menuList" :key="index">
             <!-- Conditional rendering based on the item label -->
-            <q-item clickable v-if="menuItem.label !== 'My Profile'" :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
+            <q-item clickable v-if="menuItem.label !== 'My account'" :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
               <q-item-section avatar>
                 <q-icon :name="menuItem.icon" class="text-primary" />
               </q-item-section>
@@ -87,6 +99,16 @@
               </q-item-section>
             </q-item>
             <q-separator :key="'sep' + index" v-if="menuItem.separator" />
+            <!-- Logout button only visible after My account -->
+            <q-item clickable v-show="$q.screen.lt.lg" @click="logout" v-ripple v-if="menuItem.label === 'My account' && userLoggedIn">
+              <q-item-section avatar>
+                <q-icon name="logout" class="text-primary" color="negative"/>
+              </q-item-section>
+              <q-item-section class="text-negative">
+                Logout
+              </q-item-section>
+            </q-item>
+            <q-separator v-if="menuItem.label === 'My account' && userLoggedIn"/>
           </template>
         </q-list>
       </q-scroll-area>
@@ -100,25 +122,61 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 //import LoginDialog from '@/components/LoginDialog.vue';
 import LoginDialog from '../components/LoginDialog.vue';
+import authService from "@/services/authService"; 
+import { useRouter } from 'vue-router';
+import { useQuasar } from 'quasar';
 
 export default {
   components: {
     LoginDialog
   },
   setup() {
+    const $q = useQuasar();
     const rightDrawerOpen = ref(false);
     const loginVisible = ref(false);
+    const router = useRouter();
+    const userLoggedIn = ref(false);
+
+    watch(() => authService.user.value, (newValue, oldValue) => {
+      userLoggedIn.value = newValue != null;
+      if (newValue !== null && oldValue === null) {
+        router.push('/my-account');
+        rightDrawerOpen.value = false;
+      }
+    }, { immediate: true });
+
+    onMounted(async () => {
+      await authService.getUser();
+    });
+
     const toggleLogin = () => {
-      loginVisible.value = !loginVisible.value;
+      if (!userLoggedIn.value) {
+        loginVisible.value = !loginVisible.value;
+      } else {
+        router.push('/my-account');
+        rightDrawerOpen.value = false;
+      }
+    };
+
+    const logout = () => {
+      authService.logout().then(() => {
+        userLoggedIn.value = false;
+        rightDrawerOpen.value = false;
+        router.push('/');
+        $q.notify({
+          color: 'positive',
+          position: 'top',
+          message: 'You have been logged out'
+        }); 
+      });
     };
     // Initialize the menu list
-    // TODO: Replace with actual menu items
     const menuList = ref([
       { label: 'Home', icon: 'home', separator: false, to: '/' },
-      { label: 'My Profile', icon: 'account_circle', separator: true },
+      { label: 'My account', icon: 'account_circle', separator: false },
       // Services section
       { label: "Find a room to rent", icon: "search", separator: false, to: "/find-room" },
       { label: "Add a room for rent", icon: "add", separator: true, to: "/add-room" },
@@ -137,6 +195,8 @@ export default {
       menuList,
       loginVisible,
       toggleLogin,
+      logout,
+      userLoggedIn
     }
   }
 }
