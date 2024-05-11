@@ -16,7 +16,7 @@
                         v-for="(image, index) in room.images"
                         :key="index"
                         :name="index"
-                        :img-src="image.image"
+                        :img-src="image.image ? image.image : image.ext_url"
                     />                
                     <template v-slot:control>
                         <q-carousel-control
