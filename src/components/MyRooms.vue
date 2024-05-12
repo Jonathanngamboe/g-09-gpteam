@@ -12,7 +12,7 @@
       </q-toolbar>      <!-- Check if room exists and display card -->
       <div v-if="rooms.length > 0">
         <div v-for="room in rooms" :key="room.id">
-        <room-card :room="room" @room-details="goToRoomDetails" />
+        <room-card :room="room" @click="goToRoomDetails(room.id)" />
         </div>
       </div>
       <!-- Display message if no rooms are available -->
@@ -25,26 +25,36 @@
 
 <script>
 import RoomCard from '@/components/RoomCard.vue'; // Adjust the path as necessary
+import RoomCardDetail from './RoomCardDetail.vue';
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
-    RoomCard
+    RoomCard,
   },
   props: {
     rooms: Array
   },
 
   created() {
-    console.log("Value of 'room' prop:", this.rooms)},
+    console.log("Value of 'room' prop:", this.rooms);},
   
-  methods: {
-    goToRoomDetails(roomId) {
-      this.$router.push(`/room/${roomId}`);
+  setup () {
+    const router = useRouter();
 
-    },
-    addRoom() {
-      this.$router.push('/add-room');
+    function goToRoomDetails(roomId) {
+      router.push({ name: 'ManageRoom', query: { roomId } });
+  }
+    function addRoom() {
+      router.push('/add-room');
     }
+
+    return {
+      goToRoomDetails,
+      addRoom
+    };
+
+
   }
 };
 </script>
