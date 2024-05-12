@@ -791,5 +791,33 @@
             "created_at": "1900-01-01T12:00:00Z",
             "updated_at": "1900-01-01T12:00:00Z"
         }
+    },
+    {
+        "model": "api.Status",
+        "pk": 1,
+        "fields": {
+            "name": "Pending"
+        }
+    },
+    {
+        "model":"api.Status",
+        "pk": 2,
+        "fields": {
+            "name": "In progress"
+        }
+    },
+    {
+        "model": "api.Status",
+        "pk": 3,
+        "fields": {
+            "name": "Confirmed"
+        }
+    },
+    {
+        "model": "api.Status",
+        "pk": 4,
+        "fields": {
+            "name": "Cancelled"
+        }
     }
 ]
