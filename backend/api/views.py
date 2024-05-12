@@ -6,6 +6,8 @@ from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSe
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.http import JsonResponse
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
@@ -20,6 +22,23 @@ def current_user(request):
     serializer = CustomUserSerializer(request.user, context={'request': request})
     return Response(serializer.data)
 
+def send_confirmation_email(request):
+    email = request.POST.get('email', '')
+    room_title = request.POST.get('roomTitle', '')
+    check_in = request.POST.get('checkIn', '')
+    check_out = request.POST.get('checkOut', '')
+    total_price = request.POST.get('totalPrice', '')
+
+    subject = 'Booking Confirmation'
+    message = f'Your booking for {room_title} has been confirmed. Check-in: {check_in}, Check-out: {check_out}, Total Price: {total_price}'
+    sender = None # Django will use the value of the DEFAULT_FROM_EMAIL setting
+    recipients = [email]
+
+    try:
+        send_mail(subject, message, sender, recipients, fail_silently=False)
+        return JsonResponse({'status': 'success', 'message': 'Confirmation email sent successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     """

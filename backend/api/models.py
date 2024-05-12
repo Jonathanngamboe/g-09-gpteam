@@ -51,11 +51,12 @@ class Amenity(models.Model):
 
 class Image(models.Model):
     id = models.AutoField(primary_key=True)
-    image_url = models.URLField(null=True, default=None)
+    image = models.ImageField(upload_to='property_image/', blank=True, null=True)
+    ext_url = models.URLField(null=True, blank=True)
 
-    #Link between tables
+     #Link between tables
     property = models.ForeignKey(Property, on_delete=models.CASCADE, null=True, default=None)
-
+    
 class City(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
     zip = models.CharField(max_length=10)
