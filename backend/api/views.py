@@ -1,8 +1,8 @@
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions
-from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
-from .serializers import   BookingSerializer, PropertySerializer, Property_TypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer
+from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
+from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer, UnavailabilitySerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -52,12 +52,12 @@ class PropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
     permission_classes = [permissions.AllowAny]
 
-class Property_TypeViewSet(viewsets.ModelViewSet):
+class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows property types to be viewed or edited.
     """
-    queryset = Property_Type.objects.all()
-    serializer_class = Property_TypeSerializer
+    queryset = PropertyType.objects.all()
+    serializer_class = PropertyTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class AmenityViewSet(viewsets.ModelViewSet):
@@ -106,6 +106,14 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class UnavailabilityViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows unavailabilities to be viewed or edited.
+    """
+    queryset = Unavailability.objects.all()
+    serializer_class = UnavailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
     
 # def add_property_view(request):

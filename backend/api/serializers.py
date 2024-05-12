@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
+from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
 from django.db.models import Avg
 
 class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
@@ -10,29 +10,27 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     )
     class Meta:
         model = CustomUser
-        fields = ['id', 'url', 'username', 'email', 'first_name', 'last_name', 'date_of_birth', 'date_joined', 'last_login', 'groups']
-
+        fields = '__all__'
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Booking
-        fields = ['id', 'check_in', 'check_out', 'created_at', 'property', 'user', 'status']
-
+        fields = '__all__'
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
-        fields = ['url', 'id', 'property']
+        fields = '__all__'
 
 class CitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = City
-        fields = ['url', 'name', 'zip']
+        fields = '__all__'
 
 class AmenitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Amenity
-        fields = ['url', 'id', 'name', 'properties']
+        fields = '__all__'
 
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
@@ -41,27 +39,32 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     amenities = AmenitySerializer(many=True, read_only=True)
     class Meta:
         model = Property
-        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
+        fields = '__all__'
     def get_average_rating(self, obj):
         average = Review.objects.filter(property=obj).aggregate(Avg('rating'))
         return average['rating__avg'] if average['rating__avg'] is not None else 0
 
-class Property_TypeSerializer(serializers.HyperlinkedModelSerializer):
+class PropertyTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Property_Type
-        fields = ['url', 'name']
+        model = PropertyType
+        fields = '__all__'
 
 class StatusSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Status
-        fields = ['url', 'name']
+        fields = '__all__'
 
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Review
-        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'booking']
+        fields = '__all__'
 
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Message
-        fields = ['url', 'id', 'subject', 'body', 'sent_at', 'booking', 'sent_by', 'received_by' ]
+        fields = '__all__'
+
+class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Unavailability
+        fields = '__all__'
