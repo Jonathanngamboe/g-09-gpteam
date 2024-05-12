@@ -10,10 +10,17 @@
           </router-link>
         </q-toolbar-title>
 
+        <q-space />
+
         <!-- Search bar -->
-        <!-- TODO: Implement search bar -->
+        <SearchBar/>
+
+        <q-space />
+
+        <!-- Login dialog -->
         <LoginDialog :isVisible="loginVisible" @update:isVisible="val => loginVisible = val"
           @close="loginVisible = false" />
+
         <!-- Avatar icon (Only visible on large screens) -->
         <q-btn-dropdown flat round dense icon="account_circle" v-show="$q.screen.gt.md" dropdown-icon="menu">
           <div class="row no-wrap q-pa-md">
@@ -127,10 +134,12 @@ import LoginDialog from '@/components/LoginDialog.vue';
 import authService from "@/services/authService"; 
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
+import SearchBar from '@/components/SearchBar.vue';
 
 export default {
   components: {
-    LoginDialog
+    LoginDialog,
+    SearchBar
   },
   setup() {
     const $q = useQuasar();
@@ -182,7 +191,7 @@ export default {
       loginVisible,
       toggleLogin,
       logout,
-      authService
+      authService,
     }
   }
 }
