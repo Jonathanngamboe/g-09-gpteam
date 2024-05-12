@@ -40,8 +40,9 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Property
         fields = '__all__'
+
     def get_average_rating(self, obj):
-        average = Review.objects.filter(property=obj).aggregate(Avg('rating'))
+        average = Review.objects.filter(booking__property=obj).aggregate(Avg('rating'))
         return average['rating__avg'] if average['rating__avg'] is not None else 0
 
 class PropertyTypeSerializer(serializers.HyperlinkedModelSerializer):
