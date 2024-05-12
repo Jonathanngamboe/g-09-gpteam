@@ -37,7 +37,7 @@
             <q-separator vertical inset class="q-mx-lg" />
 
             <div class="column items-center justify-center">
-              <div class="column items-center" v-if="userLoggedIn">
+              <div class="column items-center" v-if="authService.user.value">
                 <q-avatar size="48px">
                   <img src="https://cdn.quasar.dev/img/boy-avatar.png">
                 </q-avatar>
@@ -64,7 +64,7 @@
                   label="Logout"
                   icon="logout"
                   @click="logout"
-                  v-if="userLoggedIn"
+                  v-if="authService.user.value"
                 />
               </div>
             </div>
@@ -100,7 +100,7 @@
             </q-item>
             <q-separator :key="'sep' + index" v-if="menuItem.separator" />
             <!-- Logout button only visible after My account -->
-            <q-item clickable v-show="$q.screen.lt.lg" @click="logout" v-ripple v-if="menuItem.label === 'My account' && userLoggedIn">
+            <q-item clickable v-show="$q.screen.lt.lg" @click="logout" v-ripple v-if="menuItem.label === 'My account' && authService.user.value">
               <q-item-section avatar>
                 <q-icon name="logout" class="text-primary" color="negative"/>
               </q-item-section>
@@ -108,7 +108,7 @@
                 Logout
               </q-item-section>
             </q-item>
-            <q-separator v-if="menuItem.label === 'My account' && userLoggedIn"/>
+            <q-separator v-if="menuItem.label === 'My account' && authService.user.value"/>
           </template>
         </q-list>
       </q-scroll-area>
@@ -122,12 +122,11 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue'
-//import LoginDialog from '@/components/LoginDialog.vue';
-import LoginDialog from '../components/LoginDialog.vue';
+import { ref, provide } from 'vue'
+import LoginDialog from '@/components/LoginDialog.vue';
 import authService from "@/services/authService"; 
-import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
@@ -135,37 +134,24 @@ export default {
   },
   setup() {
     const $q = useQuasar();
+    const router = useRouter();
+
     const rightDrawerOpen = ref(false);
     const loginVisible = ref(false);
-    const router = useRouter();
-    const userLoggedIn = ref(false);
-
-    watch(() => authService.user.value, (newValue, oldValue) => {
-      userLoggedIn.value = newValue != null;
-      if (newValue !== null && oldValue === null) {
-        router.push('/my-account');
-        rightDrawerOpen.value = false;
-      }
-    }, { immediate: true });
-
-    onMounted(async () => {
-      await authService.getUser();
-    });
 
     const toggleLogin = () => {
-      if (!userLoggedIn.value) {
+      if (!authService.user.value) {
         loginVisible.value = !loginVisible.value;
       } else {
-        router.push('/my-account');
         rightDrawerOpen.value = false;
+        router.push("/My-account");
       }
     };
+    provide('toggleLogin', toggleLogin);
 
     const logout = () => {
       authService.logout().then(() => {
-        userLoggedIn.value = false;
         rightDrawerOpen.value = false;
-        router.push('/');
         $q.notify({
           color: 'positive',
           position: 'top',
@@ -196,7 +182,7 @@ export default {
       loginVisible,
       toggleLogin,
       logout,
-      userLoggedIn
+      authService
     }
   }
 }
