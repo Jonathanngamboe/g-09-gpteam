@@ -10,27 +10,27 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     )
     class Meta:
         model = CustomUser
-        fields = '__all__'
+        fields = ['url', 'id', 'username', 'email', 'first_name', 'last_name', 'groups', 'date_of_birth', 'date_joined', 'last_login', 'profil_image', 'address', 'city']
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ['url', 'id', 'start_date', 'end_date', 'status', 'property', 'user', 'created_at', 'updated_at']
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
-        fields = '__all__'
+        fields = ['url', 'id', 'image_url', 'ext_url']
 
 class CitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = City
-        fields = '__all__'
+        fields = ['url', 'name', 'zip']
 
 class AmenitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Amenity
-        fields = '__all__'
+        fields = ['url', 'name']
 
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
@@ -39,7 +39,7 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     amenities = AmenitySerializer(many=True, read_only=True)
     class Meta:
         model = Property
-        fields = '__all__'
+        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
 
     def get_average_rating(self, obj):
         average = Review.objects.filter(booking__property=obj).aggregate(Avg('rating'))
@@ -48,24 +48,24 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
 class PropertyTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PropertyType
-        fields = '__all__'
+        fields = ['url', 'name']
 
 class StatusSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Status
-        fields = '__all__'
+        fields = ['url', 'name']
 
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'booking']
 
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = ['url', 'id', 'subject', 'content', 'created_at', 'sender', 'receiver']
 
 class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Unavailability
-        fields = '__all__'
+        fields = ['url', 'id', 'start_date', 'end_date', 'comment', 'property']

@@ -47,9 +47,6 @@ class PropertyType(models.Model):
 class Amenity(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
 
-    #Link between tables
-    properties = models.ManyToManyField(Property)
-
 class Image(models.Model):
     id = models.AutoField(primary_key=True)
     image_url = models.ImageField(upload_to='property_image/', blank=True, null=True)
