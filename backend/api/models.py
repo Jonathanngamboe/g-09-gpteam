@@ -27,9 +27,10 @@ class Property(models.Model):
 
     #Link between tables
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    property_type = models.ForeignKey ('PropertyType', on_delete=models.CASCADE, related_name='properties', null=True, default=None)
+    property_Type = models.ForeignKey ('PropertyType', on_delete=models.CASCADE, related_name='properties', null=True, default=None)
     city = models.ForeignKey('City', on_delete=models.CASCADE, related_name='cities', null=True, default=None)
     amenities = models.ManyToManyField('Amenity')
+    images = models.ManyToManyField('Image')
 
 class Unavailability(models.Model):
     id = models.AutoField(primary_key=True)
@@ -51,12 +52,9 @@ class Amenity(models.Model):
 
 class Image(models.Model):
     id = models.AutoField(primary_key=True)
-    image = models.ImageField(upload_to='property_image/', blank=True, null=True)
+    image_url = models.ImageField(upload_to='property_image/', blank=True, null=True)
     ext_url = models.URLField(null=True, blank=True)
 
-     #Link between tables
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, null=True, default=None)
-    
 class City(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
     zip = models.CharField(max_length=10)

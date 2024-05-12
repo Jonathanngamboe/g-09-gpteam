@@ -8,6 +8,8 @@
             "last_name": "User",
             "email": "admin@example.com",
             "password": "admin",
+            "address":"12 Alpine Road",
+            "city":"Geneva",
             "date_of_birth": "1985-06-15",
             "date_joined": "1900-01-01T12:00:00Z",
             "last_login": "1900-01-01T12:00:00Z"
@@ -23,6 +25,8 @@
             "last_name": "Doe",
             "email": "johndoe@example.com",
             "password": "password",
+            "address":"Abiquiu",
+            "city":"Lausanne",
             "date_of_birth": "1985-06-15",
             "date_joined": "1900-01-01T12:00:00Z",
             "last_login": "1900-01-01T12:00:00Z"
@@ -37,13 +41,15 @@
             "last_name": "Doe",
             "email": "janedoe@example.com",
             "password": "password",
+            "address":"Bend, Oregon",
+            "city":"Lugano",
             "date_of_birth": "1985-06-15",
             "date_joined": "1900-01-01T12:00:00Z",
             "last_login": "1900-01-01T12:00:00Z"
         }
     },
     {
-        "model": "api.Property_Type",
+        "model": "api.PropertyType",
         "pk": 1,
         "fields": {
             "name": "Room"
