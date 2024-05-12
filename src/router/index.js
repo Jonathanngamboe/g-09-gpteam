@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router"
+import { createRouter, createWebHashHistory } from "vue-router"
 import MainLayout from "@/layouts/MainLayout.vue"
 import UserAccountView from '@/views/UserAccountView.vue'
 import AddPropertyView from '@/views/AddPropertyView.vue'
@@ -18,15 +18,13 @@ const routes = [
     component: MainLayout,
     children: [
       { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
-      { path: '/profile', name: 'profile', component: () => import('@/views/ProfileView.vue')},
       { path: '/messages', name: 'messages', component: () => import(/* webpackChunkName: "about" */'@/views/MessagesView.vue') },
       { path: '/room/:id', name: 'room', component: () => import('@/views/RoomView.vue') },
       { path: "/Add-Room", name: "Add-Room", component: AddPropertyView },
-      { path: "/UserAccount", name: "UserAccount", component: UserAccountView },
+      { path: "/My-account", name: "My-account", component: UserAccountView },
       { path: "/EditUserInformations", name: "EditUserInformations", component: EditUserInformationsView },
       { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') },
-      
-      
+      { path: '/Booking', name: 'Booking', component: () => import('@/views/BookingView.vue') },   
     ]
   },
   
@@ -41,7 +39,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 

@@ -1,11 +1,44 @@
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions
-from .models import  Booking, Property, Property_Type, Amenity, Status, Image, City, Review, Message, CustomUser
-from .serializers import   BookingSerializer, PropertySerializer, Property_TypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer
+from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
+from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer, UnavailabilitySerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.http import JsonResponse
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    """
+    Retrieve the currently logged in user.
+    """
+    serializer = CustomUserSerializer(request.user, context={'request': request})
+    return Response(serializer.data)
+
+def send_confirmation_email(request):
+    email = request.POST.get('email', '')
+    room_title = request.POST.get('roomTitle', '')
+    check_in = request.POST.get('checkIn', '')
+    check_out = request.POST.get('checkOut', '')
+    total_price = request.POST.get('totalPrice', '')
+
+    subject = 'Booking Confirmation'
+    message = f'Your booking for {room_title} has been confirmed. Check-in: {check_in}, Check-out: {check_out}, Total Price: {total_price}'
+    sender = None # Django will use the value of the DEFAULT_FROM_EMAIL setting
+    recipients = [email]
+
+    try:
+        send_mail(subject, message, sender, recipients, fail_silently=False)
+        return JsonResponse({'status': 'success', 'message': 'Confirmation email sent successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     """
@@ -14,6 +47,13 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Restrict non-staff users to only access their own user object
+        if self.request.user.is_staff:
+            return CustomUser.objects.all()
+        else:
+            return CustomUser.objects.filter(id=self.request.user.id)
 
 class BookingViewSet(viewsets.ModelViewSet):
     """
@@ -29,14 +69,14 @@ class PropertyViewSet(viewsets.ModelViewSet):
     """
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
-class Property_TypeViewSet(viewsets.ModelViewSet):
+class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows property types to be viewed or edited.
     """
-    queryset = Property_Type.objects.all()
-    serializer_class = Property_TypeSerializer
+    queryset = PropertyType.objects.all()
+    serializer_class = PropertyTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class AmenityViewSet(viewsets.ModelViewSet):
@@ -85,6 +125,14 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class UnavailabilityViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows unavailabilities to be viewed or edited.
+    """
+    queryset = Unavailability.objects.all()
+    serializer_class = UnavailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
     
 # def add_property_view(request):

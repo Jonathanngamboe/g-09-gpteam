@@ -7,8 +7,12 @@ const propertyService = {
       title: propertyData.title,
       description: propertyData.description,
       address: propertyData.address,
+      city: propertyData.city,
       price_per_night: propertyData.price_per_night,
       surface: propertyData.surface,
+      amenities: propertyData.amenities,  
+      property_Type: propertyData.property_Type,
+      images: propertyData.images,  
       is_active: propertyData.is_active,
       owner: propertyData.owner, 
     };
@@ -38,8 +42,12 @@ const propertyService = {
       title: propertyData.title,
       description: propertyData.description,
       address: propertyData.address,
+      city: propertyData.city,
       price_per_night: propertyData.price_per_night,
       surface: propertyData.surface,
+      amenities: propertyData.amenities,  
+      property_Type: propertyData.property_Type,
+      images: propertyData.images,  
       is_active: propertyData.is_active,
       
     };
