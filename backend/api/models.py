@@ -36,7 +36,7 @@ class Unavailability(models.Model):
     id = models.AutoField(primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    comment = models.CharField(max_length=200)
+    comment = models.CharField(max_length=200, blank=True)
 
     #Link between tables
     property = models.ForeignKey(Property, on_delete=models.CASCADE)

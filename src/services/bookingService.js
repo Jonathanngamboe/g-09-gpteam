@@ -10,6 +10,27 @@ export default {
                 throw new Error(`Failed to fetch booking with ID ${id}: ` + error.message);
             });
     },
+    getBookingByPropertyId(propertyId) {
+        return api.get(`${endpoint}/properties/${propertyId}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch booking with property ID ${propertyId}: ` + error.message);
+            });
+    },
+    getBookingByUserId(userId) {
+        return api.get(`${endpoint}/customusers/${userId}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch booking with user ID ${userId}: ` + error.message);
+            });
+    },
+    getBookedByStatus(status) {
+        return api.get(`${endpoint}/statuses/${status}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch booking with status ${status}: ` + error.message);
+            });
+    },
     getBookedDates(){
         return api.get(`${endpoint}`)
             .then(response => {
