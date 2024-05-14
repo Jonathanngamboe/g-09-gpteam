@@ -108,7 +108,7 @@
     import { ref, computed, watch, defineComponent, onMounted, inject } from 'vue';
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
-    import { setLastIntent } from '@/store/globalState';
+    import { setLastIntent } from '@/utils/globalState';
 
     export default defineComponent({
         props: {

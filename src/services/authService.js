@@ -1,7 +1,7 @@
 import api from "@/services/api"
 import { ref } from "vue"
 import router from "@/router"
-import { getLastIntent, clearLastIntent } from '@/store/globalState';
+import { getLastIntent, clearLastIntent } from '@/utils/globalState';
 
 let user = ref()
 
