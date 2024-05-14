@@ -55,7 +55,6 @@ export default defineComponent({
         });
         if (result) {
           visible.value = false; // Close the dialog
-          router.push({ name: 'My-account' });  // Go to the user's account page
         } else {
           loginError.value = "An error occurred. Please try again.";
         }
