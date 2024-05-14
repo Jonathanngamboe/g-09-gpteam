@@ -1,157 +1,222 @@
 <template>
-    <!-- Search bar elements for big screens -->
-    <div class="row items-center q-pa-md" v-show="$q.screen.gt.md" style="min-width: 25%; width: 50%;">
-        <!-- Destination input -->
-        <q-select
-            dense
-            hide-dropdown-icon
-            v-model="destination"
-            label="Destination"
-            class="col"
-            :options="availableDestinations"
-            use-input
-            fill-input
-            input-debounce="0"
-            @filter="filterFunction"
-        />
-        <!-- Check-in -->
-        <q-input
-            type="date"
-            dense
-            v-model="dateRange.start"
-            label="Check-in"
-            class="col"
-            @click="focusInput"
-            ref="startDateInput"
-        />
-        <!-- Check-out -->
-        <q-input
-            type="date"
-            dense
-            v-model="dateRange.end"
-            label="Check-out"
-            class="col"
-            @click="focusInput"
-            ref="endDateInput"
-        /> 
-        <!-- Search button -->
-        <q-btn rounded unelevated color="primary" icon="search" class="q-ml-md" />
+    <div class="row inline no-wrap q-pa-md">
+        <!-- Search model buttons -->
+        <q-btn-toggle
+            v-model="searchModel"
+            @update:model-value="handleModelClick"
+            class="border-bottom "
+            no-caps
+            rounded
+            unelevated
+            toggle-color="primary"
+            color="white"
+            text-color="primary"
+            :options="buttonOptions"
+        >
+        </q-btn-toggle>
+
+        <!-- Menu for big screens -->
+        <q-menu 
+            fit 
+            v-if="searchModel === 'destination' && $q.screen.gt.md"
+            anchor="top left" 
+            self="bottom left" 
+            :offset="[0, 10]">
+            <div class="row no-wrap q-pa-md">
+                <div class="col">
+                    <div class="row text-h6 q-gutter-sm items-center">
+                        <q-icon name="place" class="q-mr-sm" />
+                        <div>Search for a destination</div>
+                    </div>
+                    <q-select
+                        dense
+                        borderless
+                        label="Destination"
+                        placeholder="Where are you going?"
+                        v-model="destination"
+                        :options="filteredDestinations"
+                        hide-dropdown-icon
+                        clearable
+                        use-input
+                        fill-input
+                        input-debounce="300"
+                        @filter="filterFunction">
+                        <template v-slot:append>
+                            <q-btn flat round icon="search"  @click="performSearch"/>
+                        </template>
+                        <template v-slot:no-option>
+                        <q-item>
+                            <q-item-section class="text-grey">
+                            No results
+                            </q-item-section>
+                        </q-item>
+                        </template>
+                    </q-select>
+                </div>
+            </div>
+        </q-menu>
+        <q-menu 
+            v-if="searchModel === 'check-in' && $q.screen.gt.md"
+            anchor="bottom middle" 
+            self="top middle"
+            :offset="[0, 10]">
+            <q-date minimal v-model="dateRange.from" mask="YYYY-MM-DD" :options="dateOptions"/>
+        </q-menu>
+        <q-menu 
+            v-if="searchModel === 'check-out' && $q.screen.gt.md"
+            anchor="bottom right" 
+            self="top middle" 
+            :offset="[0, 10]">
+            <q-date minimal v-model="dateRange.to" mask="YYYY-MM-DD" :options="dateOptions"/>
+        </q-menu>
     </div>
-    <!-- Search bar for small screens -->
-    <!-- Search input -->
-    <div class="row items-center q-pa-md" v-show="$q.screen.lt.lg" style="min-width: 25%; width: 50%;">
-        <q-input rounded outlined readonly dense v-model="destination" class="col mobile-input" @click="showPopup = true" label="Where are you going?">
-            <template v-slot:append>
-                <q-icon name="search" @click="showPopup = true" />
-            </template>
-        </q-input>
-    </div>
+    <!-- Search button for big screens -->
+    <q-btn rounded unelevated color="primary" icon="search" class="border-bottom q-my-none full-height self-center" v-show="$q.screen.gt.md"  @click="performSearch"/>
     <!-- Popup dialog for small screens -->
     <q-dialog v-model="showPopup" position="top">
-        <q-card  class="full-width">
-            <!-- Close button -->
+        <q-card class="border-bottom full-width dialog-card">
             <div class="row justify-end q-mt-md q-mr-md">
-                <q-btn rounded flat @click="showPopup = false" color="negative" icon="close" />
+                <q-btn rounded flat @click="closePopup" color="negative" icon="close" />
             </div>
-            <!-- Title -->
-            <q-card-section class="text-h6 q-mx-lg"><strong>Search for a destination</strong></q-card-section>
-            <!-- Input fields -->
+            <q-card-section class="text-h6 q-mx-lg row justify-start items-center" ><q-icon name="place" class="q-mr-md"/><strong>Search for a destination</strong></q-card-section>
             <q-card-section class="col q-ma-md">
-                <!-- Destination input -->
-                <q-select
-                    rounded 
-                    outlined
-                    dense
-                    hide-dropdown-icon
+                <q-select rounded outlined dense hide-dropdown-icon
                     v-model="destination"
                     label="Destination"
                     class="col q-mb-md"
-                    :options="availableDestinations"
-                    use-input
-                    fill-input
-                    input-debounce="0"
+                    :options="filteredDestinations"
+                    use-input fill-input input-debounce="300"
                     @filter="filterFunction"
                     placeholder="Where are you going?"
                 />                
-                <!-- Check-in -->
-                <q-input
-                    rounded
-                    outlined
-                    type="date"
-                    dense
-                    v-model="dateRange.start"
-                    label="Check-in"
-                    class="col q-mb-md"
-                    @click="focusInput"
-                    ref="startDateInput"
-                />
-                <!-- Check-out -->
-                <q-input
-                    rounded
-                    outlined
-                    type="date"
-                    dense
-                    v-model="dateRange.end"
-                    label="Check-out"
-                    class="col q-mb-md"
-                    @click="focusInput"
-                    ref="endDateInput"
-                /> 
+                <q-input rounded outlined type="date" dense
+                    v-model="dateRange.from" label="Check-in" class="col" :min="minDate" :rules="checkInRules"/>
+                <q-input rounded outlined type="date" dense
+                    v-model="dateRange.to" label="Check-out" class="col" :min="minCheckoutDate" :rules="checkOutRules"/>
             </q-card-section>
             <q-card-actions class="row justify-between q-mx-lg q-my-md">
-                <!-- Clear button -->
-                <q-btn rounded unelevated label="Clear" />
-                <!-- Search button -->
-                <q-btn rounded unelevated color="primary" icon="search"/>
+                <q-btn rounded unelevated label="Clear" @click="clearFields"/>
+                <q-btn rounded unelevated color="primary" icon="search" @click="performSearch"/>
             </q-card-actions>
         </q-card>
     </q-dialog>
 </template>
-  
+
 <script>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useQuasar } from 'quasar';
+import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getDateOptions } from '@/utils/dateUtils';
 
-    export default {
-        setup() {
-            const showPopup = ref(false);
-            const destination = ref('');
-            const dateRange = ref({
-                start: '',
-                end: ''
-            });
+export default {
+    setup() {
+        const $q = useQuasar();
+        const searchModel = ref('');
+        const showPopup = ref(false);
+        const destination = ref('');
 
-            const availableDestinations = ref([
-                'Paris', 'London', 'New York', 'Tokyo', 'Sydney', 'Cape Town'
-            ]);
+        const availableDestinations = ref(['Paris', 'London', 'New York', 'Tokyo', 'Sydney', 'Cape Town']);
+        const filteredDestinations = ref([...availableDestinations.value]); 
 
-            function destionation() {
-                return destination.value || 'Where are you going?';
+        const dateRange = ref({ from: null, to: null });
+        const unavailableDates = ref([]);
+        const today = new Date();
+        const minDate = ref(today.toISOString().split('T')[0]);
+        
+        const minCheckoutDate = getMinCheckoutDate(ref(dateRange.value.from));
+        const checkInRules = getCheckInRules(minDate);
+        const checkOutRules = getCheckOutRules(ref(dateRange.value.from));
+        const dateOptions = getDateOptions(unavailableDates);
+
+        const buttonOptions = computed(() => $q.screen.gt.md ? [
+            {
+                label: destination.value || 'Destination',
+                value: 'destination',
+                icon: 'place',
+            },
+            {
+                label: dateRange.value.from || 'Check-in',
+                value: 'check-in',
+                'icon': 'date_range',
+            },
+            {
+                label: dateRange.value.to || 'Check-out',
+                value: 'check-out',
+                'icon': 'date_range',
+            },
+        ] : [
+            {
+                label: destination.value || 'Where are you going?',
+                value: 'destination',
+                icon: 'search',
             }
+        ]);
 
-            function filterFunction(val, update) {
-                update(() => {
-                    if (val === '') {
-                        availableDestinations.value = ['Paris', 'London', 'New York', 'Tokyo', 'Sydney', 'Cape Town'];
-                    } else {
-                        const needle = val.toLowerCase();
-                        availableDestinations.value = ['Paris', 'London', 'New York', 'Tokyo', 'Sydney', 'Cape Town'].filter(v => v.toLowerCase().indexOf(needle) > -1);
-                    }
-                });
-            }
+        function filterFunction(val, update, abort) {
+            if (!val || val.length < 2) { 
+                abort();
+                filteredDestinations.value = [];
+                return;
+            } 
+            update(() => {
+                const needle = val.toLowerCase();
+                filteredDestinations.value = availableDestinations.value.filter(v => v.toLowerCase().includes(needle));
+            });   
+        }
 
-            return {
-                availableDestinations,
-                dateRange,
-                destination,
-                showPopup,
-                filterFunction
+        function handleModelClick(newValue) {
+            if (!$q.screen.gt.md) {
+                showPopup.value = true;
             }
+            searchModel.value = newValue;
+        }
+
+        function closePopup() {
+            showPopup.value = false;
+            searchModel.value = '';  
+        }
+
+        function clearFields() {
+            destination.value = '';
+            dateRange.value.from = '';
+            dateRange.value.to = '';
+            searchModel.value = '';
+        }
+
+        function performSearch() {
+            closePopup();
+        }
+
+        return {
+            availableDestinations, 
+            dateRange, 
+            destination, 
+            showPopup, 
+            searchModel, 
+            handleModelClick,
+            filterFunction, 
+            filteredDestinations, 
+            closePopup,
+            buttonOptions,
+            clearFields,
+            performSearch,
+            minCheckoutDate,
+            checkInRules,
+            checkOutRules,
+            minDate,
+            dateOptions
         }
     }
+}
 </script>
 
 <style scoped>
-    .q-field--date .q-field__append {
-        display: none;
+    .dialog-card {
+        border-bottom-left-radius: 50px !important;
+        border-bottom-right-radius: 50px !important;
+    }
+
+    .border-bottom {
+        border: 1px solid var(--q-primary); 
+        border-bottom-width: medium;
     }
 </style>
