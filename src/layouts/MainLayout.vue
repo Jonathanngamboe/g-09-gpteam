@@ -4,7 +4,7 @@
       :class="`q-pl-${$q.screen.gt.sm ? 'xl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
       <q-toolbar>
         <!-- Logo -->
-        <div v-if="$q.screen.gt.sm" class="row items-center"> <!-- Only visible on large screens -->
+        <div class="row items-center"> 
           <router-link to="/">
             <img src="@/assets/logo-vue.png" alt="Logo" style="height: 30px" />
           </router-link>
