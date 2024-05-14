@@ -53,12 +53,12 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
-                            :disable="isDateBooked"
+                            :disable="isDateDisabled"
                         />
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn || isDateBooked"
+                            :disable="!checkIn || isDateDisabled"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -126,6 +126,7 @@
             const checkOut = ref('');
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
+            const isDateDisabled = reg(false);
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -172,6 +173,14 @@
                    !checkInRules.value.every(rule => rule(checkIn.value) === true) ||
                    !checkOutRules.value.every(rule => rule(checkOut.value) === true);
             });
+
+            async function fetchBlockedDates() {
+                const response = await fetch(`/api/rooms/${room.id}/blocked_dates`);
+                const blockedDates = await response.json();
+
+                // Set the blocked dates
+                isDateDisabled.value = date => blockedDates.includes(date);
+            }
 
             // Watchers to calculate totalNights based on valid date entries
             watch([checkIn, checkOut], ([checkInDate, checkOutDate]) => {
