@@ -2,84 +2,85 @@
   <q-layout view="hHh LpR fff">
     <q-header bordered class="bg-white text-primary"
       :class="`q-pl-${$q.screen.gt.sm ? 'xl' : 'xs'} q-pr-${$q.screen.gt.sm ? 'xl' : 'xs'}`">
-      <q-toolbar class="q-gutter-sm">
+      <q-toolbar>
         <!-- Logo -->
-        <q-toolbar-title>
+        <div v-if="$q.screen.gt.sm" class="row items-center"> <!-- Only visible on large screens -->
           <router-link to="/">
             <img src="@/assets/logo-vue.png" alt="Logo" style="height: 30px" />
           </router-link>
-        </q-toolbar-title>
-
-        <q-space />
+        </div
 
         <!-- Search bar -->
-        <SearchBar/>
+        <q-toolbar-title class="row justify-center">
+          <SearchBar />
+        </q-toolbar-title>
 
-        <q-space />
+        <!-- Right section with menu -->
+        <div class="row items-center">
+          <!-- Login dialog -->
+          <LoginDialog :isVisible="loginVisible" @update:isVisible="val => loginVisible = val"
+            @close="loginVisible = false" />
 
-        <!-- Login dialog -->
-        <LoginDialog :isVisible="loginVisible" @update:isVisible="val => loginVisible = val"
-          @close="loginVisible = false" />
+          <!-- Menu/Avatar icon only visible on large screens -->
+          <q-btn-dropdown flat round dense icon="account_circle" v-show="$q.screen.gt.md" dropdown-icon="menu">
+            <div class="row no-wrap q-pa-md">
+              <div class="column">
+                <template v-for="(menuItem, index) in menuList" :key="index">
+                  <!-- My account button -->
+                  <div v-if="menuItem.label !== 'My account'">
+                    <q-item clickable :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
+                      <q-item-section avatar>
+                        <q-icon :name="menuItem.icon" class="text-primary"/>
+                      </q-item-section>
+                      <q-item-section>
+                        {{ menuItem.label }}
+                      </q-item-section>
+                    </q-item>
+                    <q-separator :key="'sep' + index" v-if="menuItem.separator" />
+                  </div>
+                </template>
+              </div>
 
-        <!-- Avatar icon (Only visible on large screens) -->
-        <q-btn-dropdown flat round dense icon="account_circle" v-show="$q.screen.gt.md" dropdown-icon="menu">
-          <div class="row no-wrap q-pa-md">
-            <div class="column">
-              <template v-for="(menuItem, index) in menuList" :key="index">
-                <!-- My account button -->
-                <div v-if="menuItem.label !== 'My account'">
-                  <q-item clickable :to="menuItem.to" :active="menuItem.label === 'Outbox'" v-ripple>
-                    <q-item-section avatar>
-                      <q-icon :name="menuItem.icon" class="text-primary"/>
-                    </q-item-section>
-                    <q-item-section>
-                      {{ menuItem.label }}
-                    </q-item-section>
-                  </q-item>
-                  <q-separator :key="'sep' + index" v-if="menuItem.separator" />
+              <q-separator vertical inset class="q-mx-lg" />
+
+              <div class="column items-center justify-center">
+                <div class="column items-center" v-if="authService.user.value">
+                  <q-avatar size="48px">
+                    <img src="https://cdn.quasar.dev/img/boy-avatar.png">
+                  </q-avatar>
+
+                  <div class="text-subtitle1 q-mt-md q-mb-xs">John Doe</div>
                 </div>
-              </template>
-            </div>
-
-            <q-separator vertical inset class="q-mx-lg" />
-
-            <div class="column items-center justify-center">
-              <div class="column items-center" v-if="authService.user.value">
-                <q-avatar size="48px">
-                  <img src="https://cdn.quasar.dev/img/boy-avatar.png">
-                </q-avatar>
-
-                <div class="text-subtitle1 q-mt-md q-mb-xs">John Doe</div>
-              </div>
-              <!-- Display the login and sign up buttons in column with a gap between them -->
-              <div class="q-pa-md column items-center q-gutter-sm">
-                <q-btn
+                <!-- Display the login and sign up buttons in column with a gap between them -->
+                <div class="q-pa-md column items-center q-gutter-sm">
+                  <q-btn
+                      rounded
+                      unelevated
+                      color="primary"
+                      label="My account"
+                      size="sm"
+                      v-close-popup
+                      @click="toggleLogin"
+                    />
+                  <!-- Logout button -->
+                  <q-btn
                     rounded
-                    unelevated
-                    color="primary"
-                    label="My account"
+                    flat
                     size="sm"
-                    v-close-popup
-                    @click="toggleLogin"
+                    class="text-negative"
+                    label="Logout"
+                    icon="logout"
+                    @click="logout"
+                    v-if="authService.user.value"
                   />
-                <!-- Logout button -->
-                <q-btn
-                  rounded
-                  flat
-                  size="sm"
-                  class="text-negative"
-                  label="Logout"
-                  icon="logout"
-                  @click="logout"
-                  v-if="authService.user.value"
-                />
+                </div>
               </div>
             </div>
-          </div>
-        </q-btn-dropdown>
+          </q-btn-dropdown>
 
-        <!-- Menu icon (Only visible on small and medium screens) -->
-        <q-btn flat round dense icon="menu" v-show="$q.screen.lt.lg" @click="toggleRightDrawer" />
+          <!-- Menu icon only visible on small and medium screens -->
+          <q-btn flat round dense icon="menu" v-show="$q.screen.lt.lg" @click="toggleRightDrawer" />
+        </div>
       </q-toolbar>
     </q-header>
 
