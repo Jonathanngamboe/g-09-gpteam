@@ -73,7 +73,7 @@
   import { ref, onMounted, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useQuasar } from 'quasar';
-  import roomService from '@/services/roomService';
+  import propertyService from '@/services/propertyService';
   import authService from '@/services/authService';
   import mailService from '@/services/mailService';
   import { getDateOptions } from '@/utils/dateUtils';
@@ -122,7 +122,7 @@
                 router.push('/');
             } else {
                 if (route.query.roomId) {
-                    room.value = await roomService.getRoomById(route.query.roomId);
+                    room.value = await propertyService.getPropertyById(route.query.roomId);
                     updateDateRange(route.query.checkIn, route.query.checkOut);
                 } else {
                     notify('Please select a room first.', 'red');
