@@ -21,7 +21,7 @@
             <div v-if="filteredRooms.length === 0">
               <div class="no-results">
                 <q-icon name="search_off" size="100px" color="grey-5" />
-                <div>No rooms found. Please adjust your filters.</div>
+                <div>No rooms found. Please adjust your search criteria and filters.</div>
               </div>
             </div>
             <div v-else v-for="room in filteredRooms" :key="room.id">
@@ -66,9 +66,8 @@ import RoomCard from '@/components/RoomCard.vue';
 import FiltersDialog from '@/components/FiltersDialog.vue';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import { useQuasar } from 'quasar';
-import roomService from '../services/roomService';
-import reviewService from '../services/reviewService';  
-import { all } from 'axios';
+import propertyService from '@/services/propertyService';
+import { searchCriteria } from '@/utils/globalState';
 
 export default defineComponent({
   components: {
@@ -88,10 +87,12 @@ export default defineComponent({
 
     const fetchRooms = () => {
       if (cachedRooms) {
+        console.log('Using cached rooms:', cachedRooms);
         allActiveRooms.value = cachedRooms;
       } else {
-        roomService.getAllRooms()
+        propertyService.getProperties()
           .then(data => {
+            console.log('Fetching rooms...');
             cachedRooms = data;
             // Do not import a room with missing data
             // data = data.filter(room => room.title && room.description && room.price_per_night && room.amenities && room.amenities.length > 0 && room.images && room.images.length > 0 && room.address && room.city);
@@ -171,9 +172,10 @@ export default defineComponent({
       splitterModel.value = 100;  // Reset splitter position to hide the detail view
     }
 
-    // Filters logic
+    // Filters and search logic
     const filtersVisible = ref(false)
     const filtersApplied = ref(false)
+    const filteredRooms = ref([]);
 
     const filters = reactive({
       location: "",
@@ -181,6 +183,27 @@ export default defineComponent({
       amenities: [],
       rating: { min: 0, max: 5 }
     })
+
+    const loadFilteredRooms = () => {
+      propertyService.getFilteredProperties(searchCriteria, filters)
+        .then(data => {
+          filteredRooms.value = data;
+        })
+        .catch(error => {
+          $q.notify({
+            color: 'negative',
+            position: 'top',
+            message:  `${error.message}`,
+            icon: 'error'
+          });
+        });
+    };
+
+    watch(() => searchCriteria, () => {
+      loadFilteredRooms();
+    }, { deep: true });
+
+    onMounted(loadFilteredRooms);
 
     const onReset = () => {
       Object.assign(filters, {
@@ -202,20 +225,6 @@ export default defineComponent({
     const toggleFilters = () => {
       filtersVisible.value = !filtersVisible.value
     }
-
-    // Computed property to filter rooms based on active filters
-    const filteredRooms = computed(() => {
-      if (!filtersApplied.value) {
-        return allActiveRooms.value // Return all rooms if no filters are applied
-      }
-      return allActiveRooms.value.filter(room => {
-        const pricePerNightNumber = parseFloat(room.price_per_night); // Convertir en nombre
-        const priceMatch = !isNaN(pricePerNightNumber) && pricePerNightNumber >= filters.priceRange.min && pricePerNightNumber <= filters.priceRange.max;
-        const amenitiesMatch = filters.amenities.length === 0 || (Array.isArray(room.amenities) && filters.amenities.every(amenity => room.amenities.includes(amenity)));
-        const ratingMatch = typeof room.average_rating === 'number' && room.average_rating >= filters.rating.min && room.average_rating <= filters.rating.max;
-        return priceMatch && amenitiesMatch && ratingMatch;
-      });
-    });
 
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
