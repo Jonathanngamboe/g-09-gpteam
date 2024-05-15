@@ -21,8 +21,6 @@ const propertyService = {
       maxPrice: filters.priceRange.max !== Infinity ? filters.priceRange.max : 999999,      amenities: filters.amenities.join(','),
       average_rating: filters.rating.min,
     };
-
-    console.log("Filters params: ", params);
     
     return api.get(endpoint, { params })
       .then(response => response.data)
