@@ -87,12 +87,10 @@ export default defineComponent({
 
     const fetchRooms = () => {
       if (cachedRooms) {
-        console.log('Using cached rooms:', cachedRooms);
         allActiveRooms.value = cachedRooms;
       } else {
         propertyService.getProperties()
           .then(data => {
-            console.log('Fetching rooms...');
             cachedRooms = data;
             // Do not import a room with missing data
             // data = data.filter(room => room.title && room.description && room.price_per_night && room.amenities && room.amenities.length > 0 && room.images && room.images.length > 0 && room.address && room.city);
