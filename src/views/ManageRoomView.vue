@@ -1,4 +1,5 @@
 <template>
+  {{ room }}
   <div>
     <template v-if="room">
       <!-- Rendre les détails de la chambre s'ils sont disponibles -->
