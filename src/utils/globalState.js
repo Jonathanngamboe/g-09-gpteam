@@ -1,7 +1,14 @@
+import { check } from 'prettier';
 import { reactive } from 'vue';
 
 const state = reactive({
     lastIntent: null,
+});
+
+const searchCriteria = reactive({
+    destination: null,
+    checkIn: null,
+    checkOut: null
 });
 
 export function setLastIntent(intent) {
@@ -14,4 +21,5 @@ export function clearLastIntent() {
 
 export const getLastIntent = () => state.lastIntent;
 
-export default state;
+export { state, searchCriteria };
+
