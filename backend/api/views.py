@@ -69,7 +69,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
     """
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
@@ -85,7 +85,7 @@ class AmenityViewSet(viewsets.ModelViewSet):
     """
     queryset = Amenity.objects.all()
     serializer_class = AmenitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class StatusViewSet(viewsets.ModelViewSet):
     """
@@ -109,7 +109,7 @@ class CityViewSet(viewsets.ModelViewSet):
     """
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """
@@ -117,7 +117,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class MessageViewSet(viewsets.ModelViewSet):
     """
