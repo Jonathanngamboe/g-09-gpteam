@@ -103,8 +103,9 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import citiesService from '@/services/citiesService';
 import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getDateOptions } from '@/utils/dateUtils';
 
 export default {
@@ -114,7 +115,13 @@ export default {
         const showPopup = ref(false);
         const destination = ref('');
 
-        const availableDestinations = ref(['Paris', 'London', 'New York', 'Tokyo', 'Sydney', 'Cape Town']);
+        const availableDestinations = ref([null]);
+        const fetchCities = async () => {
+            const cities = await citiesService.getAllCities();
+            availableDestinations.value = cities.map(city => city.name);
+        };
+        onMounted(fetchCities);
+        
         const filteredDestinations = ref([...availableDestinations.value]); 
 
         const dateRange = ref({ from: null, to: null });
