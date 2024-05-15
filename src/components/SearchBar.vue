@@ -4,7 +4,7 @@
         <q-btn-toggle
             v-model="searchModel"
             @update:model-value="handleModelClick"
-            class="border-bottom "
+            class="border-bottom"
             no-caps
             rounded
             unelevated
@@ -107,13 +107,14 @@ import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import citiesService from '@/services/citiesService';
 import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getDateOptions } from '@/utils/dateUtils';
+import { setSearchCriteria, clearSearchCriteria } from '@/utils/globalState';
 
 export default {
     setup() {
         const $q = useQuasar();
         const searchModel = ref('');
         const showPopup = ref(false);
-        const destination = ref('');
+        const destination = ref(null);
 
         const availableDestinations = ref([null]);
         const fetchCities = async () => {
@@ -187,10 +188,12 @@ export default {
             dateRange.value.from = '';
             dateRange.value.to = '';
             searchModel.value = '';
+            clearSearchCriteria();
         }
 
         function performSearch() {
             closePopup();
+            setSearchCriteria(destination.value, dateRange.value.from, dateRange.value.to);
         }
 
         return {
