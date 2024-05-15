@@ -6,8 +6,11 @@ from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSe
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.db.models import Avg, OuterRef, Subquery, Exists
+from django.utils.dateparse import parse_date
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
@@ -70,6 +73,73 @@ class PropertyViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Annotation for average_rating
+        reviews_subquery = Review.objects.filter(
+            booking__property=OuterRef('pk')
+        ).values('booking__property').annotate(
+            avg_rating=Avg('rating')
+        ).values('avg_rating')
+
+        queryset = queryset.annotate(
+            average_rating=Subquery(reviews_subquery[:1])
+        )
+
+        # Retrieve query parameters
+        destination = self.request.query_params.get('destination', None)
+        check_in = self.request.query_params.get('checkIn', None)
+        check_out = self.request.query_params.get('checkOut', None)
+        min_price = self.request.query_params.get('minPrice', None)
+        max_price = self.request.query_params.get('maxPrice', None)
+        amenities = self.request.query_params.getlist('amenities')
+        min_rating = self.request.query_params.get('minRating', None)
+        if min_rating:
+            min_rating = float(min_rating) 
+
+        # Filter by destination
+        if destination:
+            queryset = queryset.filter(city__name__icontains=destination)
+        
+        # Filter by availability
+        if check_in and check_out:
+            check_in_date = parse_date(check_in)
+            check_out_date = parse_date(check_out)
+            if not check_in_date or not check_out_date:
+                raise ValidationError("Invalid check-in or check-out date format")
+
+            booking_subquery = Booking.objects.filter(
+                property=OuterRef('pk'),
+                check_out__gte=check_in_date,
+                check_in__lte=check_out_date
+            )
+            
+            unavailability_subquery = Unavailability.objects.filter(
+                property=OuterRef('pk'),
+                end_date__gte=check_in_date,
+                start_date__lte=check_out_date
+            )
+
+            queryset = queryset.exclude(
+                Exists(booking_subquery) | Exists(unavailability_subquery)
+            )
+
+        # Filter by price
+        if min_price and max_price:
+            queryset = queryset.filter(price_per_night__gte=min_price, price_per_night__lte=max_price)
+
+        # Filter by amenities
+        if amenities:
+            for amenity in amenities:
+                queryset = queryset.filter(amenities__name__icontains=amenity)
+
+        # Filter by rating
+        if min_rating:
+            queryset = queryset.filter(average_rating__gte=min_rating)
+
+        return queryset.distinct()
 
 class PropertyTypeViewSet(viewsets.ModelViewSet):
     """

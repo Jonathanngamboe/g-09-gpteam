@@ -1,6 +1,36 @@
 import api from "@/services/api";
 
+const endpoint = '/properties';
+
 const propertyService = {
+
+  getPropertyById(id) {
+    return api.get(`${endpoint}/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        throw new Error(`Failed to fetch room with ID ${id}: ` + error.message);
+      });
+  },
+
+  getFilteredProperties(searchCriteria, filters) {
+    const params = {
+      destination: searchCriteria.destination,
+      checkIn: searchCriteria.checkIn,
+      checkOut: searchCriteria.checkOut,
+      minPrice: filters.priceRange.min,
+      maxPrice: filters.priceRange.max !== Infinity ? filters.priceRange.max : 999999,      amenities: filters.amenities.join(','),
+      average_rating: filters.rating.min,
+    };
+
+    console.log("Filters params: ", params);
+    
+    return api.get(endpoint, { params })
+      .then(response => response.data)
+      .catch(error => {
+        throw new Error(`Failed to fetch filtered properties: ` + error.message);
+      });
+  },
+
   // Method to add a new property
   addProperty(propertyData) {
     const data = {
