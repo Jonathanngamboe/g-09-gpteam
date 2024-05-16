@@ -198,6 +198,7 @@ export default {
             dateRange.value.from = '';
             dateRange.value.to = '';
             searchModel.value = '';
+            closePopup();
             clearSearchCriteria();
         }
 
