@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
-from django.db.models import Avg, OuterRef, Subquery, Exists
+from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
 
 # Serve Vue Application
@@ -77,17 +77,6 @@ class PropertyViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        # Annotation for average_rating
-        reviews_subquery = Review.objects.filter(
-            booking__property=OuterRef('pk')
-        ).values('booking__property').annotate(
-            avg_rating=Avg('rating')
-        ).values('avg_rating')
-
-        queryset = queryset.annotate(
-            average_rating=Subquery(reviews_subquery[:1])
-        )
-
         # Retrieve query parameters
         destination = self.request.query_params.get('destination', None)
         check_in = self.request.query_params.get('checkIn', None)
@@ -96,8 +85,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         max_price = self.request.query_params.get('maxPrice', None)
         amenities = self.request.query_params.getlist('amenities')
         min_rating = self.request.query_params.get('minRating', None)
-        if min_rating:
-            min_rating = float(min_rating) 
+        max_rating = self.request.query_params.get('maxRating', None)
 
         # Filter by destination
         if destination:
@@ -136,8 +124,30 @@ class PropertyViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(amenities__name__icontains=amenity)
 
         # Filter by rating
-        if min_rating:
-            queryset = queryset.filter(average_rating__gte=min_rating)
+        if min_rating is not None or max_rating is not None:
+            queryset = queryset.annotate(
+                average_rating=Avg('booking__review__rating')
+            )
+            
+            # Initialize the rating conditions
+            rating_conditions = Q()
+
+            # Conditions for including properties without reviews
+            if min_rating is not None and float(min_rating) == 0:
+                include_no_reviews = Q(average_rating__isnull=True)
+            else:
+                include_no_reviews = Q()
+
+            # Conditions when min_rating is provided
+            if min_rating is not None:
+                rating_conditions |= (Q(average_rating__gte=min_rating) | include_no_reviews)
+            
+            # Conditions for max_rating
+            if max_rating is not None:
+                rating_conditions &= (Q(average_rating__lte=max_rating) | include_no_reviews)
+
+            # Apply the combined rating conditions to the queryset
+            queryset = queryset.filter(rating_conditions)
 
         return queryset.distinct()
 
