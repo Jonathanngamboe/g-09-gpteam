@@ -90,9 +90,9 @@
                     placeholder="Where are you going?"
                 />                
                 <q-input rounded outlined type="date" dense
-                    v-model="dateRange.from" label="Check-in" class="col" :min="minDate" :rules="checkInRules"/>
+                    v-model="dateRange.from" label="Check-in" class="col" :min="minDate" :rules="checkInRulesCustom"/>
                 <q-input rounded outlined type="date" dense
-                    v-model="dateRange.to" label="Check-out" class="col" :min="minCheckoutDate" :rules="checkOutRules"/>
+                    v-model="dateRange.to" label="Check-out" class="col" :min="minCheckoutDate" :rules="checkOutRulesCustom"/>
             </q-card-section>
             <q-card-actions class="row justify-between q-mx-lg q-my-md">
                 <q-btn rounded unelevated label="Clear" @click="clearFields"/>
@@ -106,7 +106,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import citiesService from '@/services/citiesService';
-import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getDateOptions } from '@/utils/dateUtils';
+import { getMinCheckoutDate, getDateOptions } from '@/utils/dateUtils';
 import { setSearchCriteria, clearSearchCriteria } from '@/utils/globalState';
 
 export default {
@@ -131,8 +131,6 @@ export default {
         const minDate = ref(today.toISOString().split('T')[0]);
         
         const minCheckoutDate = getMinCheckoutDate(ref(dateRange.value.from));
-        const checkInRules = getCheckInRules(minDate);
-        const checkOutRules = getCheckOutRules(ref(dateRange.value.from));
         const dateOptions = getDateOptions(unavailableDates);
 
         const buttonOptions = computed(() => $q.screen.gt.md ? [
@@ -158,6 +156,18 @@ export default {
                 icon: 'search',
             }
         ]);
+
+        const checkInRulesCustom = computed(() => {
+            return [
+                val => !val || new Date(val) >= new Date(minDate.value) || 'Check-in cannot be in the past',
+            ];
+        });
+
+        const checkOutRulesCustom = computed(() => {
+            return [
+                val => !val || new Date(val) > new Date(dateRange.value.from) || 'Check-out must be after check-in'
+            ];
+        });
 
         function filterFunction(val, update, abort) {
             if (!val || val.length < 2) { 
@@ -210,10 +220,10 @@ export default {
             clearFields,
             performSearch,
             minCheckoutDate,
-            checkInRules,
-            checkOutRules,
+            checkInRulesCustom,
+            checkOutRulesCustom,
             minDate,
-            dateOptions
+            dateOptions,
         }
     }
 }
