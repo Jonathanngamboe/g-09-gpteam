@@ -11,6 +11,24 @@ const searchCriteria = reactive({
     checkOut: null
 });
 
+const filters = reactive({
+    priceRange: { min: 1, max: 2000 },
+    amenities: [],
+    rating: { min: 0, max: 5 }
+});
+
+export function setFilters(priceRange, amenities, rating) {
+    filters.priceRange = priceRange;
+    filters.amenities = amenities;
+    filters.rating = rating;
+}
+
+export function clearFilters() {
+    filters.priceRange = { min: 1, max: 2000 }
+    filters.amenities = [];
+    filters.rating = { min: 0, max: 5 };
+}
+
 export function setSearchCriteria(destination, checkIn, checkOut) {
     searchCriteria.destination = destination;
     searchCriteria.checkIn = checkIn;
@@ -33,5 +51,5 @@ export function clearLastIntent() {
 
 export const getLastIntent = () => state.lastIntent;
 
-export { state, searchCriteria };
+export { state, searchCriteria, filters };
 
