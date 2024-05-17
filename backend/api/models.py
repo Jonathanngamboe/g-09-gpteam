@@ -39,7 +39,7 @@ class Unavailability(models.Model):
     comment = models.CharField(max_length=200, blank=True)
 
     #Link between tables
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    property = models.ForeignKey('Property', on_delete=models.CASCADE, related_name='unavailabilities', null=True, default=None)
 
 class PropertyType(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -63,7 +63,7 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     #Link between tables
-    property = models.ForeignKey('Property', on_delete=models.CASCADE)
+    property = models.ForeignKey('Property', on_delete=models.CASCADE, related_name='bookings', null=True, default=None)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     status = models.ForeignKey('Status', on_delete=models.CASCADE, default='Pending')
 

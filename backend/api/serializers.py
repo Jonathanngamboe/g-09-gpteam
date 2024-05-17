@@ -32,14 +32,21 @@ class AmenitySerializer(serializers.HyperlinkedModelSerializer):
         model = Amenity
         fields = ['url', 'name']
 
+class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Unavailability
+        fields = ['url', 'id', 'start_date', 'end_date', 'comment', 'property']
+
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     city = CitySerializer(read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
+    unavailabilities = UnavailabilitySerializer(many=True, read_only=True)
+    bookings = BookingSerializer(many=True, read_only=True)
     class Meta:
         model = Property
-        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities']
+        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities', 'unavailabilities', 'bookings']
 
     def get_average_rating(self, obj):
         average = Review.objects.filter(booking__property=obj).aggregate(Avg('rating'))
@@ -65,7 +72,4 @@ class MessageSerializer(serializers.HyperlinkedModelSerializer):
         model = Message
         fields = ['url', 'id', 'subject', 'body', 'sent_at', 'booking']
 
-class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Unavailability
-        fields = ['url', 'id', 'start_date', 'end_date', 'comment', 'property']
+
