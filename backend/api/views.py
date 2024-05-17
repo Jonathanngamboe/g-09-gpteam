@@ -6,8 +6,11 @@ from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSe
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.db.models import OuterRef, Exists, Avg, Q, Count
+from django.utils.dateparse import parse_date
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
@@ -69,7 +72,86 @@ class PropertyViewSet(viewsets.ModelViewSet):
     """
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Retrieve query parameters
+        destination = self.request.query_params.get('destination', None)
+        check_in = self.request.query_params.get('checkIn', None)
+        check_out = self.request.query_params.get('checkOut', None)
+        min_price = self.request.query_params.get('minPrice', None)
+        max_price = self.request.query_params.get('maxPrice', None)
+        amenities_param = self.request.query_params.get('amenities', '')
+        min_rating = self.request.query_params.get('minRating', None)
+        max_rating = self.request.query_params.get('maxRating', None)
+
+        # Filter by destination
+        if destination:
+            queryset = queryset.filter(city__name__icontains=destination)
+        
+        # Filter by availability
+        if check_in and check_out:
+            check_in_date = parse_date(check_in)
+            check_out_date = parse_date(check_out)
+            if not check_in_date or not check_out_date:
+                raise ValidationError("Invalid check-in or check-out date format")
+
+            booking_subquery = Booking.objects.filter(
+                property=OuterRef('pk'),
+                check_out__gte=check_in_date,
+                check_in__lte=check_out_date
+            )
+            
+            unavailability_subquery = Unavailability.objects.filter(
+                property=OuterRef('pk'),
+                end_date__gte=check_in_date,
+                start_date__lte=check_out_date
+            )
+
+            queryset = queryset.exclude(
+                Exists(booking_subquery) | Exists(unavailability_subquery)
+            )
+
+        # Filter by price
+        if min_price and max_price:
+            queryset = queryset.filter(price_per_night__gte=min_price, price_per_night__lte=max_price)
+
+        # Filter by amenities
+        if amenities_param:
+            amenities_list = [amenity.strip() for amenity in amenities_param.split(',')]
+            if amenities_list:
+                for amenity in amenities_list:
+                    queryset = queryset.filter(amenities__name__iexact=amenity)
+
+        # Filter by rating
+        if min_rating is not None or max_rating is not None:
+            queryset = queryset.annotate(
+                average_rating=Avg('booking__review__rating')
+            )
+            
+            # Initialize the rating conditions
+            rating_conditions = Q()
+
+            # Conditions for including properties without reviews
+            if min_rating is not None and float(min_rating) == 0:
+                include_no_reviews = Q(average_rating__isnull=True)
+            else:
+                include_no_reviews = Q()
+
+            # Conditions when min_rating is provided
+            if min_rating is not None:
+                rating_conditions |= (Q(average_rating__gte=min_rating) | include_no_reviews)
+            
+            # Conditions for max_rating
+            if max_rating is not None:
+                rating_conditions &= (Q(average_rating__lte=max_rating) | include_no_reviews)
+
+            # Apply the combined rating conditions to the queryset
+            queryset = queryset.filter(rating_conditions)
+
+        return queryset.distinct()
 
 class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
@@ -85,7 +167,7 @@ class AmenityViewSet(viewsets.ModelViewSet):
     """
     queryset = Amenity.objects.all()
     serializer_class = AmenitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class StatusViewSet(viewsets.ModelViewSet):
     """
@@ -109,7 +191,7 @@ class CityViewSet(viewsets.ModelViewSet):
     """
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """
@@ -117,7 +199,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class MessageViewSet(viewsets.ModelViewSet):
     """

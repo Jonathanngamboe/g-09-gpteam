@@ -32,6 +32,11 @@ class AmenitySerializer(serializers.HyperlinkedModelSerializer):
         model = Amenity
         fields = ['url', 'name']
 
+class ReviewSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'booking']
+
 class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Unavailability
@@ -42,15 +47,22 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     average_rating = serializers.SerializerMethodField()
     city = CitySerializer(read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
+    reviews = serializers.SerializerMethodField()
     unavailabilities = UnavailabilitySerializer(many=True, read_only=True)
     bookings = BookingSerializer(many=True, read_only=True)
     class Meta:
         model = Property
-        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities', 'unavailabilities', 'bookings']
+        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities', 'reviews', 'unavailabilities', 'bookings']
 
     def get_average_rating(self, obj):
         average = Review.objects.filter(booking__property=obj).aggregate(Avg('rating'))
         return average['rating__avg'] if average['rating__avg'] is not None else 0
+
+    def get_reviews(self, obj):
+        reviews = Review.objects.filter(booking__property=obj)
+        serializer = ReviewSerializer(reviews, many=True, context=self.context)
+        return serializer.data
+
 
 class PropertyTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -61,11 +73,6 @@ class StatusSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Status
         fields = ['url', 'name']
-
-class ReviewSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Review
-        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'booking']
 
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

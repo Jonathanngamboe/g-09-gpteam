@@ -73,10 +73,11 @@
   import { ref, onMounted, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useQuasar } from 'quasar';
-  import roomService from '@/services/roomService';
+  import propertyService from '@/services/propertyService';
   import authService from '@/services/authService';
   import mailService from '@/services/mailService';
-  
+  import { getDateOptions } from '@/utils/dateUtils';
+
   export default {
     setup() {
         const $q = useQuasar();
@@ -90,9 +91,13 @@
         const totalNights = ref(0);
 
         const showDialog = ref(false);
+
         const dateRange = ref({ from: null, to: null });
         const tempDateRange = ref({ from: null, to: null });
         const isConfirmButtonDisabled = ref(true);
+        
+        const unavailableDates = ref([]); // TODO: Fetch unavailable dates from the database. Example: { start: "2024-05-20", end: "2024-05-22"}
+        const dateOptions = getDateOptions(unavailableDates);
 
         const room = ref({});
 
@@ -117,7 +122,7 @@
                 router.push('/');
             } else {
                 if (route.query.roomId) {
-                    room.value = await roomService.getRoomById(route.query.roomId);
+                    room.value = await propertyService.getPropertyById(route.query.roomId);
                     updateDateRange(route.query.checkIn, route.query.checkOut);
                 } else {
                     notify('Please select a room first.', 'red');
@@ -141,40 +146,6 @@
                 showDialog.value = false;
             }
         };
-        
-        // Unavailable dates. Example: { start: "2024-05-20", end: "2024-05-22"}
-        // TODO: Fetch unavailable dates from the database
-        const unavailableDates = ref([]);     
-
-        const dateOptions = computed(() => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);  // Réinitialiser l'heure pour le début de la journée
-
-            return (date) => {
-                const checkDate = new Date(date);
-                if (checkDate < today) {
-                return false; // Désactiver les dates dans le passé
-                }
-
-                // Vérification des dates spécifiques et des plages de dates
-                for (let i = 0; i < unavailableDates.value.length; i++) {
-                const entry = unavailableDates.value[i];
-                if (typeof entry === 'string') {
-                    if (entry === date) {
-                    return false; // Date spécifique indisponible
-                    }
-                } else if (entry.start && entry.end) {
-                    const startDate = new Date(entry.start);
-                    const endDate = new Date(entry.end);
-                    if (checkDate >= startDate && checkDate <= endDate) {
-                    return false; // Plage de dates indisponible
-                    }
-                }
-                }
-
-                return true; // Activer la date si elle n'est pas dans le passé ou indisponible
-            };
-        });
 
         function updateDateRange(from, to) {
             if(validateDates(from, to)) {

@@ -79,7 +79,7 @@
       formatAmenities(amenities) {
         if (!amenities) return '';
         const maxVisibleAmenities = 3;
-        const visibleAmenities = amenities.slice(0, maxVisibleAmenities).join(' · ');
+        const visibleAmenities = amenities.slice(0, maxVisibleAmenities).map(amenity => amenity.name).join(' · ');
         return amenities.length > maxVisibleAmenities
           ? `·${visibleAmenities} and ${amenities.length - maxVisibleAmenities} more`
           : visibleAmenities;

@@ -109,7 +109,8 @@
     import { ref, computed, watch, defineComponent, onMounted, inject } from 'vue';
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
-    import { setLastIntent } from '@/store/globalState';
+    import { setLastIntent } from '@/utils/globalState';
+    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules } from '@/utils/dateUtils';
 
     export default defineComponent({
         props: {
@@ -143,30 +144,9 @@
                 }
             }
 
-            const minCheckoutDate = computed(() => {
-                const todayPlusOne = new Date();
-                todayPlusOne.setDate(today.getDate() + 1); // Set to tomorrow
-
-                let latestDate = todayPlusOne; // Default to tomorrow
-
-                if (checkIn.value) {
-                    const dayAfterCheckIn = new Date(new Date(checkIn.value).getTime() + (24 * 3600 * 1000));
-                    // Compare using getTime() and create a new Date from the maximum timestamp
-                    latestDate = new Date(Math.max(dayAfterCheckIn.getTime(), todayPlusOne.getTime()));
-                }
-
-                return latestDate.toISOString().split('T')[0]; // Convert back to ISO string for the input min attribute
-                });
-
-            const checkInRules = computed(() => [
-                val => !!val || 'Check-in date is required',
-                val => new Date(val) >= new Date(minDate.value) || 'Check-in cannot be in the past'
-            ]);
-
-            const checkOutRules = computed(() => [
-                val => !!val || 'Check-out date is required',
-                val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in'
-            ]);
+            const minCheckoutDate = getMinCheckoutDate(checkIn);
+            const checkInRules = getCheckInRules(minDate);
+            const checkOutRules = getCheckOutRules(checkIn);
 
             const isBookButtonDisabled = computed(() => {
             return !checkIn.value || !checkOut.value ||
