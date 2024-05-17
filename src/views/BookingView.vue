@@ -118,7 +118,7 @@
 
         onMounted(async () => {
             if (!authService.user.value) {
-                notify('Please log in to book a room.', 'red');
+                notify('An error occurred. Please make sure you are logged in and refresh the page.', 'red');
                 router.push('/');
             } else {
                 if (route.query.roomId) {
@@ -198,11 +198,29 @@
             $q.notify({ color, textColor: 'white', icon: 'error', position: 'top', message });
         }
 
+        // Helper function to format number with ''' separator
+        function formatNumber(number) {
+            if(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+            }
+            return 0;
+        }
+
         async function submitBooking() {
             let confirmationEmail = {
                 email: authService.user.value.email,
                 subject: 'Booking confirmation',
-                message: `Thank you for your booking. You have booked ${room.title} from ${formattedDateRange.value} for ${totalNights.value} nights. The total price is CHF ${room.price_per_night * totalNights.value}.-`
+                message: `Thank you for your booking for ${room.value.title}!\n\n` +
+                    `Dates: ${formattedDateRange.value}\n` +
+                    `Price per night: CHF ${formatNumber(room.value.price_per_night)}\n` +
+                    `Number of nights: ${formatNumber(totalNights.value)}\n` +
+                    `Total price: CHF ${formatNumber(room.value.price_per_night * totalNights.value)}\n\n` +
+                    // Show the message only if it is not empty
+                    (message.value ? `Message to host: ${message.value}\n\n` : '') + 
+                    `Payment method: ${paymentMethod.value}\n\n` +
+                    (paymentMethod.value === 'Invoice' ? 'Please pay the total amount to the following bank account:\nIBAN: CHXX XXXX XXXX XXXX XXXX\nAccount holder: GPTeam\n\n' : '') +
+                    `Enjoy your stay!\n\n` +
+                    `GPTeam`
             };
             // TODO: Add booking to the database
             notify('Thank you for your booking.', 'green');
@@ -233,17 +251,9 @@
             dateOptions,
             formattedDateRange,
             tempDateRange,
-            dialogPosition
+            dialogPosition,
+            formatNumber
         };
-    },
-    methods: {
-        // Helper function to format number with ''' separator
-        formatNumber(number) {
-            if(number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-            }
-            return 0;
-        }
     }
   }
   </script>
