@@ -1,7 +1,18 @@
 <template>
   <!-- Filters button -->
-  <!--<div class="q-pa-md q-gutter-md row justify-end">
-    <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
+  <div class="q-pa-md q-gutter-md row justify-between">
+  <!-- Sort button -->
+  <q-btn rounded unelevated outline label="Sort" icon="sort" class="border-bottom">
+    <q-menu fit :offset="[0, 10]">
+      <q-list>
+        <q-item v-for="option in sortOptions" :key="option.value" clickable v-close-popup @click="applySort(option)">
+          <q-item-section>{{ option.label }}</q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
+  </q-btn>
+    <!-- Filters button -->
+    <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune" class="border-bottom" />
   </div>
   <FiltersDialog
     :isVisible="filtersVisible"
@@ -9,7 +20,7 @@
     @on-filter="onFilter"
     @on-reset="onReset"
     @close="filtersVisible = false"
-  />-->
+  />
 
   <!-- Room details for desktop -->
   <div v-if="!isMobile">
@@ -201,6 +212,10 @@ export default defineComponent({
       loadFilteredRooms();
     }, { deep: true });
 
+    watch(() => filters, () => {
+      loadFilteredRooms();
+    }, { deep: true });
+
     onMounted(loadFilteredRooms);
 
     const onReset = () => {
@@ -224,6 +239,47 @@ export default defineComponent({
       filtersVisible.value = !filtersVisible.value
     }
 
+    // Sort logic
+    const selectedSortOption = ref('');
+    const sortOptions = [
+      { label: 'Price Low to High', value: 'price_asc' },
+      { label: 'Price High to Low', value: 'price_desc' },
+      { label: 'Rating High to Low', value: 'rating_desc' },
+      { label: 'Rating Low to High', value: 'rating_asc' }
+    ];
+    const applySort = (option) => {
+      if (!option || !option.value) {
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: 'Invalid sort option selected.',
+          icon: 'error'
+        });
+        return;
+      }
+      selectedSortOption.value = option.value;
+      switch (option.value) {
+        case 'price_asc':
+          filteredRooms.value.sort((a, b) => a.price_per_night - b.price_per_night);
+          break;
+        case 'price_desc':
+          filteredRooms.value.sort((a, b) => b.price_per_night - a.price_per_night);
+          break;
+        case 'rating_desc':
+          filteredRooms.value.sort((a, b) => b.average_rating - a.average_rating);
+          break;
+        case 'rating_asc':
+          filteredRooms.value.sort((a, b) => a.average_rating - b.average_rating);
+          break;
+      }
+    };
+
+    watch(selectedSortOption, () => {
+      if (selectedSortOption.value) {
+        applySort({ value: selectedSortOption.value });
+      }
+    });
+
     // Helper function to equalize title heights
     const equalizeTitleHeights = () => {
       nextTick(() => {
@@ -245,6 +301,8 @@ export default defineComponent({
     return {
       allActiveRooms,
       filteredRooms,
+      sortOptions,
+      applySort,
       toggleFilters,
       filtersVisible,
       onFilter,
@@ -270,47 +328,52 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.room-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 80vh; /* Ensures centering is effective in an empty grid */
-}
-
-/* Define a grid layout with a fixed minimum column width */
-.room-grid {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(300px, 1fr)
-  ); /* Create a responsive number of grid columns */
-  gap: 16px; /* This sets the gap between cards */
-}
-
-.room-grid > div {
-  display: flex; /* Use flex layout for the grid item to control the card height */
-}
-
-.no-results {
-  text-align: center;
-  padding: 20px;
-  font-size: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.no-results q-icon {
-  font-size: 100px;
-  color: grey;
-}
-
-/* Define a media query for very small screens where cards should take full width */
-@media (max-width: 599px) {
-  .room-grid {
-    grid-template-columns: 1fr; /* One card per row on small screens */
+  .room-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Ensures centering is effective in an empty grid */
   }
-}
+
+  /* Define a grid layout with a fixed minimum column width */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(300px, 1fr)
+    ); /* Create a responsive number of grid columns */
+    gap: 16px; /* This sets the gap between cards */
+  }
+
+  .room-grid > div {
+    display: flex; /* Use flex layout for the grid item to control the card height */
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .no-results q-icon {
+    font-size: 100px;
+    color: grey;
+  }
+
+  .border-bottom {
+          border: 0 solid var(--q-primary); 
+          border-bottom-width: revert;
+      }
+
+  /* Define a media query for very small screens where cards should take full width */
+  @media (max-width: 599px) {
+    .room-grid {
+      grid-template-columns: 1fr; /* One card per row on small screens */
+    }
+  }
 </style>
