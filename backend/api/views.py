@@ -12,6 +12,9 @@ from backend.settings import base
 from django.http import JsonResponse
 from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_http_methods
+import json
+
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
@@ -26,8 +29,17 @@ def current_user(request):
     serializer = CustomUserSerializer(request.user, context={'request': request})
     return Response(serializer.data)
 
+@require_http_methods(["POST"])
 def send_emails(request):
-    if request.method == "POST": 
+    try:
+        data = json.loads(request.body.decode('utf-8'))  # Décode et charge les données JSON
+        email = data.get('email')
+        subject = data.get('subject')
+        message = data.get('message')
+
+        if not email or not subject or not message:
+            return JsonResponse({'status': 'error', 'message': 'Missing email, subject, or message in the request'})
+
         with get_connection(
             host=base.EMAIL_HOST,
             port=base.EMAIL_PORT,
@@ -35,16 +47,18 @@ def send_emails(request):
             password=base.EMAIL_HOST_PASSWORD,
             use_tls=base.EMAIL_USE_TLS
         ) as connection:
-            recipients = request.POST.get("email").split()  
-            subject = request.POST.get("subject") 
-            message = request.POST.get("message") 
-            sender = base.EMAIL_HOST_USER
-            EmailMessage(subject, message, sender, recipients, connection).send()
+            recipients = email.split()  # Assure que email contient une valeur non-None
+            email_msg = EmailMessage(subject, message, base.EMAIL_HOST_USER, recipients, connection=connection)
+            email_msg.send()
 
-    try:
         return JsonResponse({'status': 'success', 'message': 'Email sent successfully'})
+
+    except json.JSONDecodeError:
+        print('Invalid JSON data')
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'})
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+        print(f'SMTP error: {str(e)}')
+        return JsonResponse({'status': 'error', 'message': f'SMTP error: {str(e)}'})
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     """
