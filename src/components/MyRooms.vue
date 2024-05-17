@@ -3,21 +3,20 @@
     <div class="q-pa-md full-width">
       <q-toolbar class="q-gutter-md q-mb-md full-width">
         <q-toolbar-title>
-          <q-icon name="home" class="q-mr-sm" v-if="$q.screen.gt.sm" />
           My Rooms
         </q-toolbar-title>
-        <div class="text-center q-mt-lg">
         <q-btn unelevated rounded color="primary" icon="add" @click="addRoom" label="Add a Room" />
-      </div>
       </q-toolbar>      <!-- Check if room exists and display card -->
       <div v-if="rooms.length > 0">
-        <div v-for="room in rooms" :key="room.id">
-        <room-card :room="room" @click="goToRoomDetails(room.id)" />
+        <div class="row">
+          <div v-for="room in rooms" :key="room.id" class="col-12 col-md-4 col-xs-12 q-pa-sm">
+              <room-card :room="room" @click="goToRoomDetails(room.id)" />
+          </div>
         </div>
       </div>
       <!-- Display message if no rooms are available -->
       <div v-else class="text-h6 text-center q-my-md">
-        It's currently not possible to view your rooms but you can add a new room an viw it from the main page.
+        There are no rooms available. Click the button above to add a room.
       </div>
     </div>
   </q-page>
