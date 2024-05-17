@@ -1,35 +1,36 @@
 <template>
-    <template v-if="$q.screen.width >= 600">
-      <!-- Desktop and Tablet Layout with Splitter -->
-      <q-splitter v-model="splitterModel" class="full-width">
-        <template v-slot:before>
-          <div class="full-height q-pa-md">
-            <UserInformation :user="user" />
-          </div>
-        </template>
-        <q-separator />
-        <template v-slot:after>
-          <div class="full-height q-pa-md">
-            <MyRooms :rooms="rooms" />
-          </div>
-        </template>
-      </q-splitter>
-    </template>
-    <template v-else>
-      <!-- Mobile Layout with Tabs -->
-      <q-tabs aligned="justify" v-model="tab">
-        <q-tab name="user-info" icon="person" />
-        <q-tab name="rooms" icon="bed" />
-      </q-tabs>
-      <q-tab-panels v-model="tab" animated>
-        <q-tab-panel name="user-info">
-          <UserInformation :user="user" />
-        </q-tab-panel>
-        <q-tab-panel name="rooms">
-          <MyRooms :rooms="rooms" />
-        </q-tab-panel>
-      </q-tab-panels>
-    </template>
+  <q-tabs dense align="justify" v-model="tab" mobile-arrows>
+    <q-tab name="user-info" icon="person" />
+    <q-tab name="rooms" icon="bed" />
+    <q-tab name="Messages" icon="message">
+      <q-badge color="primary" floating>5</q-badge>
+    </q-tab>
+    <!-- Booking history tab -->
+    <q-tab name="Booking History" icon="history" />
+  </q-tabs>
+  <!-- Page content for each tab -->
+  <q-tab-panels v-model="tab" animated>
+    <!-- User Information Tab Panel -->
+    <q-tab-panel name="user-info">
+      <UserInformation :user="user" />
+    </q-tab-panel>
+    <!-- Rooms Tab Panel -->
+    <q-tab-panel name="rooms">
+      <MyRooms :rooms="rooms" />
+    </q-tab-panel>
+    <!-- Messages Tab Panel -->
+    <q-tab-panel name="Messages">
+      <div class="q-pa-lg text-center">
+        <p>Messages will be displayed here.</p>
+      </div>
+    </q-tab-panel>
+    <!-- Booking History Tab Panel -->
+    <q-tab-panel name="Booking History">
+      <div class="q-pa-lg text-center">
+        <p>Booking history will be displayed here.</p>
+      </div>
+    </q-tab-panel>
+  </q-tab-panels>
 </template>
 
 
@@ -50,7 +51,7 @@ export default {
   setup() {
     const router = useRouter();
     const user = ref(null);
-    const rooms = ref([]); // Définissez la propriété room
+    const rooms = ref([]); 
     const $q = useQuasar();
     const splitterModel = ref(40);
     const tab = ref('user-info');
