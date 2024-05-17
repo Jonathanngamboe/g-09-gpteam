@@ -20,7 +20,7 @@
                         </div>
                         <!-- Image -->
                         <div class="col-auto">
-                            <q-img :src="room.images && room.images.length > 0 ? room.images[0].image : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'"
+                            <q-img :src="room.images && room.images.length > 0 ? (room.images[0].image || room.images[0].ext_url) : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'"
                                 style="width: 100px;" alt="Room image"/>   
                         </div>
                     </q-card-section>
