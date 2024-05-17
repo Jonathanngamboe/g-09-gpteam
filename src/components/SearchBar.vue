@@ -38,7 +38,6 @@
                         hide-dropdown-icon
                         clearable
                         use-input
-                        fill-input
                         input-debounce="300"
                         @filter="filterFunction">
                         <template v-slot:append>
@@ -85,7 +84,7 @@
                     label="Destination"
                     class="col q-mb-md"
                     :options="filteredDestinations"
-                    use-input fill-input input-debounce="300"
+                    use-input input-debounce="300"
                     @filter="filterFunction"
                     placeholder="Where are you going?"
                 />                
