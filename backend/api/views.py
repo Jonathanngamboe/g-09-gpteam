@@ -13,6 +13,8 @@ from django.http import JsonResponse
 from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_http_methods
+from django.utils.datastructures import MultiValueDictKeyError
+from copy import deepcopy
 import json
 import re
 
@@ -76,6 +78,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         else:
             return CustomUser.objects.filter(id=self.request.user.id)
 
+
 class BookingViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows bookings to be viewed or edited.
@@ -84,25 +87,56 @@ class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def reformat_date(self, date_str):
+        return date_str.replace('/', '-')
+    
+    def extract_id_from_url(self, url):
+            match = re.search(r'properties/(\d+)/$', url)
+            return match.group(1) if match else None
+    
+    def extract_status_name_from_url(self, url):
+        match = re.search(r'statuses/(\w+)/$', url)
+        return match.group(1) if match else None
+
     def create(self, request, *args, **kwargs):
-        property_url = request.data.get('property')
-        check_in = request.data.get('check_in')
-        check_out = request.data.get('check_out')
+        mutable_data = deepcopy(request.data)
 
-        property_id = self.extract_id_from_url(property_url)
-        if not property_id:
-            return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
+        # Extract and validate the status
+        try:
+            status_name = self.extract_status_name_from_url(mutable_data['status'])
+        except KeyError:
+            return Response({'error': 'Missing status URL'}, status=status.HTTP_400_BAD_REQUEST)
+        print("Status name:", status_name)
 
-        check_in_date = parse_date(check_in)
-        check_out_date = parse_date(check_out)
+        if not status_name:
+            return Response({'error': 'Invalid status URL'}, status=status.HTTP_400_BAD_REQUEST)
+
+        status_obj = Status.objects.filter(name=status_name).first()
+        if not status_obj:
+            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate the dates
+        try:
+            mutable_data['check_in'] = self.reformat_date(mutable_data['check_in'])
+            mutable_data['check_out'] = self.reformat_date(mutable_data['check_out'])
+        except MultiValueDictKeyError:
+            return Response({'error': 'Missing check-in or check-out dates'}, status=status.HTTP_400_BAD_REQUEST)
+
+        check_in_date = parse_date(mutable_data['check_in'])
+        check_out_date = parse_date(mutable_data['check_out'])
         if not (check_in_date and check_out_date):
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the property
+        property_id = self.extract_id_from_url(mutable_data['property'])
+        if not property_id:
+            return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not self.is_available(property_id, check_in_date, check_out_date):
             return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
 
+        request._full_data = mutable_data  # Update the request data
         return super().create(request, *args, **kwargs)
-
 
     def is_available(self, property_id, check_in, check_out):
         existing_bookings = Booking.objects.filter(
@@ -115,14 +149,8 @@ class BookingViewSet(viewsets.ModelViewSet):
             end_date__gte=check_in,
             start_date__lte=check_out
         )
-        print("Existing bookings:", existing_bookings.exists())
-        print("Unavailabilities:", unavailabilities.exists())
         # If there are any bookings or unavailabilities that overlap the requested dates, return False
         return not (existing_bookings.exists() or unavailabilities.exists())
-
-    def extract_id_from_url(self, url):
-            match = re.search(r'properties/(\d+)/$', url)
-            return match.group(1) if match else None
 
 class PropertyViewSet(viewsets.ModelViewSet):
     """
