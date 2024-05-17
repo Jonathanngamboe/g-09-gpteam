@@ -1,6 +1,6 @@
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
 from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer, UnavailabilitySerializer
 from rest_framework.decorators import api_view, permission_classes
@@ -14,6 +14,7 @@ from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_http_methods
 import json
+import re
 
 
 # Serve Vue Application
@@ -32,7 +33,7 @@ def current_user(request):
 @require_http_methods(["POST"])
 def send_emails(request):
     try:
-        data = json.loads(request.body.decode('utf-8'))  # Décode et charge les données JSON
+        data = json.loads(request.body.decode('utf-8'))  
         email = data.get('email')
         subject = data.get('subject')
         message = data.get('message')
@@ -47,7 +48,7 @@ def send_emails(request):
             password=base.EMAIL_HOST_PASSWORD,
             use_tls=base.EMAIL_USE_TLS
         ) as connection:
-            recipients = email.split()  # Assure que email contient une valeur non-None
+            recipients = email.split()  
             email_msg = EmailMessage(subject, message, base.EMAIL_HOST_USER, recipients, connection=connection)
             email_msg.send()
 
@@ -82,6 +83,46 @@ class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        property_url = request.data.get('property')
+        check_in = request.data.get('check_in')
+        check_out = request.data.get('check_out')
+
+        property_id = self.extract_id_from_url(property_url)
+        if not property_id:
+            return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
+
+        check_in_date = parse_date(check_in)
+        check_out_date = parse_date(check_out)
+        if not (check_in_date and check_out_date):
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not self.is_available(property_id, check_in_date, check_out_date):
+            return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
+
+
+    def is_available(self, property_id, check_in, check_out):
+        existing_bookings = Booking.objects.filter(
+            property_id=property_id,
+            check_out__gte=check_in,
+            check_in__lte=check_out
+        )
+        unavailabilities = Unavailability.objects.filter(
+            property_id=property_id,
+            end_date__gte=check_in,
+            start_date__lte=check_out
+        )
+        print("Existing bookings:", existing_bookings.exists())
+        print("Unavailabilities:", unavailabilities.exists())
+        # If there are any bookings or unavailabilities that overlap the requested dates, return False
+        return not (existing_bookings.exists() or unavailabilities.exists())
+
+    def extract_id_from_url(self, url):
+            match = re.search(r'properties/(\d+)/$', url)
+            return match.group(1) if match else None
 
 class PropertyViewSet(viewsets.ModelViewSet):
     """
