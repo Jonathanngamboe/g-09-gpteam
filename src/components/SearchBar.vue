@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import citiesService from '@/services/citiesService';
 import { getMinCheckoutDate, getDateOptions } from '@/utils/dateUtils';
@@ -203,6 +203,19 @@ export default {
             closePopup();
             clearSearchCriteria();
         }
+
+        watch(showPopup, (newVal, oldVal) => {
+            if (oldVal === true && newVal === false) {
+                searchModel.value = ''; 
+            }
+        });
+
+        watch(() => $q.screen.lg, (newVal, oldVal) => {
+            if (oldVal === true && newVal === false) {
+                showPopup.value = false;
+                searchModel.value = ''; 
+            }
+        });
 
         function performSearch() {
             closePopup();
