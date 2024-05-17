@@ -198,15 +198,11 @@
             $q.notify({ color, textColor: 'white', icon: 'error', position: 'top', message });
         }
 
-        function formatNumber(number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-        }
-
         async function submitBooking() {
             let confirmationEmail = {
                 email: authService.user.value.email,
                 subject: 'Booking confirmation',
-                message: `Thank you for your booking. You have booked the room ${room.title} from ${formattedDateRange.value}. The total price is CHF ${formatNumber(room.price_per_night * totalNights.value)}.-`,
+                message: `Thank you for your booking. You have booked ${room.title} from ${formattedDateRange.value} for ${totalNights.value} nights. The total price is CHF ${room.price_per_night * totalNights.value}.-`
             };
             // TODO: Add booking to the database
             notify('Thank you for your booking.', 'green');
@@ -216,7 +212,7 @@
             if (response.status === 'success') {
                 notify('Confirmation email sent.', 'green');
             } else {
-                notify('Failed to send confirmation email : ' + response.data, 'red');
+                notify('Failed to send confirmation email : ' + response.message, 'red');
             }
             router.push('My-account');
         }
