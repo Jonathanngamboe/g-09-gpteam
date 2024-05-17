@@ -18,8 +18,10 @@ const propertyService = {
       checkIn: searchCriteria.checkIn,
       checkOut: searchCriteria.checkOut,
       minPrice: filters.priceRange.min,
-      maxPrice: filters.priceRange.max !== Infinity ? filters.priceRange.max : 999999,      amenities: filters.amenities.join(','),
-      average_rating: filters.rating.min,
+      maxPrice: filters.priceRange.max !== Infinity ? filters.priceRange.max : 2000,  
+      amenities: filters.amenities.join(','),
+      minRating: filters.rating.min,
+      maxRating: filters.rating.max !== Infinity ? filters.rating.max : 5,
     };
     
     return api.get(endpoint, { params })
