@@ -108,10 +108,12 @@ import { useQuasar } from 'quasar';
 import citiesService from '@/services/citiesService';
 import { getMinCheckoutDate, getDateOptions } from '@/utils/dateUtils';
 import { setSearchCriteria, clearSearchCriteria } from '@/utils/globalState';
+import { useRouter } from 'vue-router';
 
 export default {
     setup() {
         const $q = useQuasar();
+        const router = useRouter();
         const searchModel = ref('');
         const showPopup = ref(false);
         const destination = ref(null);
@@ -204,6 +206,7 @@ export default {
 
         function performSearch() {
             closePopup();
+            router.push('/');
             setSearchCriteria(destination.value, dateRange.value.from, dateRange.value.to);
         }
 
