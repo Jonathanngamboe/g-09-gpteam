@@ -1,7 +1,7 @@
 import api from "@/services/api"
 import { ref } from "vue"
 import router from "@/router"
-import { getLastIntent, clearLastIntent } from '@/store/globalState';
+import { getLastIntent, clearLastIntent } from '@/utils/globalState';
 
 let user = ref()
 
@@ -60,11 +60,9 @@ export default {
     return api.get(`/customusers/me/`) 
       .then((response) => {
         user.value = response.data;
-        console.log("Current user data fetched:", user.value);
         return user.value;
       })
       .catch((error) => {
-        console.error("Failed to fetch current user data:", error);
         user.value = undefined;
       });
   }

@@ -8,8 +8,8 @@
           color="primary"
           id="price-range"
           v-model="tempFilters.priceRange"
-          :min="1"
-          :max="2000"
+          :min="filters.priceRange.min"
+          :max="filters.priceRange.max"
           :label-value="labelValue"
         />
         <div class="price-inputs row justify-between q-mt-xs" style="align-items: center">
@@ -129,6 +129,7 @@
 import { ref, reactive, computed, defineComponent, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import amenitiesService from '../services/amenitiesService';
+import { filters, clearFilters } from '../utils/globalState';
 
 export default defineComponent({
   emits: ["on-filter", "on-reset", "toggle-filters", "update:isVisible"],
@@ -148,12 +149,6 @@ export default defineComponent({
       set: (val) => emit("update:isVisible", val)
     })
 
-    const filters = reactive({
-      priceRange: { min: 1, max: 2000 },
-      amenities: [],
-      rating: { min: 0, max: 5 }
-    })
-
     // Copy of filters to store temporary changes before applying
     const tempFilters = reactive({
       priceRange: { ...filters.priceRange },
@@ -162,10 +157,7 @@ export default defineComponent({
     });
 
     // Reactive property for ratingModel
-    const ratingModel = ref({
-      min: 0, // Initial minimum rating
-      max: 5 // Initial maximum rating
-    })
+    const ratingModel = ref({ min: filters.min || 0, max: filters.max || 5 });
 
     // Reactive property to control the display of all amenities
     const showAllAmenities = ref(false)
@@ -229,12 +221,10 @@ export default defineComponent({
 
     // Method to reset filters to default
     const resetFilters = () => {
-      filters.priceRange = { min: 1, max: 2000 }
-      filters.amenities = []
-      filters.rating = ratingModel.value
+      clearFilters()
       // Reset tempFilters as well
       Object.assign(tempFilters, {
-        priceRange: { min: 1, max: 2000 },
+        priceRange: { ...filters.priceRange },
         amenities: [],
         rating: ratingModel.value
       })
