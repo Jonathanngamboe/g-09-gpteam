@@ -50,7 +50,7 @@
                 </q-card-section>
                 <!-- Confirm and pay button -->
                 <q-card-section>
-                    <q-btn unelevated rounded label="Confirm and pay" color="green" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
+                    <q-btn unelevated rounded label="Confirm and pay" color="green-14" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
                 </q-card-section>
             </q-card>
         </div>
@@ -198,17 +198,21 @@
             $q.notify({ color, textColor: 'white', icon: 'error', position: 'top', message });
         }
 
+        function formatNumber(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
         async function submitBooking() {
-            let bookingDetails = {
+            let confirmationEmail = {
                 email: authService.user.value.email,
-                roomTitle: room.value.title,
-                checkIn: dateRange.value.from,
-                checkOut: dateRange.value.to,
-                totalPrice: room.value.price_per_night * totalNights.value,
+                subject: 'Booking confirmation',
+                message: `Thank you for your booking. You have booked the room ${room.title} from ${formattedDateRange.value}. The total price is CHF ${formatNumber(room.price_per_night * totalNights.value)}.-`,
             };
+            // TODO: Add booking to the database
             notify('Thank you for your booking.', 'green');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const response = await mailService.sendEmail(bookingDetails);
+
+            // Send confirmation email
+            const response = await mailService.sendEmail(confirmationEmail);
             if (response.status === 'success') {
                 notify('Confirmation email sent.', 'green');
             } else {
