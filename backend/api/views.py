@@ -7,9 +7,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, get_connection
+from backend.settings import base
 from django.http import JsonResponse
-from django.db.models import OuterRef, Exists, Avg, Q, Count
+from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
 
 # Serve Vue Application
@@ -25,21 +26,23 @@ def current_user(request):
     serializer = CustomUserSerializer(request.user, context={'request': request})
     return Response(serializer.data)
 
-def send_confirmation_email(request):
-    email = request.POST.get('email', '')
-    room_title = request.POST.get('roomTitle', '')
-    check_in = request.POST.get('checkIn', '')
-    check_out = request.POST.get('checkOut', '')
-    total_price = request.POST.get('totalPrice', '')
-
-    subject = 'Booking Confirmation'
-    message = f'Your booking for {room_title} has been confirmed. Check-in: {check_in}, Check-out: {check_out}, Total Price: {total_price}'
-    sender = None # Django will use the value of the DEFAULT_FROM_EMAIL setting
-    recipients = [email]
+def send_emails(request):
+    if request.method == "POST": 
+        with get_connection(
+            host=base.EMAIL_HOST,
+            port=base.EMAIL_PORT,
+            username=base.EMAIL_HOST_USER,
+            password=base.EMAIL_HOST_PASSWORD,
+            use_tls=base.EMAIL_USE_TLS
+        ) as connection:
+            recipients = request.POST.get("email").split()  
+            subject = request.POST.get("subject") 
+            message = request.POST.get("message") 
+            sender = base.EMAIL_HOST_USER
+            EmailMessage(subject, message, sender, recipients, connection).send()
 
     try:
-        send_mail(subject, message, sender, recipients, fail_silently=False)
-        return JsonResponse({'status': 'success', 'message': 'Confirmation email sent successfully'})
+        return JsonResponse({'status': 'success', 'message': 'Email sent successfully'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 
