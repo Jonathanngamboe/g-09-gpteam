@@ -15,7 +15,7 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Booking
-        fields = ['url', 'id', 'start_date', 'end_date', 'status', 'property', 'user', 'created_at', 'updated_at']
+        fields = ['url', 'id', 'check_in', 'check_out', 'created_at', 'status', 'property', 'user']
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -70,7 +70,7 @@ class StatusSerializer(serializers.HyperlinkedModelSerializer):
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Message
-        fields = ['url', 'id', 'subject', 'content', 'created_at', 'sender', 'receiver']
+        fields = ['url', 'id', 'subject', 'body', 'sent_at', 'booking']
 
 class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
