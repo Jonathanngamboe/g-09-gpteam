@@ -1,7 +1,10 @@
 <template>
     <q-card flat bordered>
       <!-- Room image -->
-<q-img :src="room.images?.[0]?.image || 'default-room-image.jpg'" />
+      <img
+        :src="room.images && room.images.length > 0 ? (room.images[0].image || room.images[0].ext_url) : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'"
+        alt="Room image"
+      />
 
       <!-- Card content -->
       <q-card-section>
@@ -76,7 +79,7 @@
       formatAmenities(amenities) {
         if (!amenities) return '';
         const maxVisibleAmenities = 3;
-        const visibleAmenities = amenities.slice(0, maxVisibleAmenities).join(' · ');
+        const visibleAmenities = amenities.slice(0, maxVisibleAmenities).map(amenity => amenity.name).join(' · ');
         return amenities.length > maxVisibleAmenities
           ? `·${visibleAmenities} and ${amenities.length - maxVisibleAmenities} more`
           : visibleAmenities;

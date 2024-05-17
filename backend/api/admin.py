@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Message, Property, CustomUser, Property_Type, Amenity, Image, City, Booking, Review, Status
+from .models import Message, Property, CustomUser, PropertyType, Amenity, Image, City, Booking, Review, Status, Unavailability
 
 
 @admin.register(CustomUser)
@@ -18,8 +18,7 @@ class PropertyModelAdmin(admin.ModelAdmin):
     list_filter = ('price_per_night', 'surface', 'is_active')
     search_fields = ('title', 'description', 'address')
 
-
-@admin.register(Property_Type)
+@admin.register(PropertyType)
 class TypeModelAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
@@ -29,7 +28,7 @@ class AmenitiesModelAdmin(admin.ModelAdmin):
 
 @admin.register(Image)
 class ImageModelAdmin(admin.ModelAdmin):
-    list_display=('id', 'image')
+    list_display=('id', 'image_url')
 
 @admin.register(City)
 class CityModelAdmin(admin.ModelAdmin):
@@ -53,7 +52,12 @@ class StatusModelAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageModelAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'subject', 'sent_at')
+    list_display = ('id', 'subject', 'sent_at')
     list_filter = ('sent_at',)
     search_fields = ('subject', 'body')
-    
+
+@admin.register(Unavailability)
+class UnavailabilityModelAdmin(admin.ModelAdmin):
+    list_display = ('start_date', 'end_date', 'comment')
+    list_filter = ('start_date', 'end_date')
+    search_fields = ('start_date', 'end_date')
