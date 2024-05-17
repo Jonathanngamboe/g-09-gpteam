@@ -16,7 +16,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
-import roomService from '../services/roomService';
+import propertyService from '../services/propertyService';
 
 export default {
   components: {
@@ -39,7 +39,7 @@ export default {
       console.log("Room ID à récupérer:", roomId);
 
       // Vous pouvez ajouter votre logique pour récupérer les détails de la chambre à partir de l'API ici
-      room.value = await roomService.getRoomById(roomId);
+      room.value = await propertyService.getPropertyById(roomId);
       console.log("Room details:", room.value);
     
  

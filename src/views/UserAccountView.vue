@@ -40,7 +40,7 @@ import UserInformation from "@/components/UserInformation.vue";
 import MyRooms from "@/components/MyRooms.vue";
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
-import roomService from '@/services/roomService';
+import propertyService from '@/services/propertyService';
 
 export default {
   components: {
@@ -59,7 +59,7 @@ export default {
   try {
     // Fonction hypothétique pour récupérer l'ID de l'utilisateur connecté
     console.log("User :", user);
-    const userProperties = await roomService.getUserProperties(user.value.pk);
+    const userProperties = await propertyService.getUserProperties(user.value.pk); 
     
     console.log("User properties:", userProperties); 
     rooms.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
