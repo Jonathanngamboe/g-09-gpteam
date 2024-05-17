@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
-from django.db.models import OuterRef, Exists, Avg, Q
+from django.db.models import OuterRef, Exists, Avg, Q, Count
 from django.utils.dateparse import parse_date
 
 # Serve Vue Application
@@ -83,7 +83,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         check_out = self.request.query_params.get('checkOut', None)
         min_price = self.request.query_params.get('minPrice', None)
         max_price = self.request.query_params.get('maxPrice', None)
-        amenities = self.request.query_params.getlist('amenities')
+        amenities_param = self.request.query_params.get('amenities', '')
         min_rating = self.request.query_params.get('minRating', None)
         max_rating = self.request.query_params.get('maxRating', None)
 
@@ -119,9 +119,11 @@ class PropertyViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(price_per_night__gte=min_price, price_per_night__lte=max_price)
 
         # Filter by amenities
-        if amenities:
-            for amenity in amenities:
-                queryset = queryset.filter(amenities__name__icontains=amenity)
+        if amenities_param:
+            amenities_list = [amenity.strip() for amenity in amenities_param.split(',')]
+            if amenities_list:
+                for amenity in amenities_list:
+                    queryset = queryset.filter(amenities__name__iexact=amenity)
 
         # Filter by rating
         if min_rating is not None or max_rating is not None:
