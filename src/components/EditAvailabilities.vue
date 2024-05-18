@@ -54,7 +54,8 @@
                     </q-item-section>
                     <q-item-section side>
                         <q-item-label caption>
-                            {{ availability.reason }}
+                            <!-- Show the reason for unavailability -->
+                            {{ unavailability.available ? 'Available' : 'Unavailable' }}
                         </q-item-label>
                     </q-item-section>
                 </q-item>
