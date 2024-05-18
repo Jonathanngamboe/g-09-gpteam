@@ -7,40 +7,52 @@
         <q-tab name="two" icon="edit_calendar" />
         <q-tab name="three" icon="history" alert="primary" />
       </q-tabs>
+
       <!-- Tab content -->
       <q-tab-panels v-model="tab" animated>
-        <!-- Room details -->
+
+        <!-- Edit Room -->
         <q-tab-panel name="one">
+          <!-- Section title -->
           <q-toolbar class="q-mb-md full-width">
             <q-toolbar-title>
               Room Details
             </q-toolbar-title>
           </q-toolbar>
+          <!-- Section content -->
           <q-card-section>
-            <!-- Edit Room -->
             <EditRoom :room="room" />
           </q-card-section>
         </q-tab-panel>
+
         <!-- Calendar -->
         <q-tab-panel name="two">
-          <q-card-section>
-            <q-toolbar class="q-mb-md full-width">
+          <!-- Section title -->
+          <q-toolbar class="q-mb-md full-width">
             <q-toolbar-title>
-              Availibilities
+              Calendar
             </q-toolbar-title>
           </q-toolbar>
+          <!-- Section content -->
+          <q-card-section>
+            <EditAvailabilities :room="room" />
           </q-card-section>
         </q-tab-panel>
+
         <!-- Booking history -->
         <q-tab-panel name="three">
-          <q-card-section>
-            <q-toolbar class="q-mb-md full-width">
+          <!-- Section title -->
+          <q-toolbar class="q-mb-md full-width">
             <q-toolbar-title>
               Booking History
             </q-toolbar-title>
           </q-toolbar>
+          <!-- Section content -->
+          <q-card-section>
+            <!-- Add booking history component here -->
           </q-card-section>
         </q-tab-panel>
+
       </q-tab-panels>
     </q-card>
   </div>
@@ -55,11 +67,13 @@ import { useRoute } from 'vue-router';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import propertyService from '../services/propertyService';
 import EditRoom from '@/components/EditRoom.vue';
+import EditAvailabilities from '../components/EditAvailabilities.vue';
 
 export default {
   components: {
     RoomCardDetail,
     EditRoom,
+    EditAvailabilities,
   },
   setup() {
     const route = useRoute();
