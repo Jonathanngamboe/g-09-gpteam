@@ -1,9 +1,9 @@
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions, status
-from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
+from .models import Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
 from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer, UnavailabilitySerializer
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -14,6 +14,8 @@ from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_http_methods
 from django.utils.datastructures import MultiValueDictKeyError
+from django.shortcuts import get_object_or_404
+
 from copy import deepcopy
 import json
 import re
@@ -96,6 +98,16 @@ class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path='user-bookings/(?P<user_id>\d+)')
+    def user_bookings(self, request, user_id=None):
+        """
+        Retrieve all bookings for a specific user.
+        """
+        user = get_object_or_404(CustomUser, pk=user_id)
+        bookings = self.queryset.filter(user=user)
+        serializer = self.get_serializer(bookings, many=True)
+        return Response(serializer.data)
 
     def reformat_date(self, date_str):
         return date_str.replace('/', '-')

@@ -47,4 +47,12 @@ export default {
                 throw new Error(`Failed to delete booking with ID ${id}: ` + error.message);
             });
     },
+
+    getUserBookings(userId) {
+        return api.get(`${endpoint}user-bookings/${userId}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch bookings for user with ID ${userId}: ` + error.message);
+            });
+    }
 };
