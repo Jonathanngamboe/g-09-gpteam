@@ -34,9 +34,6 @@ export default {
   props: {
     rooms: Array
   },
-
-  created() {
-    console.log("Value of 'room' prop:", this.rooms);},
   
   setup () {
     const router = useRouter();

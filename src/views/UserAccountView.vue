@@ -59,12 +59,8 @@ export default {
     const fetchUserProperties = async () => {
   try {
     // Fonction hypothétique pour récupérer l'ID de l'utilisateur connecté
-    console.log("User :", user);
     const userProperties = await propertyService.getUserProperties(user.value.pk); 
-    
-    console.log("User properties:", userProperties); 
     rooms.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
-    console.log("Value of room after assignment:", rooms.value);
   } catch (error) {
     router.push('/');
     
