@@ -15,6 +15,13 @@
         <q-tab-panel name="one">
           <!-- Section title -->
           <q-toolbar class="q-mb-md full-width">
+            <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
             <q-toolbar-title>
               Room Details
             </q-toolbar-title>
@@ -29,8 +36,15 @@
         <q-tab-panel name="two">
           <!-- Section title -->
           <q-toolbar class="q-mb-md full-width">
+            <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
             <q-toolbar-title>
-              Calendar
+              Room Calendar
             </q-toolbar-title>
           </q-toolbar>
           <!-- Section content -->
@@ -43,8 +57,15 @@
         <q-tab-panel name="three">
           <!-- Section title -->
           <q-toolbar class="q-mb-md full-width">
+            <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
             <q-toolbar-title>
-              Booking History
+              Room Booking History
             </q-toolbar-title>
           </q-toolbar>
           <!-- Section content -->
@@ -63,7 +84,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import propertyService from '../services/propertyService';
 import EditRoom from '@/components/EditRoom.vue';
@@ -76,8 +97,13 @@ export default {
     EditAvailabilities,
   },
   setup() {
+    const router = useRouter();
     const route = useRoute();
     const room = ref(null);
+
+    const goBack = () => {
+      router.go(-1);
+    };
 
     onMounted(async () => {
       const roomId = route.query.roomId;
@@ -88,6 +114,7 @@ export default {
     return {
       room,
       tab: ref('one'),
+      goBack,
     };
   }
 };
