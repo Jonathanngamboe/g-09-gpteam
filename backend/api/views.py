@@ -77,6 +77,16 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return CustomUser.objects.all()
         else:
             return CustomUser.objects.filter(id=self.request.user.id)
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            print("Validation errors:", serializer.errors)  # Show validation errors in the console
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
 
 
 class BookingViewSet(viewsets.ModelViewSet):
