@@ -38,18 +38,23 @@
         <!-- Availabilities list -->
         <div class="q-ma-md">
             <q-item-label header>
-                Availabilities
+                Unvailabilities
             </q-item-label>
             <q-list>
                 <q-item
-                    v-for="availability in availabilities"
-                    :key="availability.id"
+                    v-for="unavailability in unavailabilities"
+                    :key="unavailability.id"
                     clickable
                     v-ripple
                 >
                     <q-item-section>
                         <q-item-label>
-                            {{ availability.date }}
+                            {{ unavailability.date }}
+                        </q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                        <q-item-label caption>
+                            {{ availability.reason }}
                         </q-item-label>
                     </q-item-section>
                 </q-item>
@@ -74,10 +79,10 @@ export default {
     };
     const dateOptions = ref({});
     const lockModel = ref('');
-    const availabilities = ref([]);
-    // Fictive availability data
+    const unavailabilities = ref([]);
+    // Fictive unavailability data
     for (let i = 0; i < 30; i++) {
-      availabilities.value.push({
+      unavailabilities.value.push({
         id: i,
         date: `2021-10-${i + 1}`,
         available: i % 2 === 0,
@@ -91,7 +96,7 @@ export default {
         splitterModel: ref(20),
         lockModel,
         eventColorFn,
-        availabilities,
+        unavailabilities,
         tempDateRange,
         eventsFn,
         dateOptions,
