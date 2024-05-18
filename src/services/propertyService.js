@@ -12,6 +12,19 @@ const propertyService = {
       });
   },
 
+  getPropertyByUrl(propertyUrl) {
+    const propertyId = this.extractIdFromUrl(propertyUrl);
+    if (!propertyId) {
+        throw new Error("Invalid property URL");
+    }
+    return this.getPropertyById(propertyId);
+  },
+
+  extractIdFromUrl(url) {
+    const match = url.match(/\/api\/properties\/(\d+)\//);
+    return match ? match[1] : null;
+  },
+
   getFilteredProperties(searchCriteria, filters) {
     const params = {
       destination: searchCriteria.destination,
