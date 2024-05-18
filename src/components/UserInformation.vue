@@ -1,45 +1,25 @@
 <template>
-  <q-page class="flex full-height column justify-center">
-    <!-- Title and user group chip -->
-    <div>
-      <q-toolbar>
-        <q-toolbar-title>
-          Personal Details
-        </q-toolbar-title>
-      </q-toolbar>
-      <!-- Display user groups as chips with different colors. groups is a list of strings -->
-      <q-chip v-if="userGroups" v-for="group in userGroups" :key="group" :color="group === 'Admin' ? 'primary' : 'secondary'" style="color: white;" :label="group" class="q-mb-md q-ml-md"/>
-      <q-chip v-else color="secondary" label="No groups assigned" class="q-mb-md q-ml-md" style="color: white;" />
-    </div>
-    
-    <!-- List of editable fields -->
-    <div class="flex flex-center full-width full-height">
-      <div class="q-pa-md full-width">
-        <q-list>
-          <q-item v-for="(value, key) in userEditable" :key="key">
-            <q-item-section>
-              <CitySelect v-if="key === 'city'" :disable="!isEditing" v-model="userEditable.city" @update:modelValue="value => userEditable.city = value"/>
-              <q-input v-else :disable="!isEditing" v-model="userEditable[key]" :label="formatLabel(key)" :type="key === 'date_of_birth' ? 'date' : key === 'email' ? 'email' : 'text'" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
+<!-- List of editable fields -->
+  <q-list>
+    <q-item v-for="(value, key) in userEditable" :key="key">
+      <q-item-section>
+        <CitySelect v-if="key === 'city'" :disable="!isEditing" v-model="userEditable.city" @update:modelValue="value => userEditable.city = value"/>
+        <q-input v-else :disable="!isEditing" v-model="userEditable[key]" :label="formatLabel(key)" :type="key === 'date_of_birth' ? 'date' : key === 'email' ? 'email' : 'text'" />
+      </q-item-section>
+    </q-item>
+  </q-list>
 
-      <!-- Action buttons at the bottom -->
-      <div class="text-center q-pa-md full-width">
-        <q-btn unelevated rounded v-if="!isEditing" color="primary" icon="edit" label="Edit" @click="toggleEdit(true)" class="full-width" />
-        <template v-else>
-          <q-btn unelevated rounded flat label="Cancel" @click="toggleEdit(false)" style="width: 48%;" />
-          <q-btn unelevated rounded color="primary" icon="save" label="Save" @click="updateUserDetails" style="width: 48%;" />
-        </template>
-      </div>
-    </div>
-  </q-page>
+  <!-- Action buttons at the bottom -->
+  <q-btn unelevated rounded v-if="!isEditing" color="primary" icon="edit" label="Edit" @click="toggleEdit(true)" class="full-width" />
+  <template v-else>
+    <q-btn unelevated rounded flat label="Cancel" @click="toggleEdit(false)" style="width: 48%;" />
+    <q-btn unelevated rounded color="primary" icon="save" label="Save" @click="updateUserDetails" style="width: 48%;" />
+  </template>
 </template>
 
 
 <script>
-import { ref, onMounted, reactive, watch } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import authService from '@/services/authService';
 import { useQuasar } from 'quasar';
 import CitySelect from '@/components/CitySelect.vue';

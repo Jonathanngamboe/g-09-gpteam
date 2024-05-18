@@ -1,36 +1,27 @@
 <template>
-    <div>
-        <!-- Title -->
-        <q-toolbar class="q-mb-md full-width">
-            <q-toolbar-title>
-              My Booking History
-            </q-toolbar-title>
-        </q-toolbar>
-
-        <!-- Booking History Timeline -->
-        <div class="q-pa-md items-center">
-            <q-timeline v-if="bookings.length > 0">
-                <q-timeline-entry
-                    v-for="booking in bookings"
-                    :key="booking.id"
-                    :color="getStatusColor(extractStatusFromUrl(booking.status))" 
-                    :icon="getIcon(extractStatusFromUrl(booking.status))"
-                    :title="booking.property.title"
-                    :subtitle="extractStatusFromUrl(booking.status)"
-                    :body="booking.check_in + ' - ' + booking.check_out"
-                >
-                </q-timeline-entry>
-            </q-timeline>
-            <div v-else class="row justify-center q-gutter-md">
-                <div class="text-h6 full-width text-center">You have no bookings yet. Click the button below to book a property.</div>
-                <q-btn
-                    unelevated
-                    rounded
-                    color="primary"
-                    label="Search Properties"
-                    @click="bookProperty"
-                />
-            </div>
+    <!-- Booking History Timeline -->
+    <div class="q-pa-md items-center">
+        <q-timeline v-if="bookings.length > 0">
+            <q-timeline-entry
+                v-for="booking in bookings"
+                :key="booking.id"
+                :color="getStatusColor(extractStatusFromUrl(booking.status))" 
+                :icon="getIcon(extractStatusFromUrl(booking.status))"
+                :title="booking.property.title"
+                :subtitle="extractStatusFromUrl(booking.status)"
+                :body="booking.check_in + ' - ' + booking.check_out"
+            >
+            </q-timeline-entry>
+        </q-timeline>
+        <div v-else class="row justify-center q-gutter-md">
+            <div class="text-h6 full-width text-center">You have no bookings yet. Click the button below to book a property.</div>
+            <q-btn
+                unelevated
+                rounded
+                color="primary"
+                label="Search Properties"
+                @click="bookProperty"
+            />
         </div>
     </div>
 </template>

@@ -14,7 +14,7 @@
         <!-- Edit Room -->
         <q-tab-panel name="one">
           <!-- Section title -->
-          <q-toolbar class="q-mb-md full-width">
+          <q-toolbar class="q-my-md full-width">
             <q-btn
                 flat
                 round
@@ -23,7 +23,7 @@
                 @click="goBack"
             />
             <q-toolbar-title>
-              Room Details
+              Room details
             </q-toolbar-title>
           </q-toolbar>
           <!-- Section content -->
@@ -35,7 +35,7 @@
         <!-- Calendar -->
         <q-tab-panel name="two">
           <!-- Section title -->
-          <q-toolbar class="q-mb-md full-width">
+          <q-toolbar class="q-my-md full-width">
             <q-btn
                 flat
                 round
@@ -44,7 +44,7 @@
                 @click="goBack"
             />
             <q-toolbar-title>
-              Room Calendar
+              Room calendar
             </q-toolbar-title>
           </q-toolbar>
           <!-- Section content -->
@@ -56,7 +56,7 @@
         <!-- Booking history -->
         <q-tab-panel name="three">
           <!-- Section title -->
-          <q-toolbar class="q-mb-md full-width">
+          <q-toolbar class="q-my-md full-width">
             <q-btn
                 flat
                 round
@@ -65,7 +65,7 @@
                 @click="goBack"
             />
             <q-toolbar-title>
-              Room Booking History
+              Room booking history
             </q-toolbar-title>
           </q-toolbar>
           <!-- Section content -->
