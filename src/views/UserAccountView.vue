@@ -26,9 +26,7 @@
     </q-tab-panel>
     <!-- Booking History Tab Panel -->
     <q-tab-panel name="Booking History">
-      <div class="q-pa-lg text-center">
-        <p>Booking history will be displayed here.</p>
-      </div>
+      <bookingHistory :user="user" />
     </q-tab-panel>
   </q-tab-panels>
 </template>
@@ -42,11 +40,13 @@ import MyRooms from "@/components/MyRooms.vue";
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import propertyService from '@/services/propertyService';
+import bookingHistory from '../components/booking-history.vue';
 
 export default {
   components: {
     UserInformation,
     MyRooms,
+    bookingHistory
   },
   setup() {
     const router = useRouter();
@@ -99,7 +99,8 @@ export default {
       user, 
       rooms, 
       splitterModel,
-      tab
+      tab,
+      user
     };
   }
 }
