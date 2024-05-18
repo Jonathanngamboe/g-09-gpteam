@@ -82,7 +82,7 @@ const propertyService = {
       
     };
 
-    return api.put(`properties/${propertyId}/`, data)
+    return api.patch(`properties/${propertyId}/`, data)
       .then(response => response.data)
       .catch(error => Promise.reject(error.response.data));
   },
@@ -113,6 +113,7 @@ const propertyService = {
         throw new Error('Failed to fetch user data: ' + error.message);
       });
   }
+  
 };
 
 export default propertyService;
