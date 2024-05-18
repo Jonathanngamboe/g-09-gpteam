@@ -65,6 +65,14 @@ export default {
       .catch((error) => {
         user.value = undefined;
       });
-  }
+  },
+
+  updateCustomuser(id, payload) {
+    return api.put(`/customusers/${id}/`, payload)
+      .then(response => response.data)
+      .catch((error) => {
+        throw new Error('Failed to update user: ' + error.message);
+      });
+  },
 
 }
