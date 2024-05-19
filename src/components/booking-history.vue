@@ -1,9 +1,10 @@
 <template>
     <!-- Booking History Timeline -->
     <div class="q-pa-md items-center">
-        <q-timeline v-if="bookings.length > 0">
+        <!-- User's Booking History Timeline -->
+        <q-timeline v-if="userBookings.length > 0">
             <q-timeline-entry
-                v-for="booking in bookings"
+                v-for="booking in userBookings"
                 :key="booking.id"
                 :color="getStatusColor(extractStatusFromUrl(booking.status))" 
                 :icon="getIcon(extractStatusFromUrl(booking.status))"
@@ -11,9 +12,20 @@
                 :subtitle="extractStatusFromUrl(booking.status)"
                 :body="booking.check_in + ' - ' + booking.check_out"
             >
+                <div class="q-mt-md">
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'confirmed'"
+                        unelevated
+                        rounded
+                        color="negative"
+                        label="Cancel"
+                        icon="cancel"
+                        @click="updateBookingStatus(booking.id, 'Cancelled')"
+                    />
+                </div>
             </q-timeline-entry>
         </q-timeline>
-        <div v-else class="row justify-center q-gutter-md">
+        <div v-else-if="!userBookings" class="row justify-center q-gutter-md">
             <div class="text-h6 full-width text-center">You have no bookings yet. Click the button below to book a property.</div>
             <q-btn
                 unelevated
@@ -23,11 +35,49 @@
                 @click="bookProperty"
             />
         </div>
+        <!-- Room Booking History Timeline -->
+        <q-timeline v-else-if="roomBookings.length > 0">
+            <q-timeline-entry
+                v-for="booking in roomBookings"
+                :key="booking.id"
+                :color="getStatusColor(extractStatusFromUrl(booking.status))" 
+                :icon="getIcon(extractStatusFromUrl(booking.status))"
+                :title="booking.user.first_name + ' ' + booking.user.last_name"
+                :subtitle="extractStatusFromUrl(booking.status)"
+                :body="booking.check_in + ' - ' + booking.check_out"
+            >
+                <!-- Buttons to approve, reject or cancel booking -->
+                <div class="q-gutter-md q-mt-md">
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'pending'"
+                        unelevated
+                        rounded
+                        color="positive"
+                        label="Accept"
+                        icon="check"
+                        @click="updateBookingStatus(booking.id, 'Confirmed')"
+                    />
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'pending' || extractStatusFromUrl(booking.status) === 'confirmed'"
+                        unelevated
+                        rounded
+                        color="negative"
+                        :label="extractStatusFromUrl(booking.status) === 'pending' ? 'Reject' : 'Cancel'"
+                        icon="cancel"
+                        @click="updateBookingStatus(booking.id, 'Cancelled')"
+                    />
+                </div>
+            </q-timeline-entry>
+        </q-timeline>
+        <div v-else-if="!roomBookings" class="row justify-center q-gutter-md">
+            <div class="text-h6 full-width text-center">No bookings have been made for this room yet.</div>
+        </div>
     </div>
 </template>
 
 <script>
     import { ref, onMounted } from 'vue';
+    import authService from '@/services/authService';
     import bookingService from '@/services/bookingService';
     import propertyService from '@/services/propertyService';
     import { useRouter } from 'vue-router';
@@ -35,31 +85,74 @@
 
     export default {
         props: {
-            user: Object,
+            user: {
+                type: Object,
+                required: false
+            },
+            room: {
+                type: Object,
+                required: false
+            }
         },
         setup(props) {
-            const bookings = ref([]);   
+            const roomBookings = ref([]);
+            const userBookings = ref([]);   
             const router = useRouter();
             const $q = useQuasar();
-
+            
             const fetchBookings = async () => {
+                if(props.room) {
+                    try {
+                        // Fetch room bookings
+                        roomBookings.value = await bookingService.getRoomBookings(props.room.id);
+                        // Enrich bookings with user details
+                        roomBookings.value = await getUserInBooking(roomBookings.value);
+                    } catch (error) {
+                        $q.notify({
+                            color: 'negative',
+                            position: 'top',
+                            message: `Failed to fetch room bookings: ${error.message}`
+                        });
+                    }
+                } else if(props.user) {
+                    try {
+                        // Fetch user bookings
+                        userBookings.value = await bookingService.getUserBookings(props.user.pk);
+                        // Enrich bookings with property details
+                        userBookings.value = await getBookingsProperty(userBookings.value);
+                    } catch (error) {
+                        $q.notify({
+                            color: 'negative',
+                            position: 'top',
+                            message: `Failed to fetch user's bookings: ${error.message}`
+                        });
+                    }
+                }
+            };
+
+            const getUserInBooking = async (roombookings) => {
                 try {
-                    // Fetch user bookings
-                    bookings.value = await bookingService.getUserBookings(props.user.pk);
-                    // Enrich bookings with property details
-                    bookings.value = await getBookingsProperty(bookings.value);
+                    const promises = roombookings.map(async (booking) => {
+                        const userDetails = await authService.getUserByUrl(booking.user);
+                        return { ...booking, user: userDetails };
+                    });
+                    const bookingsWithUserDetails = await Promise.allSettled(promises);
+                    const validBookings = bookingsWithUserDetails.map(result => 
+                        result.status === 'fulfilled' ? result.value : result.reason
+                    );
+                    return validBookings;
                 } catch (error) {
                     $q.notify({
                         color: 'negative',
                         position: 'top',
-                        message: `Failed to fetch bookings: ${error.message}`
+                        message: `Failed to fetch user details: ${error.message}`
                     });
                 }
-            };
+            }
 
-            const getBookingsProperty = async (bookings) => {
+            const getBookingsProperty = async (userBookings) => {
                 try {
-                    const promises = bookings.map(async (booking) => {
+                    const promises = userBookings.map(async (booking) => {
                         try {
                             const propertyDetails = await propertyService.getPropertyByUrl(booking.property);
                             return { ...booking, property: propertyDetails };
@@ -135,12 +228,31 @@
                 fetchBookings();
             });
 
+            const updateBookingStatus = async (bookingId, status) => {
+                try {
+                    const booking = {
+                        bookingId: bookingId,
+                        statusName: status
+                    };
+                    await bookingService.updateBookingStatus(booking);
+                    fetchBookings();
+                } catch (error) {
+                    $q.notify({
+                        color: 'negative',
+                        position: 'top',
+                        message: `Failed to update booking status: ${error.message}`
+                    });
+                }
+            }
+
             return {
-                bookings,
+                userBookings,
+                roomBookings,
                 bookProperty,
                 extractStatusFromUrl,
                 getStatusColor,
-                getIcon
+                getIcon,
+                updateBookingStatus
             };
         },
     };
