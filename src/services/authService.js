@@ -56,6 +56,30 @@ export default {
       })
   },
 
+  getUserById(id) {
+    return api
+      .get(`/customusers/${id}/`)
+      .then((response) => {
+        return response.data
+      })
+      .catch(() => {
+        return undefined
+      })
+  },
+
+  getUserByUrl(url) {
+    const userId = this.extractIdFromUrl(url);
+    if(userId) {
+      return this.getUserById(userId);
+    }
+    return new Error('Invalid User URL');
+  },
+
+  extractIdFromUrl(url) {
+    const match = url.match(/\/api\/customusers\/(\d+)\//);
+    return match ? match[1] : null;
+  },
+
   getCustomuser() {
     return api.get(`/customusers/me/`) 
       .then((response) => {
