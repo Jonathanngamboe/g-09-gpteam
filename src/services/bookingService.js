@@ -62,5 +62,14 @@ export default {
             .catch(error => {
                 throw new Error(`Failed to fetch bookings for room with ID ${roomId}: ` + error.message);
             });
+    },
+
+    updateBookingStatus(booking) {
+        // Post request to update the booking status
+        return api.post(`${endpoint}update-status/`, booking)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error('Failed to update booking status: ' + error.message);
+            });        
     }
 };

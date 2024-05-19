@@ -118,6 +118,22 @@ class BookingViewSet(viewsets.ModelViewSet):
         bookings = self.queryset.filter(property=room)
         serializer = self.get_serializer(bookings, many=True)
         return Response(serializer.data)
+    
+    # Update the status of a booking by providing the booking ID and the status name
+    @action(detail=False, methods=['post'], url_path='update-status')
+    def update_status(self, request):
+        try:
+            booking_id = request.data['bookingId']
+            status_name = request.data['statusName']
+        except KeyError:
+            return Response({'error': 'Missing booking ID or status name'}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking = get_object_or_404(Booking, pk=booking_id)
+        status = get_object_or_404(Status, name=status_name)
+        booking.status = status
+        booking.save()
+        serializer = self.get_serializer(booking)
+        return Response(serializer.data)
 
     def reformat_date(self, date_str):
         return date_str.replace('/', '-')
