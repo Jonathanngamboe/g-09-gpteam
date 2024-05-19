@@ -169,7 +169,6 @@ export default {
         }); 
       });
     };
-    console.log(authService.user);
     // Initialize the menu list
     const menuList = ref([
       { label: 'Home', icon: 'home', separator: false, to: '/' },
