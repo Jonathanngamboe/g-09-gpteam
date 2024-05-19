@@ -109,6 +109,16 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(bookings, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='room-bookings/(?P<room_id>\d+)')
+    def room_bookings(self, request, room_id=None):
+        """
+        Retrieve all bookings for a specific room.
+        """
+        room = get_object_or_404(Property, pk=room_id)
+        bookings = self.queryset.filter(property=room)
+        serializer = self.get_serializer(bookings, many=True)
+        return Response(serializer.data)
+
     def reformat_date(self, date_str):
         return date_str.replace('/', '-')
     

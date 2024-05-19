@@ -54,5 +54,13 @@ export default {
             .catch(error => {
                 throw new Error(`Failed to fetch bookings for user with ID ${userId}: ` + error.message);
             });
+    },
+
+    getRoomBookings(roomId) {
+        return api.get(`${endpoint}room-bookings/${roomId}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch bookings for room with ID ${roomId}: ` + error.message);
+            });
     }
 };
