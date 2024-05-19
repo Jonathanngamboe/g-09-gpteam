@@ -181,8 +181,8 @@
             }
             
             function extractStatusFromUrl(url) {
-                const normalizedUrl = url.toLowerCase();
-                const match = normalizedUrl.match(/\/api\/statuses\/([a-z]+)\/?$/);
+                const decodedUrl = decodeURIComponent(url).toLowerCase();
+                const match = decodedUrl.match(/\/api\/statuses\/([a-z\s]+)\/?$/);
                 return match ? match[1] : null;
             }
 
