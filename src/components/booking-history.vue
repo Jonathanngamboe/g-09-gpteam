@@ -128,7 +128,7 @@
             }
 
             function bookProperty() {
-                router.push({ name: '/' });
+                router.push('/');
             }
 
             onMounted(() => {
