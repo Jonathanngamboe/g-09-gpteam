@@ -70,7 +70,7 @@
           </q-toolbar>
           <!-- Section content -->
           <q-card-section>
-            <!-- Add booking history component here -->
+            <bookingHistory :room="room" />
           </q-card-section>
         </q-tab-panel>
 
@@ -89,17 +89,40 @@ import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import propertyService from '../services/propertyService';
 import EditRoom from '@/components/EditRoom.vue';
 import EditAvailabilities from '../components/EditAvailabilities.vue';
+import bookingHistory from '../components/booking-history.vue';
+import authService from '@/services/authService';
 
 export default {
   components: {
     RoomCardDetail,
     EditRoom,
     EditAvailabilities,
+    bookingHistory,
   },
   setup() {
     const router = useRouter();
     const route = useRoute();
     const room = ref(null);
+    const user = ref(null)
+
+    onMounted(async () => {
+      try {
+        await authService.getUser();
+
+        if (!authService.user.value) {
+          router.push('/');
+        }
+        user.value = authService.user.value;
+
+      } catch (error) {
+        router.push('/'); 
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: `${error.message}`
+        });
+      }
+    });
 
     const goBack = () => {
       router.go(-1);
@@ -113,6 +136,7 @@ export default {
 
     return {
       room,
+      user,
       tab: ref('one'),
       goBack,
     };
