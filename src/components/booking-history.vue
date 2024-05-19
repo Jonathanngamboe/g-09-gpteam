@@ -8,9 +8,9 @@
                 :key="booking.id"
                 :color="getStatusColor(extractStatusFromUrl(booking.status))" 
                 :icon="getIcon(extractStatusFromUrl(booking.status))"
-                :title="booking.property.title"
+                :title="booking.property.title + ', booking from ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
                 :subtitle="extractStatusFromUrl(booking.status)"
-                :body="booking.check_in + ' - ' + booking.check_out"
+                :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
             >
                 <div class="q-mt-md">
                     <q-btn
@@ -42,9 +42,9 @@
                 :key="booking.id"
                 :color="getStatusColor(extractStatusFromUrl(booking.status))" 
                 :icon="getIcon(extractStatusFromUrl(booking.status))"
-                :title="booking.user.first_name + ' ' + booking.user.last_name"
+                :title="booking.user.first_name + ' ' + booking.user.last_name + ', booking from ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
                 :subtitle="extractStatusFromUrl(booking.status)"
-                :body="booking.check_in + ' - ' + booking.check_out"
+                :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
             >
                 <!-- Buttons to approve, reject or cancel booking -->
                 <div class="q-gutter-md q-mt-md">
@@ -107,6 +107,8 @@
                         roomBookings.value = await bookingService.getRoomBookings(props.room.id);
                         // Enrich bookings with user details
                         roomBookings.value = await getUserInBooking(roomBookings.value);
+                        // Sort bookings by created_at date from newest to oldest
+                        roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
                         $q.notify({
                             color: 'negative',
@@ -120,6 +122,8 @@
                         userBookings.value = await bookingService.getUserBookings(props.user.pk);
                         // Enrich bookings with property details
                         userBookings.value = await getBookingsProperty(userBookings.value);
+                        // Sort bookings by created_at date from newest to oldest
+                        userBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
                         $q.notify({
                             color: 'negative',
