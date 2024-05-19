@@ -12,6 +12,19 @@ const propertyService = {
       });
   },
 
+  getPropertyByUrl(propertyUrl) {
+    const propertyId = this.extractIdFromUrl(propertyUrl);
+    if (!propertyId) {
+        throw new Error("Invalid property URL");
+    }
+    return this.getPropertyById(propertyId);
+  },
+
+  extractIdFromUrl(url) {
+    const match = url.match(/\/api\/properties\/(\d+)\//);
+    return match ? match[1] : null;
+  },
+
   getFilteredProperties(searchCriteria, filters) {
     const params = {
       destination: searchCriteria.destination,
@@ -92,7 +105,27 @@ const propertyService = {
     return api.delete(`properties/${propertyId}/`)
       .then(response => response.data)
         .catch(error => Promise.reject(error.response.data));
-    },
+  },
+
+  // Method to retrieve the properties of a specific user
+  getUserProperties(userId) {
+    const userEndpoint = `/customusers/${userId}/`;
+
+    return api.get(userEndpoint)
+      .then(response => {
+        const userData = response.data;
+        const propertyUrls = userData.properties;
+        const propertyPromises = propertyUrls.map(propertyUrl => api.get(propertyUrl));
+        return Promise.all(propertyPromises)
+          .then(propertyResponses => propertyResponses.map(response => response.data))
+          .catch(error => {
+            throw new Error('Failed to fetch user properties: ' + error.message);
+          });
+      })
+      .catch(error => {
+        throw new Error('Failed to fetch user data: ' + error.message);
+      });
+  }
 };
 
 export default propertyService;

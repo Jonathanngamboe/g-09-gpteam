@@ -38,7 +38,6 @@
                         hide-dropdown-icon
                         clearable
                         use-input
-                        fill-input
                         input-debounce="300"
                         @filter="filterFunction">
                         <template v-slot:append>
@@ -85,7 +84,7 @@
                     label="Destination"
                     class="col q-mb-md"
                     :options="filteredDestinations"
-                    use-input fill-input input-debounce="300"
+                    use-input input-debounce="300"
                     @filter="filterFunction"
                     placeholder="Where are you going?"
                 />                
@@ -103,15 +102,17 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import citiesService from '@/services/citiesService';
 import { getMinCheckoutDate, getDateOptions } from '@/utils/dateUtils';
 import { setSearchCriteria, clearSearchCriteria } from '@/utils/globalState';
+import { useRouter } from 'vue-router';
 
 export default {
     setup() {
         const $q = useQuasar();
+        const router = useRouter();
         const searchModel = ref('');
         const showPopup = ref(false);
         const destination = ref(null);
@@ -202,8 +203,22 @@ export default {
             clearSearchCriteria();
         }
 
+        watch(showPopup, (newVal, oldVal) => {
+            if (oldVal === true && newVal === false) {
+                searchModel.value = ''; 
+            }
+        });
+
+        watch(() => $q.screen.lg, (newVal, oldVal) => {
+            if (oldVal === true && newVal === false) {
+                showPopup.value = false;
+                searchModel.value = ''; 
+            }
+        });
+
         function performSearch() {
             closePopup();
+            router.push('/');
             setSearchCriteria(destination.value, dateRange.value.from, dateRange.value.to);
         }
 

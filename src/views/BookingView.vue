@@ -50,7 +50,7 @@
                 </q-card-section>
                 <!-- Confirm and pay button -->
                 <q-card-section>
-                    <q-btn unelevated rounded label="Confirm and pay" color="green" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
+                    <q-btn unelevated rounded label="Confirm and pay" color="green-14" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
                 </q-card-section>
             </q-card>
         </div>
@@ -77,6 +77,8 @@
   import authService from '@/services/authService';
   import mailService from '@/services/mailService';
   import { getDateOptions } from '@/utils/dateUtils';
+  import bookingService from '@/services/bookingService';
+  import statusService from '@/services/statusService';
 
   export default {
     setup() {
@@ -118,12 +120,13 @@
 
         onMounted(async () => {
             if (!authService.user.value) {
-                notify('Please log in to book a room.', 'red');
+                notify('An error occurred. Please make sure you are logged in and refresh the page.', 'red');
                 router.push('/');
             } else {
                 if (route.query.roomId) {
                     room.value = await propertyService.getPropertyById(route.query.roomId);
                     updateDateRange(route.query.checkIn, route.query.checkOut);
+                    // TODO: Fetch unavailable dates from the database
                 } else {
                     notify('Please select a room first.', 'red');
                     router.push('/');
@@ -198,24 +201,75 @@
             $q.notify({ color, textColor: 'white', icon: 'error', position: 'top', message });
         }
 
-        async function submitBooking() {
-            let bookingDetails = {
-                email: authService.user.value.email,
-                roomTitle: room.value.title,
-                checkIn: dateRange.value.from,
-                checkOut: dateRange.value.to,
-                totalPrice: room.value.price_per_night * totalNights.value,
-            };
-            notify('Thank you for your booking.', 'green');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const response = await mailService.sendEmail(bookingDetails);
-            if (response.status === 'success') {
-                notify('Confirmation email sent.', 'green');
-            } else {
-                notify('Failed to send confirmation email : ' + response.data, 'red');
+        // Helper function to format number with ''' separator
+        function formatNumber(number) {
+            if(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
             }
-            router.push('My-account');
+            return 0;
         }
+
+        async function submitBooking() {
+            try {
+                const user = await authService.getCustomuser()
+                if(!user) {
+                    notify('Failed to get user information.', 'red');
+                    return;
+                }
+                
+                const status = await statusService.getAllStatus();
+                const pendingStatus = status.find(s => s.name === 'Pending');
+                if (!pendingStatus) {
+                    notify('Failed to find the status "Pending".', 'red');
+                    return;
+                }
+                
+                // Add booking to the database
+                const booking = {
+                    check_in: dateRange.value.from,
+                    check_out: dateRange.value.to,
+                    property: room.value.url,
+                    user: user.url,
+                    status: pendingStatus.url,
+                    //total_price: room.value.price_per_night * totalNights.value,
+                };
+                const bookingResponse = await bookingService.createBooking(booking);
+
+                // Send booking confirmation email
+                if (bookingResponse !== null) {
+                    // TODO: Redirect to user's history page
+                    router.push('My-account');
+                    // Send confirmation email to the student
+                    const confirmationEmail = {
+                    email: authService.user.value.email,
+                    subject: 'Booking confirmation',
+                    message: `Hi !\n\n` +
+                        `Thank you for your booking for ${room.value.title}!\n\n` +
+                        `Dates: ${formattedDateRange.value}\n` +
+                        `Price per night: CHF ${formatNumber(room.value.price_per_night)}\n` +
+                        `Number of nights: ${formatNumber(totalNights.value)}\n` +
+                        `Total price: CHF ${formatNumber(room.value.price_per_night * totalNights.value)}\n\n` +
+                        (message.value ? `Message to host: ${message.value}\n\n` : '') +
+                        `Payment method: ${paymentMethod.value}\n\n` +
+                        (paymentMethod.value === 'Invoice' ? 'Please pay the total amount to the following bank account:\nIBAN: CHXX XXXX XXXX XXXX XXXX\nAccount holder: GPTeam\n\n' : '') +
+                        `Enjoy your stay!\n\nGPTeam`
+                    };
+                    const emailResponse = await mailService.sendEmail(confirmationEmail);
+                    if (emailResponse.status === 'success') {
+                        notify('Booking and confirmation email sent successfully.', 'green');
+                    } else {
+                        notify('Failed to send confirmation email: ' + emailResponse.message, 'red');
+                    }
+                    // TODO: Send booking notification email to the host   
+                } else {
+                    notify('Booking creation failed: ' + bookingResponse.message, 'red');
+                }
+
+            } catch (error) {
+                notify('An error occurred during booking: ' + error.message, 'red');
+            }
+        }
+
 
         return {
             room,
@@ -233,17 +287,9 @@
             dateOptions,
             formattedDateRange,
             tempDateRange,
-            dialogPosition
+            dialogPosition,
+            formatNumber
         };
-    },
-    methods: {
-        // Helper function to format number with ''' separator
-        formatNumber(number) {
-            if(number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-            }
-            return 0;
-        }
     }
   }
   </script>

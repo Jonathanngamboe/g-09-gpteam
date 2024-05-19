@@ -1,35 +1,89 @@
 <template>
-    <template v-if="$q.screen.width >= 600">
-      <!-- Desktop and Tablet Layout with Splitter -->
-      <q-splitter v-model="splitterModel" class="full-width">
-        <template v-slot:before>
-          <div class="full-height q-pa-md">
-            <UserInformation :user="user" />
-          </div>
-        </template>
-        <q-separator />
-        <template v-slot:after>
-          <div class="full-height q-pa-md">
-            <MyRooms :room="room" />
-          </div>
-        </template>
-      </q-splitter>
-    </template>
-    <template v-else>
-      <!-- Mobile Layout with Tabs -->
-      <q-tabs aligned="justify" v-model="tab">
-        <q-tab name="user-info" icon="person" />
-        <q-tab name="rooms" icon="bed" />
-      </q-tabs>
-      <q-tab-panels v-model="tab" animated>
-        <q-tab-panel name="user-info">
-          <UserInformation :user="user" />
-        </q-tab-panel>
-        <q-tab-panel name="rooms">
-          <MyRooms :room="room" />
-        </q-tab-panel>
-      </q-tab-panels>
-    </template>
+  <q-tabs dense align="justify" v-model="tab" mobile-arrows>
+    <q-tab name="user-info" icon="person" />
+    <q-tab name="rooms" icon="bed" />
+    <q-tab name="Messages" icon="message">
+      <q-badge color="primary" floating>5</q-badge>
+    </q-tab>
+    <q-tab name="Booking History" icon="history" />
+  </q-tabs>
+
+  <!-- Page content for each tab -->
+  <q-tab-panels v-model="tab" animated>
+
+    <!-- User Information Tab Panel -->
+    <q-tab-panel name="user-info">
+      <q-toolbar class="q-gutter-md q-my-md full-width">
+        <q-btn flat round dense icon="arrow_back" @click="goBack" />
+        <q-toolbar-title>
+          My personal details
+        </q-toolbar-title>
+        <div>
+          <q-chip v-if="userGroups" v-for="group in userGroups" :key="group" :color="group === 'Admin' ? 'primary' : 'secondary'" style="color: white;" :label="group" class="q-my-md q-ml-md"/>
+          <q-chip v-else color="secondary" label="No groups assigned" class="q-my-md q-ml-md" style="color: white;" />
+        </div>
+      </q-toolbar>
+      <q-card-section>
+        <UserInformation />
+      </q-card-section>
+    </q-tab-panel>
+
+    <!-- Rooms Tab Panel -->
+    <q-tab-panel name="rooms">
+      <q-toolbar class="q-gutter-md q-my-md full-width">
+        <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
+        <q-toolbar-title>
+          My rooms
+        </q-toolbar-title>
+        <q-btn unelevated rounded color="primary" icon="add" @click="goToAddRoom" label="Add a Room" />
+      </q-toolbar> 
+      <q-card-section>
+        <MyRooms :rooms="rooms" />
+      </q-card-section>
+    </q-tab-panel>
+
+    <!-- Messages Tab Panel -->
+    <q-tab-panel name="Messages">
+      <q-toolbar class="q-gutter-md q-my-md full-width">
+        <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
+        <q-toolbar-title>
+          My messages
+        </q-toolbar-title>
+      </q-toolbar> 
+    </q-tab-panel>
+
+    <!-- Booking History Tab Panel -->
+    <q-tab-panel name="Booking History">
+      <q-toolbar class="q-gutter-md q-my-md full-width">
+        <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
+        <q-toolbar-title>
+          My booking history
+        </q-toolbar-title>
+      </q-toolbar> 
+      <q-card-section>
+        <bookingHistory :user="user" />
+      </q-card-section>
+    </q-tab-panel>
+
+  </q-tab-panels>
 </template>
 
 
@@ -40,46 +94,95 @@ import UserInformation from "@/components/UserInformation.vue";
 import MyRooms from "@/components/MyRooms.vue";
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
+import propertyService from '@/services/propertyService';
+import bookingHistory from '../components/booking-history.vue';
 
 export default {
   components: {
     UserInformation,
     MyRooms,
+    bookingHistory
   },
   setup() {
     const router = useRouter();
     const user = ref(null);
-    const room = ref(null); // Define room
+    const rooms = ref([]); 
     const $q = useQuasar();
     const splitterModel = ref(40);
     const tab = ref('user-info');
+    const userGroups = ref([]);
+
+    const getUserGroups = async () => {
+      try {
+        const customUser = await authService.getCustomuser();
+        userGroups.value = customUser.groups || [];
+      } catch (error) {
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: `${error.message}`
+        });
+      }
+    };
+
+    onMounted(getUserGroups);
+
+    const fetchUserProperties = async () => {
+      try {
+        // Fonction hypothétique pour récupérer l'ID de l'utilisateur connecté
+        const userProperties = await propertyService.getUserProperties(user.value.pk); 
+        rooms.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
+      } catch (error) {
+        router.push('/');
+        
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: `${error.message}`
+        });
+      }
+    };
+
+
 
     onMounted(async () => {
       try {
         await authService.getUser();
 
         if (!authService.user.value) {
-          router.push('/'); // Redirect to home page if user is not logged in
+          router.push('/'); // Redirigez vers la page d'accueil si l'utilisateur n'est pas connecté
         }
         user.value = authService.user.value;
 
-        // TODO: Fetch user's rooms
+        fetchUserProperties(); // Appelez la fonction
 
-        } catch (error) {
-          router.push('/'); // Redirect on error or if user data cannot be fetched
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: `${error.message}`
-          });
-        }
-      });
+      } catch (error) {
+        router.push('/'); // Redirigez en cas d'erreur ou si les données de l'utilisateur ne peuvent pas être récupérées
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: `${error.message}`
+        });
+      }
+    });
+
+    const goBack = () => {
+      router.go(-1);
+    };
+
+    function goToAddRoom() {
+      router.push('/add-room');
+    }
 
     return { 
       user, 
-      room, 
+      rooms, 
       splitterModel,
-      tab
+      tab,
+      user, 
+      userGroups,
+      goBack,
+      goToAddRoom
     };
   }
 }

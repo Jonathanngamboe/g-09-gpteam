@@ -26,7 +26,7 @@ class Property(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     #Link between tables
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE,related_name='properties')
     property_Type = models.ForeignKey ('PropertyType', on_delete=models.CASCADE, related_name='properties', null=True, default=None)
     city = models.ForeignKey('City', on_delete=models.CASCADE, related_name='cities', null=True, default=None)
     amenities = models.ManyToManyField('Amenity')
