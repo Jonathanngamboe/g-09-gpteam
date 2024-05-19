@@ -46,10 +46,10 @@
               <div class="column items-center justify-center">
                 <div class="column items-center" v-if="authService.user.value">
                   <q-avatar size="48px">
-                    <img src="https://cdn.quasar.dev/img/boy-avatar.png">
+                    <img src="https://i.pinimg.com/736x/61/f7/5e/61f75ea9a680def2ed1c6929fe75aeee.jpg">
                   </q-avatar>
 
-                  <div class="text-subtitle1 q-mt-md q-mb-xs">John Doe</div>
+                  <div class="text-subtitle1 q-mt-md q-mb-xs">{{ authService.user.value.first_name ? authService.user.value.first_name : authService.user.value.username ? authService.user.value.username : 'User' }}</div>
                 </div>
                 <!-- Display the login and sign up buttons in column with a gap between them -->
                 <div class="q-pa-md column items-center q-gutter-sm">
@@ -169,12 +169,13 @@ export default {
         }); 
       });
     };
+    console.log(authService.user);
     // Initialize the menu list
     const menuList = ref([
       { label: 'Home', icon: 'home', separator: false, to: '/' },
       { label: 'My account', icon: 'account_circle', separator: false },
       // Services section
-      { label: "Find a room to rent", icon: "search", separator: false, to: "/find-room" },
+      { label: "Find a room to rent", icon: "search", separator: false, to: "/" },
       { label: "Add a room for rent", icon: "add", separator: true, to: "/add-room" },
       // Help section
       { label: "Help", icon: "help", separator: false, to: "/help" },
