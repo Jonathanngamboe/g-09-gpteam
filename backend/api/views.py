@@ -15,7 +15,7 @@ from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_http_methods
 from django.utils.datastructures import MultiValueDictKeyError
 from django.shortcuts import get_object_or_404
-
+from django.utils import timezone
 from copy import deepcopy
 import json
 import re
@@ -72,13 +72,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        # Restrict non-staff users to only access their own user object
-        if self.request.user.is_staff:
-            return CustomUser.objects.all()
-        else:
-            return CustomUser.objects.filter(id=self.request.user.id)
     
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -107,6 +100,9 @@ class BookingViewSet(viewsets.ModelViewSet):
         user = get_object_or_404(CustomUser, pk=user_id)
         bookings = self.queryset.filter(user=user)
         serializer = self.get_serializer(bookings, many=True)
+        # Update the status of bookings based on the current date
+        # Note: This should be done periodically using a scheduled task
+        self.update_booking_status()
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='room-bookings/(?P<room_id>\d+)')
@@ -117,9 +113,31 @@ class BookingViewSet(viewsets.ModelViewSet):
         room = get_object_or_404(Property, pk=room_id)
         bookings = self.queryset.filter(property=room)
         serializer = self.get_serializer(bookings, many=True)
+        # Update the status of bookings based on the current date
+        # Note: This should be done periodically using a scheduled task
+        self.update_booking_status()
         return Response(serializer.data)
     
-    # Update the status of a booking by providing the booking ID and the status name
+    def update_booking_status(self):
+        print("Updating booking statuses...")
+        bookings = Booking.objects.exclude(status__name="Cancelled")
+        today = timezone.now().date()
+        status_in_progress = Status.objects.get(name="In progress")
+        status_completed = Status.objects.get(name="Completed")
+        status_confirmed = Status.objects.get(name="Confirmed")
+
+        for booking in bookings:
+            if booking.check_in <= today <= booking.check_out:
+                if booking.status == status_confirmed and booking.status != status_in_progress:
+                    booking.status = status_in_progress
+                    booking.save()
+                    print(f"Updated booking {booking.id} to In Progress")
+            elif today > booking.check_out:
+                if booking.status != status_completed:
+                    booking.status = status_completed
+                    booking.save()
+                    print(f"Updated booking {booking.id} to Completed")
+
     @action(detail=False, methods=['post'], url_path='update-status')
     def update_status(self, request):
         try:
