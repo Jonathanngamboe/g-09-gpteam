@@ -92,11 +92,12 @@
             <div class="col-3">
                 <div class="col justify-between">
                     <div class="text-grey">Prix</div>
-                    <q-btn flat dense label="Modifier" icon-right="edit" @click="editPrice" style="font-size: 10px;"/>
+                    <q-btn flat dense v-if="!isEditingPrice" label="Modifier" icon-right="edit" @click="toggleEditPrice" style="font-size: 10px;"/>
                 </div>
             </div>
             <div class="col-8">
-                <div class="text-h7 text-dark">CHF {{ formatNumber(room.price_per_night) }}.-</div>
+                <div v-if="!isEditingPrice" class="text-h7 text-dark">CHF {{ formatNumber(room.price_per_night) }}.-</div>
+                <q-input v-else v-model="editablePrice" @blur="savePrice" @keyup.enter="savePrice" />
             </div>
         </div>
         <q-separator/>
@@ -120,17 +121,19 @@
             <div class="col-3">
                 <div class="col justify-between">
                     <div class="text-grey">Description</div>
-                    <q-btn flat dense label="Modifier" icon-right="edit" @click="editDescription" style="font-size: 10px;"/>
+                    <q-btn flat dense v-if="!isEditingDescription" label="Modifier" icon-right="edit" @click="toggleEditDescription" style="font-size: 10px;"/>
                 </div>
             </div>
             <div class="col-8">
-                <div class="text-subtitle2">{{ room.description }}</div>
+                <div v-if="!isEditingDescription" class="text-subtitle2">{{ room.description }}</div>
+                <q-input v-else v-model="editableDescription" @blur="saveDescription" @keyup.enter="saveDescription" />
             </div>
         </div>
     </div>
 </template>
+
 <script>
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import propertyService from '../services/propertyService';
 
@@ -139,119 +142,129 @@ export default {
         room: Object
     },
     setup(props) {
-    const $q = useQuasar();
+        const $q = useQuasar();
 
-    // Définition des données réactives
-    const fullscreen = ref(false);
-    const slide = ref(0);
+        // Définition des données réactives
+        const fullscreen = ref(false);
+        const slide = ref(0);
 
-    // Méthodes générales d'édition
-    const createEditMethod = (fieldName, updateFunction, successMessage) => {
-        const isEditing = ref(false);
-        const editableField = ref(props.room[fieldName]);
+        // Méthodes générales d'édition
+        const createEditMethod = (fieldName, updateFunction, successMessage) => {
+            const isEditing = ref(false);
+            const editableField = ref(props.room[fieldName]);
 
-        const toggleEdit = () => {
-            isEditing.value = !isEditing.value;
-            if (!isEditing.value) {
-                editableField.value = props.room[fieldName]; // réinitialiser la valeur si l'édition est annulée
-            }
+            const toggleEdit = () => {
+                isEditing.value = !isEditing.value;
+                if (!isEditing.value) {
+                    editableField.value = props.room[fieldName]; // réinitialiser la valeur si l'édition est annulée
+                }
+            };
+
+            const saveField = async () => {
+                try {
+                    await updateFunction(props.room.id, { [fieldName]: editableField.value });
+                    props.room[fieldName] = editableField.value; // mettre à jour la valeur du champ avec la nouvelle valeur
+                    $q.notify({
+                        color: 'positive',
+                        position: 'top',
+                        message: successMessage,
+                        icon: 'check_circle'
+                    });
+                    toggleEdit();
+                } catch (error) {
+                    $q.notify({
+                        color: 'negative',
+                        position: 'top',
+                        message: `Une erreur est survenue lors de la mise à jour de ${fieldName} : ${error.message}`,
+                        icon: 'error'
+                    });
+                }
+            };
+
+            return {
+                isEditing,
+                editableField,
+                toggleEdit,
+                saveField,
+            };
         };
 
-        const saveField = async () => {
-            try {
-                await updateFunction(props.room.id, { [fieldName]: editableField.value });
-                props.room[fieldName] = editableField.value; // mettre à jour la valeur du champ avec la nouvelle valeur
-                $q.notify({
-                    color: 'positive',
-                    position: 'top',
-                    message: successMessage,
-                    icon: 'check_circle'
-                });
-                toggleEdit();
-            } catch (error) {
-                $q.notify({
-                    color: 'negative',
-                    position: 'top',
-                    message: `Une erreur est survenue lors de la mise à jour de ${fieldName} : ${error.message}`,
-                    icon: 'error'
-                });
+        // Méthodes spécifiques d'édition pour chaque champ
+        const { isEditing: isEditingTitle, editableField: editableTitle, toggleEdit: toggleEditTitle, saveField: saveTitle } = createEditMethod(
+            'title',
+            propertyService.updateProperty,
+            'Le titre de la pièce a été mis à jour avec succès.'
+        );
+
+        const { isEditing: isEditingSurface, editableField: editableSurface, toggleEdit: toggleEditSurface, saveField: saveSurface } = createEditMethod(
+            'surface',
+            propertyService.updateProperty,
+            'La surface de la pièce a été mise à jour avec succès.'
+        );
+
+        const { isEditing: isEditingDescription, editableField: editableDescription, toggleEdit: toggleEditDescription, saveField: saveDescription } = createEditMethod(
+            'description',
+            propertyService.updateProperty,
+            'La description de la pièce a été mise à jour avec succès.'
+        );
+
+        const { isEditing: isEditingPrice, editableField: editablePrice, toggleEdit: toggleEditPrice, saveField: savePrice } = createEditMethod(
+            'price_per_night',
+            propertyService.updateProperty,
+            'Le prix par nuit a été mis à jour avec succès.'
+        );
+
+        // Méthodes pour le formatage des données
+        const formatNumber = (number) => {
+            if (number) {
+                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
             }
+            return 0;
+        };
+
+        const formatAmenities = (amenities) => {
+            return amenities.map(amenity => amenity.name).join(' · ');
+        };
+
+        // Méthodes d'édition pour les autres champs (ville, commodités, images)
+        const editCity = () => {
+            console.log('Modifier la ville');
+        };
+
+        const editAmenities = () => {
+            console.log('Modifier les commodités');
+        };
+
+        const editImages = () => {
+            console.log('Modifier les images');
         };
 
         return {
-            isEditing,
-            editableField,
-            toggleEdit,
-            saveField,
+            fullscreen,
+            slide,
+            isEditingTitle,
+            editableTitle,
+            toggleEditTitle,
+            saveTitle,
+            isEditingSurface,
+            editableSurface,
+            toggleEditSurface,
+            saveSurface,
+            isEditingDescription,
+            editableDescription,
+            toggleEditDescription,
+            saveDescription,
+            isEditingPrice,
+            editablePrice,
+            toggleEditPrice,
+            savePrice,
+            formatNumber,
+            formatAmenities,
+            editCity,
+            editAmenities,
+            editImages,
         };
-    };
-
-    // Méthodes spécifiques d'édition pour chaque champ
-    const { isEditing: isEditingTitle, editableField: editableTitle, toggleEdit: toggleEditTitle, saveField: saveTitle } = createEditMethod(
-        'title',
-        propertyService.updateProperty,
-        'Le titre de la pièce a été mis à jour avec succès.'
-    );
-
-    const { isEditing: isEditingSurface, editableField: editableSurface, toggleEdit: toggleEditSurface, saveField: saveSurface } = createEditMethod(
-        'surface',
-        propertyService.updateProperty,
-        'La surface de la pièce a été mise à jour avec succès.'
-    );
-
-    // Méthodes pour le formatage des données
-    const formatNumber = (number) => {
-        if (number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-        }
-        return 0;
-    };
-
-    const formatAmenities = (amenities) => {
-        return amenities.map(amenity => amenity.name).join(' · ');
-    };
-
-    // Méthodes d'édition pour les autres champs (ville, prix, commodités, description, images)
-    const editCity = () => {
-        console.log('Modifier la ville');
-    };
-
-    const editPrice = () => {
-        console.log('Modifier le prix');
-    };
-
-    const editAmenities = () => {
-        console.log('Modifier les commodités');
-    };
-
-    const editDescription = () => {
-        console.log('Modifier la description');
-    };
-
-    const editImages = () => {
-        console.log('Modifier les images');
-    };
-
-    return {
-        fullscreen,
-        slide,
-        isEditingTitle,
-        editableTitle,
-        toggleEditTitle,
-        saveTitle,
-        isEditingSurface,
-        editableSurface,
-        toggleEditSurface,
-        saveSurface,
-        formatNumber,
-        formatAmenities,
-        editImages,
-        editCity,
-        editPrice,
-        editAmenities,
-        editDescription,
-    };
-}
-
+    }
 };
+
 </script>
