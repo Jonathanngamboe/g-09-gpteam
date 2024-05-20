@@ -45,31 +45,28 @@
 
         <!-- Ville -->
         <div class="row items-start q-gutter-y-sm q-my-md">
-            <div class="col-3">
-                <div class="col justify-between">
-                    <div class="text-grey">Ville</div>
-                    <q-btn flat dense label="Modifier" icon-right="edit" @click="editCity" style="font-size: 10px;"/>
-                </div>
-            </div>
-            <div class="col-8">
-                <div class="text-overline text-secondary">{{ room.city.name }}</div>
+        <div class="col-3">
+            <div class="col justify-between">
+                <div class="text-grey">Ville</div>
+                <q-btn flat dense label="Modifier" icon-right="edit" @click="editCity" style="font-size: 10px;"/>
             </div>
         </div>
-        <q-separator/>
-
-        <!-- Titre -->
-        <div class="row items-start q-gutter-y-sm q-my-md">
-            <div class="col-3">
-                <div class="col justify-between">
-                    <div class="text-grey">Titre</div>
-                    <q-btn flat dense v-if="!isEditingTitle" label="Modifier" icon-right="edit" @click="toggleEditTitle" style="font-size: 10px;"/>
-                </div>
-            </div>
-            <div class="col-8">
-                <div v-if="!isEditingTitle" class="text-h5">{{ room.title }}</div>
-                <q-input v-else v-model="editableTitle" @blur="saveTitle" @keyup.enter="saveTitle" />
-            </div>
+        <div class="col-8">
+            <!-- Afficher la liste déroulante des villes si en mode édition -->
+            <q-select
+                v-if="isEditingCity"
+                v-model="selectedCity"
+                :options="cities.map(city => ({ label: city.name, value: city.id }))"
+                emit-value
+                map-options
+                dense
+                style="min-width: 150px;"
+            />
+            <!-- Afficher le nom de la ville si en mode non édition -->
+            <div v-else class="text-overline text-secondary">{{ room.city.name }}</div>
         </div>
+    </div>
+    <q-separator/>
         <q-separator/>
 
         <!-- Surface -->
@@ -136,6 +133,7 @@
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import propertyService from '../services/propertyService';
+import citiesService from '../services/citiesService'; 
 
 export default {
     props: {
@@ -147,6 +145,28 @@ export default {
         // Définition des données réactives
         const fullscreen = ref(false);
         const slide = ref(0);
+        const cities = ref([]); // Variable pour stocker les villes récupérées
+        const isEditingCity = ref(false);
+        
+
+        // Méthode pour récupérer toutes les villes
+        const getAllCities = async () => {
+            try {
+                cities.value = await citiesService.getAllCities();
+                console.log('Cities:', cities.value);
+            } catch (error) {
+                $q.notify({
+                    color: 'negative',
+                    position: 'top',
+                    message: `Une erreur est survenue lors de la récupération des villes : ${error.message}`,
+                    icon: 'error'
+                });
+            }
+        };
+
+        // Appel de la méthode pour récupérer les villes au chargement du composant
+        getAllCities();
+        
 
         // Méthodes générales d'édition
         const createEditMethod = (fieldName, updateFunction, successMessage) => {
@@ -229,8 +249,8 @@ export default {
         // Méthodes d'édition pour les autres champs (ville, commodités, images)
         const editCity = () => {
             console.log('Modifier la ville');
-        };
-
+            isEditingCity.value = true; // Définir isEditingCity sur true pour afficher directement la liste déroulante
+};
         const editAmenities = () => {
             console.log('Modifier les commodités');
         };
@@ -242,6 +262,8 @@ export default {
         return {
             fullscreen,
             slide,
+            cities,
+            isEditingCity,
             isEditingTitle,
             editableTitle,
             toggleEditTitle,
@@ -263,6 +285,7 @@ export default {
             editCity,
             editAmenities,
             editImages,
+        
         };
     }
 };
