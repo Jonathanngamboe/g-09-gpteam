@@ -47,8 +47,44 @@ export default {
                 throw new Error(`Failed to delete booking with ID ${id}: ` + error.message);
             });
     },
+    //Method to retrieve the bookings of a specifi property
+    getBookedDatesByProperty(propertyId){
+        const propertyEndpoint = `/properties/${propertyId}/`;
 
-    getUserBookings(userId) {
+        return api.get(propertyEndpoint)
+            .then(response => {
+                const propertyData = response.data;
+                const bookingUrls = propertyData.properties;
+                const bookingPromises = bookingUrls.map(bookingUrls => api.get(bookingUrls));
+                return Promise.all(bookingPromises)
+                    .then(bookingResponses => bookingResponses.map(response => response.data))
+                    .catch(error => {
+                        throw new Error('Failed to fetch property bookings: ' + error.message);
+                    });
+            })
+            .catch(error => {
+                throw new Error('Failed to fetch property data: ' + error.message)
+            });
+    },
+    //Method to retrieve the unavailabilities of a specific property
+    getUnavailableDatesByProperty(propertyId){
+        const propertyEndpoint = `/properties/${propertyId}/`;
+        return api.get(propertyEndpoint)
+            .then(response => {
+                const propertyData = response.data;
+                const unavailableUrls = propertyData.properties;
+                const unavailablePromises = unavailableUrls.map(unavailableUrls => api.get(unavailableUrls));
+                return Promise.all(unavailablePromises)
+                    .then(unavailableResponses => unavailableResponses.map(response => response.data))
+                    .catch(error => {
+                        throw new Error('Failled to fetch the property unavailabilities: ' + error.message);
+                    });
+            })
+            .catch(error => {
+                throw new Error('Failed to fetch property data: ' + error.message)
+            });
+    }
+    /*getUserBookings(userId) {
         return api.get(`${endpoint}user-bookings/${userId}`)
             .then(response => response.data)
             .catch(error => {
@@ -71,5 +107,5 @@ export default {
             .catch(error => {
                 throw new Error('Failed to update booking status: ' + error.message);
             });        
-    }
+    }*/
 };

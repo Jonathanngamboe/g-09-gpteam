@@ -53,12 +53,11 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
-                            :disable="isDateDisabled"
                         />
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn || isDateDisabled"
+                            :disable="!checkIn || bookedDates || blockedDates"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -110,7 +109,8 @@
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
-    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules } from '@/utils/dateUtils';
+    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDates, getUnavailableDates } from '@/utils/dateUtils';
+
 
     export default defineComponent({
         props: {
@@ -127,7 +127,7 @@
             const checkOut = ref('');
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
-            const isDateDisabled = reg(false);
+            const roomId = ref('roomId')
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -147,20 +147,14 @@
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate);
             const checkOutRules = getCheckOutRules(checkIn);
+            const bookedDates = getBookedDates(roomId);
+            const blockedDates = getUnavailableDates(roomId);
 
             const isBookButtonDisabled = computed(() => {
             return !checkIn.value || !checkOut.value ||
                    !checkInRules.value.every(rule => rule(checkIn.value) === true) ||
                    !checkOutRules.value.every(rule => rule(checkOut.value) === true);
             });
-
-            async function fetchBlockedDates() {
-                const response = await fetch(`/api/rooms/${room.id}/blocked_dates`);
-                const blockedDates = await response.json();
-
-                // Set the blocked dates
-                isDateDisabled.value = date => blockedDates.includes(date);
-            }
 
             // Watchers to calculate totalNights based on valid date entries
             watch([checkIn, checkOut], ([checkInDate, checkOutDate]) => {
@@ -182,6 +176,8 @@
                 minCheckoutDate,
                 checkInRules,
                 checkOutRules,
+                bookedDates,
+                blockedDates,
                 handleBookRoom,
                 isBookButtonDisabled
             }

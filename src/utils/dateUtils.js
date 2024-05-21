@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import bookingService from '@/services/bookingService';
 
 export function getMinCheckoutDate(checkIn) {
     return computed(() => {
@@ -29,6 +30,36 @@ export function getCheckOutRules(checkIn) {
     return computed(() => [
         val => !!val || 'Check-out date is required',
         val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in'
+    ]);
+}
+export function getBookedDates(propertyId){
+    const bookings = ref([]);
+
+    bookingService.getBookedDatesByProperty(propertyId)
+        .then(fetchedBookings => {
+            bookings.value = fetchedBookings;
+        })
+        .catch(error => {
+            console.error('Failed to fetch property bookings: ' + error.message);
+        });
+
+    return computed(() => {
+        const bookedDates = bookings.value.map(booking => {
+            const startDate = new Date(booking.checkIn);
+            const endDate = new Date(booking.checkOut);
+            const dates = [];
+
+            for(let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+                dates.push(date.toISOString().split('T')[0]);
+            }
+            return dates;
+        });
+        return bookedDates.flat();
+    });
+}
+export function getUnavailableDates(){
+    return computed(() => [
+
     ]);
 }
 
