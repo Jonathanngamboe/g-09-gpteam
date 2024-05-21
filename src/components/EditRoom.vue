@@ -29,11 +29,11 @@
                 </q-carousel-control>
             </template>
         </q-carousel>
-        <!-- Modifier les images -->
+        <!-- Edit les images -->
         <q-btn
             flat
             dense
-            label="Modifier les images"
+            label="Edit images"
             icon-right="edit"
             @click="editImages"
             style="font-size: 10px;"
@@ -43,42 +43,52 @@
     <!-- Détails de la pièce -->
     <div class="q-mt-md">
 
-<!-- Ville -->
-<div class="row items-start q-gutter-y-sm q-my-md">
-    <div class="col-3">
-        <div class="col justify-between">
-            <div class="text-grey">Ville</div>
-            <q-btn flat dense label="Modifier" icon-right="edit" @click="toggleEditCity" style="font-size: 10px;" />
-        </div>
-    </div>
-    <div class="col-8">
-        <q-select
-            v-if="isEditingCity"
-            v-model="editableCity"
-            :options="cities.map(city => ({ label: city.name, value: city.id }))"
-            emit-value
-            map-options
-            dense
-            style="min-width: 150px;"
-            @blur="saveCity"
-            @keyup.enter="saveCity"
-        />
-        <div v-else class="text-overline text-secondary">{{ room.city.name }}</div>
-    </div>
-</div>
-<q-separator/>
+      <!-- City -->
+      <div class="row items-start q-gutter-y-sm q-my-md">
+          <div class="col-3">
+              <div class="col justify-between">
+                  <div class="text-grey">City</div>
+                  <div v-if="!isEditingCity" class="col justify-between">
+                    <q-btn flat dense label="Edit" icon-right="edit" @click="toggleEditCity" style="font-size: 10px;" />
+                  </div>
+                  <div v-else class="col justify-between">
+                    <q-btn flat dense label="Cancel" icon-right="cancel" @click="toggleEditCity" style="font-size: 10px;" />
+                    <q-btn flat dense label="Save" icon-right="save" @click="saveCity" style="font-size: 10px;" />
+                  </div>
+              </div>
+          </div>
+          <div class="col-8">
+              <q-select
+                  v-if="isEditingCity"
+                  v-model="editableCity"
+                  :options="cities.map(city => ({ label: city.name, value: city.url }))"
+                  emit-value
+                  map-options
+                  dense
+                  style="min-width: 150px;"
+              />
+              <div v-else class="text-overline text-secondary">{{ room.city.name }}</div>
+          </div>
+      </div>
+      <q-separator/>
 
         <!-- Title -->
         <div class="row items-start q-gutter-y-sm q-my-md">
             <div class="col-3">
                 <div class="col justify-between">
                     <div class="text-grey">Title</div>
-                    <q-btn flat dense v-if="!isEditingTitle" label="Edit" icon-right="edit" @click="toggleEditTitle" style="font-size: 10px;" />
+                    <div v-if="!isEditingTitle" class="col justify-between">
+                      <q-btn flat dense label="Edit" icon-right="edit" @click="toggleEditTitle" style="font-size: 10px;" />
+                    </div>
+                    <div v-else class="col justify-between">
+                      <q-btn flat dense label="Cancel" icon-right="cancel" @click="toggleEditTitle" style="font-size: 10px;" />
+                      <q-btn flat dense label="Save" icon-right="save" @click="saveTitle" style="font-size: 10px;" />
+                    </div>
                 </div>
             </div>
             <div class="col-8">
                 <div v-if="!isEditingTitle" class="text-h5">{{ room.title }}</div>
-                <q-input v-else v-model="editableTitle" @blur="saveTitle" @keyup.enter="saveTitle" />
+                <q-input v-else v-model="editableTitle"/>
             </div>
         </div>
         <q-separator/>
@@ -88,41 +98,70 @@
             <div class="col-3">
                 <div class="col justify-between">
                     <div class="text-grey">Surface</div>
-                    <q-btn flat dense v-if="!isEditingSurface" label="Modifier" icon-right="edit" @click="toggleEditSurface" style="font-size: 10px;" />
+                    <div v-if="!isEditingSurface" class="col justify-between">
+                      <q-btn flat dense v-if="!isEditingSurface" label="Edit" icon-right="edit" @click="toggleEditSurface" style="font-size: 10px;" />
+                    </div>
+                    <div v-else class="col justify-between">
+                      <q-btn flat dense label="Cancel" icon-right="cancel" @click="toggleEditSurface" style="font-size: 10px;" />
+                      <q-btn flat dense label="Save" icon-right="save" @click="saveSurface" style="font-size: 10px;" />
+                    </div>
                 </div>
             </div>
             <div class="col-8">
                 <div v-if="!isEditingSurface" class="text-subtitle1">{{ formatNumber(room.surface) }} m²</div>
-                <q-input v-else v-model="editableSurface" @blur="saveSurface" @keyup.enter="saveSurface" />
+                <q-input v-else v-model="editableSurface"/>
             </div>
         </div>
         <q-separator/>
         
-        <!-- Prix -->
+        <!-- Price per night -->
         <div class="row items-start q-gutter-y-sm q-my-md">
             <div class="col-3">
                 <div class="col justify-between">
-                    <div class="text-grey">Prix</div>
-                    <q-btn flat dense v-if="!isEditingPrice" label="Modifier" icon-right="edit" @click="toggleEditPrice" style="font-size: 10px;" />
+                    <div class="text-grey">Price per night</div>
+                    <div v-if="!isEditingPrice" class="col justify-between">
+                      <q-btn flat dense v-if="!isEditingPrice" label="Edit" icon-right="edit" @click="toggleEditPrice" style="font-size: 10px;" />
+                    </div>
+                    <div v-else class="col justify-between">
+                      <q-btn flat dense label="Cancel" icon-right="cancel" @click="toggleEditPrice" style="font-size: 10px;" />
+                      <q-btn flat dense label="Save" icon-right="save" @click="savePrice" style="font-size: 10px;" />
+                    </div>
                 </div>
             </div>
             <div class="col-8">
                 <div v-if="!isEditingPrice" class="text-h7 text-dark">CHF {{ formatNumber(room.price_per_night) }}.-</div>
-                <q-input v-else v-model="editablePrice" @blur="savePrice" @keyup.enter="savePrice" />
+                <q-input v-else v-model="editablePrice"/>
             </div>
         </div>
         <q-separator/>
 
-        <!-- Commodités -->
+        <!-- Amenities -->
         <div class="row items-start q-gutter-y-sm q-my-md">
             <div class="col-3">
                 <div class="col justify-between">
-                    <div class="text-grey">Commodités</div>
-                    <q-btn flat dense label="Modifier" icon-right="edit" @click="editAmenities" style="font-size: 10px;" />
+                    <div class="text-grey">Amenities</div>
+                    <div v-if="!isEditingAmenities" class="col justify-between">
+                      <q-btn flat dense label="Edit" icon-right="edit" @click="toggleEditAmenities" style="font-size: 10px;" />
+                    </div>
+                    <div v-else class="col justify-between">
+                      <q-btn flat dense label="Cancel" icon-right="cancel" @click="toggleEditAmenities" style="font-size: 10px;" />
+                      <q-btn flat dense label="Save" icon-right="save" @click="saveAmenities" style="font-size: 10px;" />
+                    </div>
                 </div>
             </div>
             <div class="col-8">
-                <div class="text-caption text-grey">{{ formatAmenities(room.amenities) }}</div>
+                <div v-if="!isEditingAmenities" class="text-caption text-grey">{{ formatAmenities(room.amenities) }}</div>
+                <div v-else class="amenities-list">
+                  <q-checkbox
+                    class="amenity-item"
+                    v-for="amenity in allAmenities" 
+                    :key="amenity.url"
+                    :label="amenity.name"
+                    :value="amenity.name"
+                    :model-value="editableAmenities.includes(amenity.name)" 
+                    @update:model-value="editableAmenities = $event ? [...editableAmenities, amenity.name] : editableAmenities.filter(a => a !== amenity.name)"
+                  />
+                </div>
             </div>
         </div>
         <q-separator/>
@@ -131,12 +170,18 @@
             <div class="col-3">
                 <div class="col justify-between">
                     <div class="text-grey">Description</div>
-                    <q-btn flat dense v-if="!isEditingDescription" label="Modifier" icon-right="edit" @click="toggleEditDescription" style="font-size: 10px;" />
+                    <div v-if="!isEditingDescription" class="col justify-between">
+                      <q-btn flat dense v-if="!isEditingDescription" label="Edit" icon-right="edit" @click="toggleEditDescription" style="font-size: 10px;" />
+                    </div>
+                    <div v-else class="col justify-between">
+                      <q-btn flat dense label="Cancel" icon-right="cancel" @click="toggleEditDescription" style="font-size: 10px;" />
+                      <q-btn flat dense label="Save" icon-right="save" @click="saveDescription" style="font-size: 10px;" />
+                    </div>
                 </div>
             </div>
             <div class="col-8">
                 <div v-if="!isEditingDescription" class="text-subtitle2">{{ room.description }}</div>
-                <q-input v-else v-model="editableDescription" @blur="saveDescription" @keyup.enter="saveDescription" />
+                <q-input v-else v-model="editableDescription" />
             </div>
         </div>
     </div>
@@ -147,6 +192,7 @@ import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import propertyService from '../services/propertyService';
 import citiesService from '../services/citiesService';
+import amenitiesService from '../services/amenitiesService';
 
 export default {
   props: {
@@ -158,123 +204,10 @@ export default {
     const slide = ref(0);
     const cities = ref([]);
     const isEditingCity = ref(false);
-    const editableCity = ref(props.room.city.id);
-
-    // Méthode pour récupérer toutes les villes
-    const getAllCities = async () => {
-      try {
-        cities.value = await citiesService.getAllCities();
-        console.log('Cities:', cities.value);
-      } catch (error) {
-        notifyError('Une erreur est survenue lors de la récupération des villes', error);
-      }
-    };
-
-    // Appel de la méthode pour récupérer les villes au chargement du composant
-    getAllCities();
-
-    const createEditMethod = (fieldName, successMessage) => {
-      const isEditing = ref(false);
-      const editableField = ref(props.room[fieldName]);
-
-      const toggleEdit = () => {
-        isEditing.value = !isEditing.value;
-        if (!isEditing.value) {
-          editableField.value = props.room[fieldName];
-        }
-      };
-
-      const saveField = async () => {
-  try {
-    // Cloner la propriété existante
-    //const updatedPropertyData = ref(null);
-    //updatedPropertyData.value = JSON.parse(JSON.stringify(props.room));
-    //console.log('props.room:', props.room );
-    //console.log('updatedPropertyData:', updatedPropertyData);
-
-    // Mettre à jour le champ spécifié
-    //updatedPropertyData.value.title= editableField.value;
-    //console.log('updatedPropertyData:', updatedPropertyData);
-
-    // Appeler la méthode de service pour mettre à jour la propriété
-    await propertyService.updateProperty(props.room.id, props.room);
-
-    // Mettre à jour la propriété locale avec les nouvelles données
-    props.room[fieldName] = editableField.value;
-
-    // Afficher une notification de succès
-    notifySuccess(successMessage);
-
-    // Basculer hors du mode d'édition
-    toggleEdit();
-  } catch (error) {
-    // Afficher une notification d'erreur
-    notifyError(`Une erreur est survenue lors de la mise à jour de ${fieldName}`, error);
-  }
-};
-
-
-      return {
-        isEditing,
-        editableField,
-        toggleEdit,
-        saveField
-      };
-    };
-
-    const {
-      isEditing: isEditingTitle,
-      editableField: editableTitle,
-      toggleEdit: toggleEditTitle,
-      saveField: saveTitle
-    } = createEditMethod('title', 'Le titre de la pièce a été mis à jour avec succès.');
-
-    const {
-      isEditing: isEditingSurface,
-      editableField: editableSurface,
-      toggleEdit: toggleEditSurface,
-      saveField: saveSurface
-    } = createEditMethod('surface', 'La surface de la pièce a été mise à jour avec succès.');
-
-    const {
-      isEditing: isEditingDescription,
-      editableField: editableDescription,
-      toggleEdit: toggleEditDescription,
-      saveField: saveDescription
-    } = createEditMethod('description', 'La description de la pièce a été mise à jour avec succès.');
-
-    const {
-      isEditing: isEditingPrice,
-      editableField: editablePrice,
-      toggleEdit: toggleEditPrice,
-      saveField: savePrice
-    } = createEditMethod('price_per_night', 'Le prix par nuit a été mis à jour avec succès.');
-
-    const toggleEditCity = () => {
-      isEditingCity.value = !isEditingCity.value;
-      editableCity.value = props.room.city.id;
-    };
-
-    const saveCity = async () => {
-      try {
-        const city = cities.value.find(city => city.id === editableCity.value);
-        const updatedPropertyData = {
-          ...props.room,
-          city: {
-            url: city.url,
-            name: city.name,
-            zip: city.zip
-          }
-        };
-
-        await propertyService.updateProperty(props.room.id, updatedPropertyData);
-        props.room.city = city;
-        notifySuccess('La ville a été mise à jour avec succès.');
-        toggleEditCity();
-      } catch (error) {
-        notifyError('Une erreur est survenue lors de la mise à jour de la ville', error);
-      }
-    };
+    const editableCity = ref(props.room.city.url);
+    const isEditingAmenities = ref(false);
+    const editableAmenities = ref(props.room.amenities.map(a => a.name)); 
+    const allAmenities = ref([]);
 
     const notifySuccess = (message) => {
       $q.notify({
@@ -294,6 +227,122 @@ export default {
       });
     };
 
+    // Méthode pour récupérer toutes les villes
+    const getAllCities = async () => {
+      try {
+        cities.value = await citiesService.getAllCities();
+      } catch (error) {
+        notifyError('Une erreur est survenue lors de la récupération des villes', error);
+      }
+    };
+
+    const getAllAmenities = async () => {
+      try {
+        allAmenities.value = await amenitiesService.getAllAmenities();
+      } catch (error) {
+        notifyError('An error occurred while retrieving amenities', error);
+      }
+    };
+
+    getAllAmenities();
+
+    // Appel de la méthode pour récupérer les villes au chargement du composant
+    getAllCities();
+
+    const createEditMethod = (fieldName, successMessage) => {
+      const isEditing = ref(false);
+      const editableField = ref(props.room[fieldName]);
+
+      const toggleEdit = () => {
+        isEditing.value = !isEditing.value;
+        if (!isEditing.value) {
+          editableField.value = props.room[fieldName];
+        }
+      };
+
+      const saveField = async () => {
+        try {
+          // Cloner la propriété existante
+          const updatedPropertyData = { [fieldName]: editableField.value };
+
+          // Appeler la méthode de service pour mettre à jour la propriété
+          await propertyService.updateProperty(props.room.id, updatedPropertyData);
+          props.room[fieldName] = editableField.value;
+
+          // Afficher une notification de succès
+          notifySuccess(successMessage);
+
+          // Basculer hors du mode d'édition
+          toggleEdit();
+        } catch (error) {
+          // Afficher une notification d'erreur
+          notifyError(`Une erreur est survenue lors de la mise à jour de ${fieldName}`, error);
+        }
+      };
+
+
+      return {
+        isEditing,
+        editableField,
+        toggleEdit,
+        saveField
+      };
+    };
+
+    const {
+      isEditing: isEditingTitle,
+      editableField: editableTitle,
+      toggleEdit: toggleEditTitle,
+      saveField: saveTitle
+    } = createEditMethod('title', 'The title has been successfully updated.');
+
+    const {
+      isEditing: isEditingSurface,
+      editableField: editableSurface,
+      toggleEdit: toggleEditSurface,
+      saveField: saveSurface
+    } = createEditMethod('surface', 'The surface has been successfully updated.');
+
+    const {
+      isEditing: isEditingDescription,
+      editableField: editableDescription,
+      toggleEdit: toggleEditDescription,
+      saveField: saveDescription
+    } = createEditMethod('description', 'The description has been successfully updated.');
+
+    const {
+      isEditing: isEditingPrice,
+      editableField: editablePrice,
+      toggleEdit: toggleEditPrice,
+      saveField: savePrice
+    } = createEditMethod('price_per_night', 'The price has been successfully updated.');
+
+    const toggleEditCity = () => {
+      isEditingCity.value = !isEditingCity.value;
+      editableCity.value = props.room.city.url;
+    };
+
+    const toggleEditAmenities = () => {
+      isEditingAmenities.value = !isEditingAmenities.value;
+      if (!isEditingAmenities.value) {
+        editableAmenities.value = props.room.amenities.map(a => a.name);
+      }
+    };
+
+    const saveCity = async () => {
+      try {
+        const updatedCity = { city_id: (cities.value.find(city => city.url === editableCity.value)).name };
+        const response = await propertyService.updateProperty(props.room.id, updatedCity);
+        if(response) {
+          notifySuccess('The city has been successfully updated.');
+          props.room.city = cities.value.find(city => city.url === editableCity.value);
+        }
+        toggleEditCity();
+      } catch (error) {
+        notifyError('An error occurred while updating the city', error);
+      }
+    };
+
     const formatNumber = (number) => {
       return number ? number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") : 0;
     };
@@ -302,12 +351,32 @@ export default {
       return amenities.map(amenity => amenity.name).join(' · ');
     };
 
-    const editAmenities = () => {
-      console.log('Modifier les commodités');
+    const saveAmenities = async () => {
+      try {
+        // Prepare the list of amenity IDs based on the selected amenity names
+        const updatedAmenityIds = allAmenities.value
+          .filter(amenity => editableAmenities.value.includes(amenity.name))
+          .map(amenity => amenity.name); 
+
+        const updatedPropertyData = { amenities_ids: updatedAmenityIds };
+        
+        // Update the property with new amenity IDs
+        const response = await propertyService.updateProperty(props.room.id, updatedPropertyData);
+        
+        if(response) {
+          // Update local state to reflect the new list of amenities
+          props.room.amenities = allAmenities.value.filter(amenity => editableAmenities.value.includes(amenity.name));
+          notifySuccess('Amenities have been successfully updated.');
+        }
+        toggleEditAmenities(); 
+
+      } catch (error) {
+        notifyError('An error occurred while updating amenities', error);
+      }
     };
 
     const editImages = () => {
-      console.log('Modifier les images');
+      console.log('Edit images');
     };
 
     return {
@@ -336,9 +405,27 @@ export default {
       savePrice,
       formatNumber,
       formatAmenities,
-      editAmenities,
-      editImages
+      editImages,
+      isEditingAmenities,
+      editableAmenities,
+      toggleEditAmenities,
+      saveAmenities,
+      getAllAmenities,
+      allAmenities
     };
   }
 };
 </script>
+
+<style scoped>
+  .amenities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .amenity-item {
+    flex: 1;
+    min-width: 120px;
+  }
+</style>
