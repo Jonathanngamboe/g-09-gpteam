@@ -1,44 +1,102 @@
 <template>
+  <div class="col text-center q-gutter-md">
     <!-- Carrousel d'images -->
-    <div class="col text-center q-gutter-md">
-        <q-carousel
-            swipeable
-            animated
-            arrows
-            v-model="slide"
-            v-model:fullscreen="fullscreen"
-            infinite
-            thumbnails
+    <q-carousel
+      swipeable
+      animated
+      arrows
+      v-model="slide"
+      v-model:fullscreen="fullscreen"
+      infinite
+      thumbnails
+    >
+      <q-carousel-slide
+        v-for="(image, index) in room.images"
+        :key="index"
+        :name="index"
+        :img-src="image.image ? image.image : image.ext_url"
+      />
+      <template v-slot:control>
+        <q-carousel-control
+          position="bottom-right"
+          :offset="[18, 18]"
         >
-            <q-carousel-slide
-                v-for="(image, index) in room.images"
-                :key="index"
-                :name="index"
-                :img-src="image.image ? image.image : image.ext_url"
-            />
-            <template v-slot:control>
-                <q-carousel-control
-                    position="bottom-right"
-                    :offset="[18, 18]"
-                >
-                    <q-btn
-                        push round dense color="white" text-color="primary"
-                        :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                        @click="fullscreen = !fullscreen"
-                    />
-                </q-carousel-control>
-            </template>
-        </q-carousel>
-        <!-- Edit les images -->
-        <q-btn
-            flat
-            dense
-            label="Edit images"
-            icon-right="edit"
-            @click="editImages"
-            style="font-size: 10px;"
-        />
+          <q-btn
+            push round dense color="white" text-color="primary"
+            :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
+            @click="fullscreen = !fullscreen"
+          />
+        </q-carousel-control>
+      </template>
+    </q-carousel>
+
+    <!-- Editer les images -->
+    <div v-if="!isEditingImage" class="col justify-between">
+      <q-btn
+        flat
+        dense
+        label="Edit images"
+        icon-right="edit"
+        @click="toggleEditImages"
+        style="font-size: 10px;"
+      />
     </div>
+    <div v-else class="col justify-between">
+      <q-btn
+        flat
+        dense
+        label="Cancel"
+        icon-right="cancel"
+        @click="toggleEditImages"
+        style="font-size: 10px;"
+      />
+      <q-btn
+        flat
+        dense
+        label="Save"
+        icon-right="save"
+        @click="saveImages"
+        style="font-size: 10px;"
+      />
+    </div>
+
+    <!-- Formulaire de modification des images -->
+    <div v-if="isEditingImage" class="q-mt-md">
+      <q-carousel
+        swipeable
+        animated
+        arrows
+        v-model="selectedImageIndex"
+        :options="allImages.map(image => ({ label: image.id, value: image.url }))"
+        emit-value
+        map-options
+        dense
+        infinite
+        thumbnails
+        
+      >
+        <q-carousel-slide
+          v-for="(image, index) in allImages"
+          :key="index"
+          :name="index"
+          :img-src="image.ext_url"
+          class="carousel-slide"
+        />
+        <template v-slot:control>
+          <q-carousel-control
+            position="bottom-right"
+            :offset="[18, 18]"
+          >
+            <q-btn
+              push round dense color="white" text-color="primary"
+              :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
+              @click="fullscreen = !fullscreen"
+            />
+          </q-carousel-control>
+        </template>
+      </q-carousel>
+    </div>
+  </div>
 
     <!-- Détails de la pièce -->
     <div class="q-mt-md">
@@ -193,6 +251,7 @@ import { useQuasar } from 'quasar';
 import propertyService from '../services/propertyService';
 import citiesService from '../services/citiesService';
 import amenitiesService from '../services/amenitiesService';
+import imagesService from '../services/imagesService';
 
 export default {
   props: {
@@ -208,6 +267,10 @@ export default {
     const isEditingAmenities = ref(false);
     const editableAmenities = ref(props.room.amenities.map(a => a.name)); 
     const allAmenities = ref([]);
+    const allImages = ref([]);
+    const isEditingImage = ref(false);
+    const editableImage = ref(props.room.images.url);
+    const selectedImageIndex = ref(0);
 
     const notifySuccess = (message) => {
       $q.notify({
@@ -244,10 +307,21 @@ export default {
       }
     };
 
+    const getAllImages = async () => {
+      try {
+        allImages.value = await imagesService.getAllImages();
+        console.log("allImages", allImages.value);
+      } catch (error) {
+        notifyError('An error occurred while retrieving images', error);
+      }
+    };
+
     getAllAmenities();
 
     // Appel de la méthode pour récupérer les villes au chargement du composant
     getAllCities();
+
+    getAllImages();
 
     const createEditMethod = (fieldName, successMessage) => {
       const isEditing = ref(false);
@@ -329,6 +403,30 @@ export default {
       }
     };
 
+    const toggleEditImages = () => {
+      isEditingImage.value = !isEditingImage.value;
+      if (isEditingImage.value) {
+        selectedImageIndex.value = 0;
+      }
+    };
+
+    const saveImages = async () => {
+  try {
+    const updatedImages = { images_ids: (allImages.value.find (image => image.url === selectedImageIndex.value))};
+    console.log('updatedImages', updatedImages);
+    const response = await propertyService.updateProperty(props.room.id, { images: updatedImages });
+    if (response) {
+      notifySuccess('The images have been successfully updated.');
+      // Mettre à jour les images de la chambre avec les nouvelles images
+      props.room.images = allImages.value.find (image => image.url === selectedImageIndex.value);
+    }
+    // Fermer le mode édition des images
+    toggleEditImages();
+  } catch (error) {
+    notifyError('An error occurred while updating the images', error);
+  }
+};
+
     const saveCity = async () => {
       try {
         const updatedCity = { city_id: (cities.value.find(city => city.url === editableCity.value)).name };
@@ -379,6 +477,7 @@ export default {
       console.log('Edit images');
     };
 
+
     return {
       fullscreen,
       slide,
@@ -411,7 +510,13 @@ export default {
       toggleEditAmenities,
       saveAmenities,
       getAllAmenities,
-      allAmenities
+      allAmenities,
+      allImages,
+      isEditingImage,
+      editableImage,
+      toggleEditImages,
+      selectedImageIndex,
+      saveImages
     };
   }
 };
