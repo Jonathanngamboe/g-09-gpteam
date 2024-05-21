@@ -170,6 +170,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    
     def get_queryset(self):
         queryset = super().get_queryset()
 

@@ -68,21 +68,23 @@ const propertyService = {
 
   // Method for updating the data of an existing property
   updateProperty(propertyId, propertyData) {
-    const data = {
+    const data = ref({
       title: propertyData.title,
       description: propertyData.description,
       address: propertyData.address,
-      city: propertyData.city,
+      //city: propertyData.city,
       price_per_night: propertyData.price_per_night,
       surface: propertyData.surface,
-      amenities: propertyData.amenities,  
-      property_Type: propertyData.property_Type,
-      images: propertyData.images,  
+      //amenities: propertyData.amenities,  
+      //property_Type: propertyData.property_Type,
+      //images: propertyData.images,  
       is_active: propertyData.is_active,
+      owner: propertyData.owner,
       
-    };
-
-    return api.patch(`properties/${propertyId}/`, data)
+    });
+    console.log(data);
+    console.log(propertyData);
+    return api.put(`properties/${propertyId}/`, data)
       .then(response => response.data)
       .catch(error => Promise.reject(error.response.data));
   },
