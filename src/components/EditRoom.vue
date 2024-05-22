@@ -62,18 +62,18 @@
         @click="toggleEditImages"
         style="font-size: 10px;"
       />
-      <q-btn
+   <!--    <q-btn
         flat
         dense
         label="Save"
         icon-right="save"
         @click="saveImages"
-        style="font-size: 10px;"
-      />
+        style="font-size: 10px;" -->
+      
     </div>
 
     <!-- Formulaire de modification des images -->
-    <div v-if="isEditingImage" class="q-mt-md">
+   <!--  <div v-if="isEditingImage" class="q-mt-md">
       <q-carousel
         swipeable
         animated
@@ -106,7 +106,7 @@
           </q-carousel-control>
         </template>
       </q-carousel>
-    </div>
+    </div> -->
   </div>
 
     <!-- Détails de la pièce -->
@@ -421,7 +421,7 @@ export default {
       }
     };
 
-    const saveImages = async () => {
+  /*   const saveImages = async () => {
   try {
     const updatedImages = { images_ids: (allImages.value.find (image => image.url === selectedImageIndex.value))};
     console.log('updatedImages', updatedImages);
@@ -436,7 +436,7 @@ export default {
   } catch (error) {
     notifyError('An error occurred while updating the images', error);
   }
-};
+}; */
 
 
     const saveCity = async () => {
@@ -552,7 +552,7 @@ const deleteImage = async (imageId) => {
       editableImage,
       toggleEditImages,
       selectedImageIndex,
-      saveImages,
+      // saveImages,
       deleteImage,
       confirmDeleteImage
     };
