@@ -15,7 +15,19 @@
         :key="index"
         :name="index"
         :img-src="image.image ? image.image : image.ext_url"
-      />
+      >
+        <!-- Bouton de suppression pour chaque image en mode édition -->
+        <q-btn
+          v-if="isEditingImage"
+          flat
+          dense
+          label="Delete"
+          icon-right="delete"
+          color="white"
+          @click="confirmDeleteImage(image.id)"
+          style="font-size: 10px; position: absolute; top: 10px; right: 10px;"
+        />
+      </q-carousel-slide>
       <template v-slot:control>
         <q-carousel-control
           position="bottom-right"
@@ -73,7 +85,6 @@
         dense
         infinite
         thumbnails
-        
       >
         <q-carousel-slide
           v-for="(image, index) in allImages"
@@ -427,6 +438,7 @@ export default {
   }
 };
 
+
     const saveCity = async () => {
       try {
         const updatedCity = { city_id: (cities.value.find(city => city.url === editableCity.value)).name };
@@ -476,6 +488,30 @@ export default {
     const editImages = () => {
       console.log('Edit images');
     };
+    const confirmDeleteImage = async (imageId) => {
+      if (confirm("Are you sure you want to delete this image?")) {
+        await deleteImage(imageId);
+      }
+    };
+// Après avoir supprimé une image, mettez à jour le modèle slide
+const deleteImage = async (imageId) => {
+  try {
+    await imagesService.deleteImage(imageId);
+    // Remove the image from the lists
+    props.room.images = props.room.images.filter(image => image.id !== imageId);
+    allImages.value = allImages.value.filter(image => image.id !== imageId);
+    notifySuccess('Image successfully deleted.');
+
+    // Find the index of the first remaining image
+    const remainingImageIndex = props.room.images.findIndex(image => image.id !== imageId);
+
+    // Update the slide model of the carousel to point to the index of the first remaining image
+    slide.value = remainingImageIndex >= 0 ? remainingImageIndex : 0;
+  } catch (error) {
+    // Handle errors
+  }
+};
+
 
 
     return {
@@ -516,7 +552,9 @@ export default {
       editableImage,
       toggleEditImages,
       selectedImageIndex,
-      saveImages
+      saveImages,
+      deleteImage,
+      confirmDeleteImage
     };
   }
 };
