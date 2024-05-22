@@ -71,6 +71,15 @@
         style="font-size: 10px;" -->
       
     </div>
+        <!-- Modal pour l'édition des images -->
+        <q-dialog v-model="showEditImagesModal">
+            <div class="q-pa-md text-center">
+              <div style="width: 400px; height: 300px; background-color: #ccc; margin: 0 auto; position: relative;">
+                <p class="q-mt-sm">Slide your image</p>
+              <div style="width: 300px; height: 200px; background-color: #f5f5f5; border: 2px dashed #ccc; margin: 20px auto;"></div>
+          </div>
+          </div>
+        </q-dialog> 
 
     <!-- Formulaire de modification des images -->
    <!--  <div v-if="isEditingImage" class="q-mt-md">
@@ -282,6 +291,7 @@ export default {
     const isEditingImage = ref(false);
     const editableImage = ref(props.room.images.url);
     const selectedImageIndex = ref(0);
+    const showEditImagesModal = ref(false);
 
     const notifySuccess = (message) => {
       $q.notify({
@@ -416,6 +426,7 @@ export default {
 
     const toggleEditImages = () => {
       isEditingImage.value = !isEditingImage.value;
+      showEditImagesModal.value = isEditingImage.value;
       if (isEditingImage.value) {
         selectedImageIndex.value = 0;
       }
@@ -554,7 +565,8 @@ const deleteImage = async (imageId) => {
       selectedImageIndex,
       // saveImages,
       deleteImage,
-      confirmDeleteImage
+      confirmDeleteImage,
+      showEditImagesModal
     };
   }
 };
