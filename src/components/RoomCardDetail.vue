@@ -57,7 +57,7 @@
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn || bookedDates || blockedDates"
+                            :disable="!checkIn || bookedDates"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -119,7 +119,7 @@
             required: true
         }
         },
-        setup () {
+        setup (props) {
             const totalNights = ref(0);
             const today = new Date();
             const minDate = ref(today.toISOString().split('T')[0]);
@@ -127,7 +127,7 @@
             const checkOut = ref('');
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
-            const roomId = ref('roomId')
+            const roomId = ref('room.id');
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -147,7 +147,7 @@
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate);
             const checkOutRules = getCheckOutRules(checkIn);
-            const bookedDates = getBookedDates(roomId);
+            const bookedDates = getBookedDates(props.room.id);
             const blockedDates = getUnavailableDates(roomId);
 
             const isBookButtonDisabled = computed(() => {

@@ -10,7 +10,7 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     )
     class Meta:
         model = CustomUser
-        fields = ['url', 'id', 'username', 'email', 'first_name', 'last_name', 'groups', 'date_of_birth', 'date_joined', 'last_login','properties', 'profil_image', 'address', 'city']
+        fields = ['url', 'id', 'username', 'email', 'first_name', 'last_name', 'groups', 'date_of_birth', 'date_joined', 'last_login', 'properties', 'profil_image', 'address', 'city']
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -35,7 +35,7 @@ class AmenitySerializer(serializers.HyperlinkedModelSerializer):
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Review
-        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'booking']
+        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'bookings']
 
 class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -48,8 +48,6 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     city = CitySerializer(read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
     reviews = serializers.SerializerMethodField()
-    unavailabilities = UnavailabilitySerializer(many=True, read_only=True)
-    bookings = BookingSerializer(many=True, read_only=True)
     class Meta:
         model = Property
         fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities', 'reviews', 'unavailabilities', 'bookings']
@@ -77,6 +75,6 @@ class StatusSerializer(serializers.HyperlinkedModelSerializer):
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Message
-        fields = ['url', 'id', 'subject', 'body', 'sent_at', 'booking']
+        fields = ['url', 'id', 'subject', 'body', 'sent_at', 'bookings']
 
 

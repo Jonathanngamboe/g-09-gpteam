@@ -40,13 +40,13 @@ export function getBookedDates(propertyId){
             bookings.value = fetchedBookings;
         })
         .catch(error => {
-            console.error('Failed to fetch property bookings: ' + error.message);
+            console.error('Failed to fetch property bookings (dateUtils): ' + error.message);
         });
 
     return computed(() => {
         const bookedDates = bookings.value.map(booking => {
-            const startDate = new Date(booking.checkIn);
-            const endDate = new Date(booking.checkOut);
+            const startDate = new Date(booking.check_in);
+            const endDate = new Date(booking.check_out);
             const dates = [];
 
             for(let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {

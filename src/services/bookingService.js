@@ -50,20 +50,29 @@ export default {
     //Method to retrieve the bookings of a specifi property
     getBookedDatesByProperty(propertyId){
         const propertyEndpoint = `/properties/${propertyId}/`;
-
+    
         return api.get(propertyEndpoint)
             .then(response => {
                 const propertyData = response.data;
-                const bookingUrls = propertyData.properties;
-                const bookingPromises = bookingUrls.map(bookingUrls => api.get(bookingUrls));
+                consol.log('Property Data:', propertyData)
+
+                const bookingUrls = propertyData.bookings;
+                console.log('Booking Urls:', bookingUrls);
+
+                const bookingPromises = bookingUrls.map(bookingUrl => api.get(bookingUrl));
                 return Promise.all(bookingPromises)
-                    .then(bookingResponses => bookingResponses.map(response => response.data))
+                    .then(bookingResponses => {
+                        return bookingResponses.flatMap(response => {
+                            const bookingData = response.data;
+                            return [bookingData.check_in, bookingData.check_out];
+                        });
+                    })
                     .catch(error => {
-                        throw new Error('Failed to fetch property bookings: ' + error.message);
+                        throw new Error('Failed to fetch the property bookings, (bookingService): ' + error.message);
                     });
             })
             .catch(error => {
-                throw new Error('Failed to fetch property data: ' + error.message)
+                throw new Error('Failed to fetch property data: ' + error.message);
             });
     },
     //Method to retrieve the unavailabilities of a specific property
