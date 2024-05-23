@@ -819,5 +819,13 @@
         "fields": {
             "name": "Cancelled"
         }
+    },
+    {
+        "model": "api.Status",
+        "pk": 5,
+        "fields": {
+            "name": "Completed"
+        }
+
     }
 ]

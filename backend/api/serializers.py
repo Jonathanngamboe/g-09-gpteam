@@ -10,7 +10,7 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
     )
     class Meta:
         model = CustomUser
-        fields = ['url', 'id', 'username', 'email', 'first_name', 'last_name', 'groups', 'date_of_birth', 'date_joined', 'last_login', 'profil_image', 'address', 'city']
+        fields = ['url', 'id', 'username', 'email', 'first_name', 'last_name', 'groups', 'date_of_birth', 'date_joined', 'last_login','properties', 'profil_image', 'address', 'city']
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -40,12 +40,29 @@ class ReviewSerializer(serializers.HyperlinkedModelSerializer):
 class PropertySerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    city_id = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.all(), 
+        source='city',  # Spécifie que ce champ doit être utilisé pour mettre à jour le champ 'city' du modèle
+        write_only=True  # Ce champ est utilisable uniquement pour l'écriture, il ne sera pas inclus dans la réponse de l'API
+    )
     city = CitySerializer(read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
+    amenities_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Amenity.objects.all(),
+        source='amenities',
+        write_only=True
+    )
+    images_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Image.objects.all(),
+        source='images',
+        write_only=True
+    )
     reviews = serializers.SerializerMethodField()
     class Meta:
         model = Property
-        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images', 'average_rating', 'amenities', 'reviews']
+        fields = ['id', 'url', 'title', 'description', 'address', 'city', 'city_id', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images','images_ids','average_rating', 'amenities', 'amenities_ids', 'reviews']
 
     def get_average_rating(self, obj):
         average = Review.objects.filter(booking__property=obj).aggregate(Avg('rating'))

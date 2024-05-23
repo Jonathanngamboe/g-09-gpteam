@@ -1,71 +1,68 @@
 <template>
-  <q-page class="flex full-height column justify-center">
-    <!-- Title and user group chip -->
-    <div>
-      <q-toolbar>
-        <q-toolbar-title>
-          <q-icon name="person" class="q-mr-sm" v-if="$q.screen.gt.sm" />
-          Personal Details
-        </q-toolbar-title>
-      </q-toolbar>
-      <q-chip class="q-mb-md q-ml-md" color="secondary" style="color: white;" label="Home owner" />
-    </div>
-    
-    <!-- List of editable fields -->
-    <div class="flex flex-center full-width full-height">
-      <div class="q-pa-md full-width">
-        <q-list>
-          <q-item v-for="(value, key) in userEditable" :key="key">
-            <q-item-section>
-              <q-input :disable="!isEditing" v-model="userEditable[key]" :label="formatLabel(key)" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
+<!-- List of editable fields -->
+  <q-list>
+    <q-item v-for="(value, key) in userEditable" :key="key">
+      <q-item-section>
+        <CitySelect v-if="key === 'city'" :disable="!isEditing" v-model="userEditable.city" @update:modelValue="value => userEditable.city = value"/>
+        <q-input v-else :disable="!isEditing" v-model="userEditable[key]" :label="formatLabel(key)" :type="key === 'date_of_birth' ? 'date' : key === 'email' ? 'email' : 'text'" />
+      </q-item-section>
+    </q-item>
+  </q-list>
 
-      <!-- Action buttons at the bottom -->
-      <div class="text-center q-pa-md full-width">
-        <q-btn unelevated rounded v-if="!isEditing" color="primary" icon="edit" label="Edit" @click="toggleEdit(true)" class="full-width" />
-        <template v-else>
-          <q-btn unelevated rounded flat label="Cancel" @click="toggleEdit(false)" style="width: 48%;" />
-          <q-btn unelevated rounded color="primary" icon="save" label="Save" @click="updateUserDetails" style="width: 48%;" />
-        </template>
-      </div>
-    </div>
-  </q-page>
+  <!-- Action buttons at the bottom -->
+  <q-btn unelevated rounded v-if="!isEditing" color="primary" icon="edit" label="Edit" @click="toggleEdit(true)" class="full-width" />
+  <template v-else>
+    <q-btn unelevated rounded flat label="Cancel" @click="toggleEdit(false)" style="width: 48%;" />
+    <q-btn unelevated rounded color="primary" icon="save" label="Save" @click="updateUserDetails" style="width: 48%;" />
+  </template>
 </template>
 
 
 <script>
 import { ref, onMounted, reactive } from 'vue';
 import authService from '@/services/authService';
-import api from '@/services/api';
 import { useQuasar } from 'quasar';
+import CitySelect from '@/components/CitySelect.vue';
 
 export default {
+  components: {
+    CitySelect
+  },
   setup() {
     const $q = useQuasar();
-    const userEditable = reactive({});
+    const uneditableFields = ['id', 'url', 'groups', 'date_joined', 'last_login', 'profil_image', 'properties'];
+    const userEditable = reactive({
+      city: { name: '', url: '' }
+    });
+    const user = ref(null);
     const userGroups = ref([]);
     const isEditing = ref(false);
 
     const getUserDetails = async () => {
       try {
-        await authService.getUser();
-        if (authService.user.value) {
-          // Exclude the 'pk' field and populate user-editable fields
-          Object.entries(authService.user.value).forEach(([key, value]) => {
-            if (key !== 'pk' && key !== 'username') { // Exclude 'pk' and 'username' fields, they are not editable
-              userEditable[key] = value;
-            } 
+        user.value = await authService.getCustomuser();
+        if (user.value) {
+          userGroups.value = user.value.groups || [];
+          Object.entries(user.value).forEach(([key, value]) => {
+            if (!uneditableFields.includes(key)) {
+              if (key === 'city' && value) {
+                userEditable.city.url = value; 
+                userEditable.city.name = extractCityNameFromUrl(value);
+              } else if (key !== 'city') { // Assurez-vous de ne pas écraser city avec null si value n'est pas définie
+                userEditable[key] = value;
+              }
+            }
           });
-          userGroups.value = authService.user.value.groups || [];
+          // Put city at the end of the list
+          const city = userEditable.city;
+          delete userEditable.city;
+          userEditable.city = city;
         }
       } catch (error) {
         $q.notify({
           color: 'negative',
           position: 'top',
-          message: 'An error occurred while fetching user details.',
+          message: `An error occurred while fetching user details: ${error.message}`,
           icon: 'report_problem'
         });
       }
@@ -73,8 +70,11 @@ export default {
 
     const updateUserDetails = async () => {
       try {
-        const response = await api.patch('dj-rest-auth/user/', userEditable);
-        Object.assign(authService.user.value, response.data);
+        const payload = {
+          ...userEditable,
+          city: userEditable.city ? userEditable.city.url : null
+        };
+        await authService.updateCustomuser(user.value.id, payload);
         $q.notify({
           color: 'positive',
           position: 'top',
@@ -86,11 +86,16 @@ export default {
         $q.notify({
           color: 'negative',
           position: 'top',
-          message: 'An error occurred while updating user details.',
+          message: `${error.message}`,
           icon: 'error'
         });
       }
     };
+
+    const extractCityNameFromUrl = (url) => {
+        return url?.split('/').filter(part => part).pop() || '';
+    };
+    
 
     const toggleEdit = (editMode) => {
       isEditing.value = editMode;
@@ -100,7 +105,6 @@ export default {
     };
 
     const formatLabel = (key) => {
-      // Improved label formatting to handle special cases
       if (key === 'date_of_birth') return 'Date of Birth';
       return key.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };

@@ -1,4 +1,10 @@
 <template>
+  <!-- Home page title and subtitle -->
+  <div class="q-pa-md q-gutter-lg">
+    <div class="text-h2">Find your perfect room</div>
+    <div class="text-subtitle1 text-grey">Book from a wide selection of rooms for your next stay. We have a room for every budget and preference.</div>
+  </div>
+  
   <!-- Filters button -->
   <div class="q-pa-md q-gutter-md row justify-between">
   <!-- Sort button -->
@@ -35,9 +41,9 @@
                 <div>No rooms found. Please adjust your search criteria and filters.</div>
               </div>
             </div>
-            <div v-else v-for="room in filteredRooms" :key="room.id">
-              <RoomCard :room="room" @room-details="handleClickRoom"/>
-            </div>
+              <div v-else v-for="room in filteredRooms" :key="room.id">
+                <RoomCard :room="room" @room-details="handleClickRoom"/>
+              </div>
           </div>
         </div>
       </template>

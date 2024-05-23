@@ -1,9 +1,9 @@
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
-from rest_framework import viewsets, permissions
-from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
+from rest_framework import viewsets, permissions, status
+from .models import Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
 from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer, UnavailabilitySerializer
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -13,7 +13,12 @@ from django.http import JsonResponse
 from django.db.models import OuterRef, Exists, Avg, Q
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_http_methods
+from django.utils.datastructures import MultiValueDictKeyError
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from copy import deepcopy
 import json
+import re
 
 
 # Serve Vue Application
@@ -32,7 +37,7 @@ def current_user(request):
 @require_http_methods(["POST"])
 def send_emails(request):
     try:
-        data = json.loads(request.body.decode('utf-8'))  # Décode et charge les données JSON
+        data = json.loads(request.body.decode('utf-8'))  
         email = data.get('email')
         subject = data.get('subject')
         message = data.get('message')
@@ -47,7 +52,7 @@ def send_emails(request):
             password=base.EMAIL_HOST_PASSWORD,
             use_tls=base.EMAIL_USE_TLS
         ) as connection:
-            recipients = email.split()  # Assure que email contient une valeur non-None
+            recipients = email.split()  
             email_msg = EmailMessage(subject, message, base.EMAIL_HOST_USER, recipients, connection=connection)
             email_msg.send()
 
@@ -67,13 +72,17 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            print("Validation errors:", serializer.errors)  # Show validation errors in the console
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
-    def get_queryset(self):
-        # Restrict non-staff users to only access their own user object
-        if self.request.user.is_staff:
-            return CustomUser.objects.all()
-        else:
-            return CustomUser.objects.filter(id=self.request.user.id)
+
 
 class BookingViewSet(viewsets.ModelViewSet):
     """
@@ -83,6 +92,132 @@ class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    @action(detail=False, methods=['get'], url_path='user-bookings/(?P<user_id>\d+)')
+    def user_bookings(self, request, user_id=None):
+        """
+        Retrieve all bookings for a specific user.
+        """
+        user = get_object_or_404(CustomUser, pk=user_id)
+        bookings = self.queryset.filter(user=user)
+        serializer = self.get_serializer(bookings, many=True)
+        # Update the status of bookings based on the current date
+        # Note: This should be done periodically using a scheduled task
+        self.update_booking_status()
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='room-bookings/(?P<room_id>\d+)')
+    def room_bookings(self, request, room_id=None):
+        """
+        Retrieve all bookings for a specific room.
+        """
+        room = get_object_or_404(Property, pk=room_id)
+        bookings = self.queryset.filter(property=room)
+        serializer = self.get_serializer(bookings, many=True)
+        # Update the status of bookings based on the current date
+        # Note: This should be done periodically using a scheduled task
+        self.update_booking_status()
+        return Response(serializer.data)
+    
+    def update_booking_status(self):
+        print("Updating booking statuses...")
+        bookings = Booking.objects.exclude(status__name="Cancelled")
+        today = timezone.now().date()
+        status_in_progress = Status.objects.get(name="In progress")
+        status_completed = Status.objects.get(name="Completed")
+        status_confirmed = Status.objects.get(name="Confirmed")
+
+        for booking in bookings:
+            if booking.check_in <= today <= booking.check_out:
+                if booking.status == status_confirmed and booking.status != status_in_progress:
+                    booking.status = status_in_progress
+                    booking.save()
+                    print(f"Updated booking {booking.id} to In Progress")
+            elif today > booking.check_out:
+                if booking.status != status_completed:
+                    booking.status = status_completed
+                    booking.save()
+                    print(f"Updated booking {booking.id} to Completed")
+
+    @action(detail=False, methods=['post'], url_path='update-status')
+    def update_status(self, request):
+        try:
+            booking_id = request.data['bookingId']
+            status_name = request.data['statusName']
+        except KeyError:
+            return Response({'error': 'Missing booking ID or status name'}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking = get_object_or_404(Booking, pk=booking_id)
+        status = get_object_or_404(Status, name=status_name)
+        booking.status = status
+        booking.save()
+        serializer = self.get_serializer(booking)
+        return Response(serializer.data)
+
+    def reformat_date(self, date_str):
+        return date_str.replace('/', '-')
+    
+    def extract_id_from_url(self, url):
+            match = re.search(r'properties/(\d+)/$', url)
+            return match.group(1) if match else None
+    
+    def extract_status_name_from_url(self, url):
+        match = re.search(r'statuses/(\w+)/$', url)
+        return match.group(1) if match else None
+
+    def create(self, request, *args, **kwargs):
+        mutable_data = deepcopy(request.data)
+
+        # Extract and validate the status
+        try:
+            status_name = self.extract_status_name_from_url(mutable_data['status'])
+        except KeyError:
+            return Response({'error': 'Missing status URL'}, status=status.HTTP_400_BAD_REQUEST)
+        print("Status name:", status_name)
+
+        if not status_name:
+            return Response({'error': 'Invalid status URL'}, status=status.HTTP_400_BAD_REQUEST)
+
+        status_obj = Status.objects.filter(name=status_name).first()
+        if not status_obj:
+            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate the dates
+        try:
+            mutable_data['check_in'] = self.reformat_date(mutable_data['check_in'])
+            mutable_data['check_out'] = self.reformat_date(mutable_data['check_out'])
+        except MultiValueDictKeyError:
+            return Response({'error': 'Missing check-in or check-out dates'}, status=status.HTTP_400_BAD_REQUEST)
+
+        check_in_date = parse_date(mutable_data['check_in'])
+        check_out_date = parse_date(mutable_data['check_out'])
+        if not (check_in_date and check_out_date):
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the property
+        property_id = self.extract_id_from_url(mutable_data['property'])
+        if not property_id:
+            return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not self.is_available(property_id, check_in_date, check_out_date):
+            return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+
+        request._full_data = mutable_data  # Update the request data
+        return super().create(request, *args, **kwargs)
+
+    def is_available(self, property_id, check_in, check_out):
+        existing_bookings = Booking.objects.filter(
+            property_id=property_id,
+            check_out__gte=check_in,
+            check_in__lte=check_out
+        )
+        unavailabilities = Unavailability.objects.filter(
+            property_id=property_id,
+            end_date__gte=check_in,
+            start_date__lte=check_out
+        )
+        # If there are any bookings or unavailabilities that overlap the requested dates, return False
+        return not (existing_bookings.exists() or unavailabilities.exists())
+
 class PropertyViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows properties to be viewed or edited.
@@ -91,6 +226,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    
     def get_queryset(self):
         queryset = super().get_queryset()
 

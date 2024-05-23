@@ -77,6 +77,8 @@
   import authService from '@/services/authService';
   import mailService from '@/services/mailService';
   import { getDateOptions } from '@/utils/dateUtils';
+  import bookingService from '@/services/bookingService';
+  import statusService from '@/services/statusService';
 
   export default {
     setup() {
@@ -124,6 +126,7 @@
                 if (route.query.roomId) {
                     room.value = await propertyService.getPropertyById(route.query.roomId);
                     updateDateRange(route.query.checkIn, route.query.checkOut);
+                    // TODO: Fetch unavailable dates from the database
                 } else {
                     notify('Please select a room first.', 'red');
                     router.push('/');
@@ -207,33 +210,66 @@
         }
 
         async function submitBooking() {
-            let confirmationEmail = {
-                email: authService.user.value.email,
-                subject: 'Booking confirmation',
-                message: `Thank you for your booking for ${room.value.title}!\n\n` +
-                    `Dates: ${formattedDateRange.value}\n` +
-                    `Price per night: CHF ${formatNumber(room.value.price_per_night)}\n` +
-                    `Number of nights: ${formatNumber(totalNights.value)}\n` +
-                    `Total price: CHF ${formatNumber(room.value.price_per_night * totalNights.value)}\n\n` +
-                    // Show the message only if it is not empty
-                    (message.value ? `Message to host: ${message.value}\n\n` : '') + 
-                    `Payment method: ${paymentMethod.value}\n\n` +
-                    (paymentMethod.value === 'Invoice' ? 'Please pay the total amount to the following bank account:\nIBAN: CHXX XXXX XXXX XXXX XXXX\nAccount holder: GPTeam\n\n' : '') +
-                    `Enjoy your stay!\n\n` +
-                    `GPTeam`
-            };
-            // TODO: Add booking to the database
-            notify('Thank you for your booking.', 'green');
+            try {
+                const user = await authService.getCustomuser()
+                if(!user) {
+                    notify('Failed to get user information.', 'red');
+                    return;
+                }
+                
+                const status = await statusService.getAllStatus();
+                const pendingStatus = status.find(s => s.name === 'Pending');
+                if (!pendingStatus) {
+                    notify('Failed to find the status "Pending".', 'red');
+                    return;
+                }
+                
+                // Add booking to the database
+                const booking = {
+                    check_in: dateRange.value.from,
+                    check_out: dateRange.value.to,
+                    property: room.value.url,
+                    user: user.url,
+                    status: pendingStatus.url,
+                    //total_price: room.value.price_per_night * totalNights.value,
+                };
+                const bookingResponse = await bookingService.createBooking(booking);
 
-            // Send confirmation email
-            const response = await mailService.sendEmail(confirmationEmail);
-            if (response.status === 'success') {
-                notify('Confirmation email sent.', 'green');
-            } else {
-                notify('Failed to send confirmation email : ' + response.message, 'red');
+                // Send booking confirmation email
+                if (bookingResponse !== null) {
+                    // TODO: Redirect to user's history page
+                    router.push('My-account');
+                    // Send confirmation email to the student
+                    const confirmationEmail = {
+                    email: authService.user.value.email,
+                    subject: 'Booking confirmation',
+                    message: `Hi !\n\n` +
+                        `Thank you for your booking for ${room.value.title}!\n\n` +
+                        `Dates: ${formattedDateRange.value}\n` +
+                        `Price per night: CHF ${formatNumber(room.value.price_per_night)}\n` +
+                        `Number of nights: ${formatNumber(totalNights.value)}\n` +
+                        `Total price: CHF ${formatNumber(room.value.price_per_night * totalNights.value)}\n\n` +
+                        (message.value ? `Message to host: ${message.value}\n\n` : '') +
+                        `Payment method: ${paymentMethod.value}\n\n` +
+                        (paymentMethod.value === 'Invoice' ? 'Please pay the total amount to the following bank account:\nIBAN: CHXX XXXX XXXX XXXX XXXX\nAccount holder: GPTeam\n\n' : '') +
+                        `Enjoy your stay!\n\nGPTeam`
+                    };
+                    const emailResponse = await mailService.sendEmail(confirmationEmail);
+                    if (emailResponse.status === 'success') {
+                        notify('Booking and confirmation email sent successfully.', 'green');
+                    } else {
+                        notify('Failed to send confirmation email: ' + emailResponse.message, 'red');
+                    }
+                    // TODO: Send booking notification email to the host   
+                } else {
+                    notify('Booking creation failed: ' + bookingResponse.message, 'red');
+                }
+
+            } catch (error) {
+                notify('An error occurred during booking: ' + error.message, 'red');
             }
-            router.push('My-account');
         }
+
 
         return {
             room,
