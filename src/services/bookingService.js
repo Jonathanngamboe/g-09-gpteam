@@ -54,11 +54,7 @@ export default {
         return api.get(propertyEndpoint)
             .then(response => {
                 const propertyData = response.data;
-                consol.log('Property Data:', propertyData)
-
                 const bookingUrls = propertyData.bookings;
-                console.log('Booking Urls:', bookingUrls);
-
                 const bookingPromises = bookingUrls.map(bookingUrl => api.get(bookingUrl));
                 return Promise.all(bookingPromises)
                     .then(bookingResponses => {

@@ -37,25 +37,13 @@ export function getBookedDates(propertyId){
 
     bookingService.getBookedDatesByProperty(propertyId)
         .then(fetchedBookings => {
-            bookings.value = fetchedBookings;
+            bookings.check_in = fetchedBookings.filter((_, index) => index % 2 === 0);
+            bookings.check_out = fetchedBookings.filter((_, index) => index % 2 === 1);
         })
         .catch(error => {
             console.error('Failed to fetch property bookings (dateUtils): ' + error.message);
         });
-
-    return computed(() => {
-        const bookedDates = bookings.value.map(booking => {
-            const startDate = new Date(booking.check_in);
-            const endDate = new Date(booking.check_out);
-            const dates = [];
-
-            for(let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-                dates.push(date.toISOString().split('T')[0]);
-            }
-            return dates;
-        });
-        return bookedDates.flat();
-    });
+        return bookings;
 }
 export function getUnavailableDates(){
     return computed(() => [
