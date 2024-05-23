@@ -105,7 +105,7 @@ export default defineComponent({
                 });
 
                 if (result) {
-                    console.log (await authService.getUser(result));
+                    //console.log (await authService.getUser(result));
                     // Second registration
                     const resultuser = await authService.registerUser({
                         //username: username.value,
