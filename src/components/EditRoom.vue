@@ -76,6 +76,7 @@
             <div class="q-pa-md text-center">
               <div style="width: 400px; height: 300px; background-color: #ccc; margin: 0 auto; position: relative;">
                 <p class="q-mt-sm">Slide your image</p>
+                <p class="q-mt-sm">To be implemented</p>
               <div style="width: 300px; height: 200px; background-color: #f5f5f5; border: 2px dashed #ccc; margin: 20px auto;"></div>
           </div>
           </div>
