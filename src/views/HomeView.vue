@@ -1,7 +1,24 @@
 <template>
+  <!-- Home page title and subtitle -->
+  <div class="q-pa-md q-gutter-lg">
+    <div class="text-h2">Find your perfect room</div>
+    <div class="text-subtitle1 text-grey">Book from a wide selection of rooms for your next stay. We have a room for every budget and preference.</div>
+  </div>
+  
   <!-- Filters button -->
-  <!--<div class="q-pa-md q-gutter-md row justify-end">
-    <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune"/>
+  <div class="q-pa-md q-gutter-md row justify-between">
+  <!-- Sort button -->
+  <q-btn rounded unelevated outline label="Sort" icon="sort" class="border-bottom">
+    <q-menu fit :offset="[0, 10]">
+      <q-list>
+        <q-item v-for="option in sortOptions" :key="option.value" clickable v-close-popup @click="applySort(option)">
+          <q-item-section>{{ option.label }}</q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
+  </q-btn>
+    <!-- Filters button -->
+    <q-btn rounded unelevated outline label="Filters" @click="toggleFilters" icon="tune" class="border-bottom" />
   </div>
   <FiltersDialog
     :isVisible="filtersVisible"
@@ -9,7 +26,7 @@
     @on-filter="onFilter"
     @on-reset="onReset"
     @close="filtersVisible = false"
-  />-->
+  />
 
   <!-- Room details for desktop -->
   <div v-if="!isMobile">
@@ -21,12 +38,12 @@
             <div v-if="filteredRooms.length === 0">
               <div class="no-results">
                 <q-icon name="search_off" size="100px" color="grey-5" />
-                <div>No rooms found. Please adjust your filters.</div>
+                <div>No rooms found. Please adjust your search criteria and filters.</div>
               </div>
             </div>
-            <div v-else v-for="room in filteredRooms" :key="room.id">
-              <RoomCard :room="room" @room-details="handleClickRoom"/>
-            </div>
+              <div v-else v-for="room in filteredRooms" :key="room.id">
+                <RoomCard :room="room" @room-details="handleClickRoom"/>
+              </div>
           </div>
         </div>
       </template>
@@ -66,9 +83,8 @@ import RoomCard from '@/components/RoomCard.vue';
 import FiltersDialog from '@/components/FiltersDialog.vue';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import { useQuasar } from 'quasar';
-import roomService from '../services/roomService';
-import reviewService from '../services/reviewService';  
-import { all } from 'axios';
+import propertyService from '@/services/propertyService';
+import { searchCriteria } from '@/utils/globalState';
 
 export default defineComponent({
   components: {
@@ -90,7 +106,7 @@ export default defineComponent({
       if (cachedRooms) {
         allActiveRooms.value = cachedRooms;
       } else {
-        roomService.getAllRooms()
+        propertyService.getProperties()
           .then(data => {
             cachedRooms = data;
             // Do not import a room with missing data
@@ -171,9 +187,10 @@ export default defineComponent({
       splitterModel.value = 100;  // Reset splitter position to hide the detail view
     }
 
-    // Filters logic
+    // Filters and search logic
     const filtersVisible = ref(false)
     const filtersApplied = ref(false)
+    const filteredRooms = ref([]);
 
     const filters = reactive({
       location: "",
@@ -181,6 +198,31 @@ export default defineComponent({
       amenities: [],
       rating: { min: 0, max: 5 }
     })
+
+    const loadFilteredRooms = () => {
+      propertyService.getFilteredProperties(searchCriteria, filters)
+        .then(data => {
+          filteredRooms.value = data;
+        })
+        .catch(error => {
+          $q.notify({
+            color: 'negative',
+            position: 'top',
+            message:  `${error.message}`,
+            icon: 'error'
+          });
+        });
+    };
+
+    watch(() => searchCriteria, () => {
+      loadFilteredRooms();
+    }, { deep: true });
+
+    watch(() => filters, () => {
+      loadFilteredRooms();
+    }, { deep: true });
+
+    onMounted(loadFilteredRooms);
 
     const onReset = () => {
       Object.assign(filters, {
@@ -203,18 +245,45 @@ export default defineComponent({
       filtersVisible.value = !filtersVisible.value
     }
 
-    // Computed property to filter rooms based on active filters
-    const filteredRooms = computed(() => {
-      if (!filtersApplied.value) {
-        return allActiveRooms.value // Return all rooms if no filters are applied
+    // Sort logic
+    const selectedSortOption = ref('');
+    const sortOptions = [
+      { label: 'Price Low to High', value: 'price_asc' },
+      { label: 'Price High to Low', value: 'price_desc' },
+      { label: 'Rating High to Low', value: 'rating_desc' },
+      { label: 'Rating Low to High', value: 'rating_asc' }
+    ];
+    const applySort = (option) => {
+      if (!option || !option.value) {
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: 'Invalid sort option selected.',
+          icon: 'error'
+        });
+        return;
       }
-      return allActiveRooms.value.filter(room => {
-        const pricePerNightNumber = parseFloat(room.price_per_night); // Convertir en nombre
-        const priceMatch = !isNaN(pricePerNightNumber) && pricePerNightNumber >= filters.priceRange.min && pricePerNightNumber <= filters.priceRange.max;
-        const amenitiesMatch = filters.amenities.length === 0 || (Array.isArray(room.amenities) && filters.amenities.every(amenity => room.amenities.includes(amenity)));
-        const ratingMatch = typeof room.average_rating === 'number' && room.average_rating >= filters.rating.min && room.average_rating <= filters.rating.max;
-        return priceMatch && amenitiesMatch && ratingMatch;
-      });
+      selectedSortOption.value = option.value;
+      switch (option.value) {
+        case 'price_asc':
+          filteredRooms.value.sort((a, b) => a.price_per_night - b.price_per_night);
+          break;
+        case 'price_desc':
+          filteredRooms.value.sort((a, b) => b.price_per_night - a.price_per_night);
+          break;
+        case 'rating_desc':
+          filteredRooms.value.sort((a, b) => b.average_rating - a.average_rating);
+          break;
+        case 'rating_asc':
+          filteredRooms.value.sort((a, b) => a.average_rating - b.average_rating);
+          break;
+      }
+    };
+
+    watch(selectedSortOption, () => {
+      if (selectedSortOption.value) {
+        applySort({ value: selectedSortOption.value });
+      }
     });
 
     // Helper function to equalize title heights
@@ -238,6 +307,8 @@ export default defineComponent({
     return {
       allActiveRooms,
       filteredRooms,
+      sortOptions,
+      applySort,
       toggleFilters,
       filtersVisible,
       onFilter,
@@ -263,47 +334,52 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.room-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 80vh; /* Ensures centering is effective in an empty grid */
-}
-
-/* Define a grid layout with a fixed minimum column width */
-.room-grid {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(300px, 1fr)
-  ); /* Create a responsive number of grid columns */
-  gap: 16px; /* This sets the gap between cards */
-}
-
-.room-grid > div {
-  display: flex; /* Use flex layout for the grid item to control the card height */
-}
-
-.no-results {
-  text-align: center;
-  padding: 20px;
-  font-size: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.no-results q-icon {
-  font-size: 100px;
-  color: grey;
-}
-
-/* Define a media query for very small screens where cards should take full width */
-@media (max-width: 599px) {
-  .room-grid {
-    grid-template-columns: 1fr; /* One card per row on small screens */
+  .room-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Ensures centering is effective in an empty grid */
   }
-}
+
+  /* Define a grid layout with a fixed minimum column width */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(300px, 1fr)
+    ); /* Create a responsive number of grid columns */
+    gap: 16px; /* This sets the gap between cards */
+  }
+
+  .room-grid > div {
+    display: flex; /* Use flex layout for the grid item to control the card height */
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .no-results q-icon {
+    font-size: 100px;
+    color: grey;
+  }
+
+  .border-bottom {
+          border: 0 solid var(--q-primary); 
+          border-bottom-width: revert;
+      }
+
+  /* Define a media query for very small screens where cards should take full width */
+  @media (max-width: 599px) {
+    .room-grid {
+      grid-template-columns: 1fr; /* One card per row on small screens */
+    }
+  }
 </style>

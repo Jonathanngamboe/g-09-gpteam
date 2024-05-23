@@ -18,7 +18,7 @@ from django.urls import path, include
 from rest_framework import routers
 from django.conf.urls.static import static
 from django.conf import settings
-from .api.views import index_view, MessageViewSet, BookingViewSet, PropertyViewSet, PropertyTypeViewSet, AmenityViewSet, ImageViewSet, CityViewSet, ReviewViewSet, StatusViewSet, CustomUserViewSet, current_user, send_confirmation_email
+from .api.views import index_view, MessageViewSet, BookingViewSet, PropertyViewSet, PropertyTypeViewSet, AmenityViewSet, ImageViewSet, CityViewSet, ReviewViewSet, StatusViewSet, CustomUserViewSet, UnavailabilityViewSet, current_user, send_emails
 
 router = routers.DefaultRouter()
 router.register('customusers', CustomUserViewSet)
@@ -31,10 +31,11 @@ router.register('images', ImageViewSet)
 router.register('cities', CityViewSet)
 router.register('reviews', ReviewViewSet)
 router.register('statuses', StatusViewSet)
+router.register('unavailabilities', UnavailabilityViewSet)
 
 urlpatterns = [
     path('api/customusers/me/', current_user, name='current-user'),
-    path('api/send-email/', send_confirmation_email, name='send-email'),
+    path('api/send-email/', send_emails, name='send-email'),
 
                   # http://localhost:8000/
     path('', index_view, name='index'),

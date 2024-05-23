@@ -20,7 +20,7 @@
                         </div>
                         <!-- Image -->
                         <div class="col-auto">
-                            <q-img :src="room.images && room.images.length > 0 ? room.images[0].image : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'"
+                            <q-img :src="room.images && room.images.length > 0 ? (room.images[0].image || room.images[0].ext_url) : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'"
                                 style="width: 100px;" alt="Room image"/>   
                         </div>
                     </q-card-section>
@@ -50,7 +50,7 @@
                 </q-card-section>
                 <!-- Confirm and pay button -->
                 <q-card-section>
-                    <q-btn unelevated rounded label="Confirm and pay" color="green" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
+                    <q-btn unelevated rounded label="Confirm and pay" color="green-14" class="full-width" @click="submitBooking()" :disable="isConfirmButtonDisabled" />
                 </q-card-section>
             </q-card>
         </div>
@@ -73,10 +73,13 @@
   import { ref, onMounted, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useQuasar } from 'quasar';
-  import roomService from '@/services/roomService';
+  import propertyService from '@/services/propertyService';
   import authService from '@/services/authService';
   import mailService from '@/services/mailService';
-  
+  import { getDateOptions } from '@/utils/dateUtils';
+  import bookingService from '@/services/bookingService';
+  import statusService from '@/services/statusService';
+
   export default {
     setup() {
         const $q = useQuasar();
@@ -90,9 +93,13 @@
         const totalNights = ref(0);
 
         const showDialog = ref(false);
+
         const dateRange = ref({ from: null, to: null });
         const tempDateRange = ref({ from: null, to: null });
         const isConfirmButtonDisabled = ref(true);
+        
+        const unavailableDates = ref([]); // TODO: Fetch unavailable dates from the database. Example: { start: "2024-05-20", end: "2024-05-22"}
+        const dateOptions = getDateOptions(unavailableDates);
 
         const room = ref({});
 
@@ -113,12 +120,13 @@
 
         onMounted(async () => {
             if (!authService.user.value) {
-                notify('Please log in to book a room.', 'red');
+                notify('An error occurred. Please make sure you are logged in and refresh the page.', 'red');
                 router.push('/');
             } else {
                 if (route.query.roomId) {
-                    room.value = await roomService.getRoomById(route.query.roomId);
+                    room.value = await propertyService.getPropertyById(route.query.roomId);
                     updateDateRange(route.query.checkIn, route.query.checkOut);
+                    // TODO: Fetch unavailable dates from the database
                 } else {
                     notify('Please select a room first.', 'red');
                     router.push('/');
@@ -141,40 +149,6 @@
                 showDialog.value = false;
             }
         };
-        
-        // Unavailable dates. Example: { start: "2024-05-20", end: "2024-05-22"}
-        // TODO: Fetch unavailable dates from the database
-        const unavailableDates = ref([]);     
-
-        const dateOptions = computed(() => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);  // Réinitialiser l'heure pour le début de la journée
-
-            return (date) => {
-                const checkDate = new Date(date);
-                if (checkDate < today) {
-                return false; // Désactiver les dates dans le passé
-                }
-
-                // Vérification des dates spécifiques et des plages de dates
-                for (let i = 0; i < unavailableDates.value.length; i++) {
-                const entry = unavailableDates.value[i];
-                if (typeof entry === 'string') {
-                    if (entry === date) {
-                    return false; // Date spécifique indisponible
-                    }
-                } else if (entry.start && entry.end) {
-                    const startDate = new Date(entry.start);
-                    const endDate = new Date(entry.end);
-                    if (checkDate >= startDate && checkDate <= endDate) {
-                    return false; // Plage de dates indisponible
-                    }
-                }
-                }
-
-                return true; // Activer la date si elle n'est pas dans le passé ou indisponible
-            };
-        });
 
         function updateDateRange(from, to) {
             if(validateDates(from, to)) {
@@ -227,24 +201,75 @@
             $q.notify({ color, textColor: 'white', icon: 'error', position: 'top', message });
         }
 
-        async function submitBooking() {
-            let bookingDetails = {
-                email: authService.user.value.email,
-                roomTitle: room.value.title,
-                checkIn: dateRange.value.from,
-                checkOut: dateRange.value.to,
-                totalPrice: room.value.price_per_night * totalNights.value,
-            };
-            notify('Thank you for your booking.', 'green');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const response = await mailService.sendEmail(bookingDetails);
-            if (response.status === 'success') {
-                notify('Confirmation email sent.', 'green');
-            } else {
-                notify('Failed to send confirmation email : ' + response.data, 'red');
+        // Helper function to format number with ''' separator
+        function formatNumber(number) {
+            if(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
             }
-            router.push('My-account');
+            return 0;
         }
+
+        async function submitBooking() {
+            try {
+                const user = await authService.getCustomuser()
+                if(!user) {
+                    notify('Failed to get user information.', 'red');
+                    return;
+                }
+                
+                const status = await statusService.getAllStatus();
+                const pendingStatus = status.find(s => s.name === 'Pending');
+                if (!pendingStatus) {
+                    notify('Failed to find the status "Pending".', 'red');
+                    return;
+                }
+                
+                // Add booking to the database
+                const booking = {
+                    check_in: dateRange.value.from,
+                    check_out: dateRange.value.to,
+                    property: room.value.url,
+                    user: user.url,
+                    status: pendingStatus.url,
+                    //total_price: room.value.price_per_night * totalNights.value,
+                };
+                const bookingResponse = await bookingService.createBooking(booking);
+
+                // Send booking confirmation email
+                if (bookingResponse !== null) {
+                    // TODO: Redirect to user's history page
+                    router.push('My-account');
+                    // Send confirmation email to the student
+                    const confirmationEmail = {
+                    email: authService.user.value.email,
+                    subject: 'Booking confirmation',
+                    message: `Hi !\n\n` +
+                        `Thank you for your booking for ${room.value.title}!\n\n` +
+                        `Dates: ${formattedDateRange.value}\n` +
+                        `Price per night: CHF ${formatNumber(room.value.price_per_night)}\n` +
+                        `Number of nights: ${formatNumber(totalNights.value)}\n` +
+                        `Total price: CHF ${formatNumber(room.value.price_per_night * totalNights.value)}\n\n` +
+                        (message.value ? `Message to host: ${message.value}\n\n` : '') +
+                        `Payment method: ${paymentMethod.value}\n\n` +
+                        (paymentMethod.value === 'Invoice' ? 'Please pay the total amount to the following bank account:\nIBAN: CHXX XXXX XXXX XXXX XXXX\nAccount holder: GPTeam\n\n' : '') +
+                        `Enjoy your stay!\n\nGPTeam`
+                    };
+                    const emailResponse = await mailService.sendEmail(confirmationEmail);
+                    if (emailResponse.status === 'success') {
+                        notify('Booking and confirmation email sent successfully.', 'green');
+                    } else {
+                        notify('Failed to send confirmation email: ' + emailResponse.message, 'red');
+                    }
+                    // TODO: Send booking notification email to the host   
+                } else {
+                    notify('Booking creation failed: ' + bookingResponse.message, 'red');
+                }
+
+            } catch (error) {
+                notify('An error occurred during booking: ' + error.message, 'red');
+            }
+        }
+
 
         return {
             room,
@@ -262,17 +287,9 @@
             dateOptions,
             formattedDateRange,
             tempDateRange,
-            dialogPosition
+            dialogPosition,
+            formatNumber
         };
-    },
-    methods: {
-        // Helper function to format number with ''' separator
-        formatNumber(number) {
-            if(number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-            }
-            return 0;
-        }
     }
   }
   </script>
