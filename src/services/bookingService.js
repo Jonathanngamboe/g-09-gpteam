@@ -58,10 +58,22 @@ export default {
                 const bookingPromises = bookingUrls.map(bookingUrl => api.get(bookingUrl));
                 return Promise.all(bookingPromises)
                     .then(bookingResponses => {
-                        return bookingResponses.flatMap(response => {
+                        const dates = [];
+                        bookingResponses.forEach(response => {
                             const bookingData = response.data;
-                            return [bookingData.check_in, bookingData.check_out];
+                            let check_in = new Date(bookingData.check_in);
+                            let check_out = new Date(bookingData.check_out);
+
+                            //Add the check-in, check-out and middle dates to the array
+                            dates.push(check_in.toISOString().split('T')[0]);
+
+                            for(let date = new Date(check_in.getTime() + 24*60*60*1000); date < check_out; date.setDate(date.getDate() + 1)) {
+                                dates.push(date.toISOString().split('T')[0]);
+                            }
+
+                            dates.push(check_out.toISOString().split('T')[0]);
                         });
+                        return dates;
                     })
                     .catch(error => {
                         throw new Error('Failed to fetch the property bookings, (bookingService): ' + error.message);
@@ -69,24 +81,6 @@ export default {
             })
             .catch(error => {
                 throw new Error('Failed to fetch property data: ' + error.message);
-            });
-    },
-    //Method to retrieve the unavailabilities of a specific property
-    getUnavailableDatesByProperty(propertyId){
-        const propertyEndpoint = `/properties/${propertyId}/`;
-        return api.get(propertyEndpoint)
-            .then(response => {
-                const propertyData = response.data;
-                const unavailableUrls = propertyData.properties;
-                const unavailablePromises = unavailableUrls.map(unavailableUrls => api.get(unavailableUrls));
-                return Promise.all(unavailablePromises)
-                    .then(unavailableResponses => unavailableResponses.map(response => response.data))
-                    .catch(error => {
-                        throw new Error('Failled to fetch the property unavailabilities: ' + error.message);
-                    });
-            })
-            .catch(error => {
-                throw new Error('Failed to fetch property data: ' + error.message)
             });
     }
     /*getUserBookings(userId) {

@@ -147,33 +147,10 @@
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate);
             const checkOutRules = getCheckOutRules(checkIn);
-            let bookings = null;
-
-            const fetchBookings = async () => {
-                try{
-                    bookings = await getBookedDates(roomId);
-                    console.log('Fetch Bookings: ', bookings)
-                } catch (error) {
-                    console.error('Error fetching bookings: ', error);
-                }
-            };
-            fetchBookings();
-
-            const bookedDates = async() => {
-                console.log('Booked Dates: ', bookings)
-                const startDate = new Date(booking.check_in);
-                console.log('Start Date: ' + startDate)
-                const endDate = new Date(booking.check_out);
-                const dates = [];
-
-                for(let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-                    dates.push(date.toISOString().split('T')[0]);
-                }
-                return dates;  
-            };
-            bookedDates();
-
-            const blockedDates = getUnavailableDates(roomId);
+            const bookedDates = getBookedDates(roomId);
+            const unavailableDates = getUnavailableDates(roomId);
+            console.log('bookedDates: ', bookedDates);
+            
 
             const isBookButtonDisabled = computed(() => {
             return !checkIn.value || !checkOut.value ||
@@ -199,10 +176,10 @@
                 checkOut,
                 minDate,
                 minCheckoutDate,
+                bookedDates,
+                unavailableDates,
                 checkInRules,
                 checkOutRules,
-                bookedDates,
-                blockedDates,
                 handleBookRoom,
                 isBookButtonDisabled
             }
