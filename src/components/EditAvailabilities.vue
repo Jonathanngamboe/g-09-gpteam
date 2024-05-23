@@ -67,13 +67,17 @@
 <script>
 
 import { ref } from 'vue';
+import { getUnavailableDates } from '@/utils/dateUtils';
 
 export default {
   name: 'EditAvailabilities',
   props: {
-    room: Object
+    room:{
+        type: Object,
+        required: true
+    }
   },
-  setup() {
+  setup(props) {
     const tempDateRange = ref({ from: null, to: null });
     const eventsFn = (date) => {
       //
@@ -81,15 +85,9 @@ export default {
     const dateOptions = ref({});
     const lockModel = ref('');
     const unavailabilities = ref([]);
-    // Fictive unavailability data
-    for (let i = 0; i < 30; i++) {
-      unavailabilities.value.push({
-        id: i,
-        date: `2021-10-${i + 1}`,
-        available: i % 2 === 0,
-      });
-    }
-
+    const roomId = props.room.id;
+    const unavailableDates =[];
+    
     const eventColorFn = (date) => {
       //
     };

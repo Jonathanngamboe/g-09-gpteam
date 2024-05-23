@@ -53,6 +53,7 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
+                            :disable="bookedDates"
                         />
                         <q-input
                             dense
@@ -114,10 +115,10 @@
 
     export default defineComponent({
         props: {
-        room: {
-            type: Object,
-            required: true
-        }
+            room: {
+                type: Object,
+                required: true
+            }
         },
         setup (props) {
             const totalNights = ref(0);
