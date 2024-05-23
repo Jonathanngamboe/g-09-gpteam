@@ -42,14 +42,14 @@
             </q-item-label>
             <q-list>
                 <q-item
-                    v-for="unavailability in unavailabilities"
-                    :key="unavailability.id"
+                    v-for="(date, index) in unavailability.value" 
+                    :key="index"
                     clickable
                     v-ripple
                 >
                     <q-item-section>
                         <q-item-label>
-                            {{ unavailability.date }}
+                            {{ date }}
                         </q-item-label>
                     </q-item-section>
                     <q-item-section side>
@@ -66,7 +66,7 @@
 
 <script>
 
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { getUnavailableDates } from '@/utils/dateUtils';
 
 export default {
@@ -82,12 +82,30 @@ export default {
     const eventsFn = (date) => {
       //
     };
-    const dateOptions = ref({});
     const lockModel = ref('');
-    const unavailabilities = ref([]);
     const roomId = props.room.id;
-    const unavailableDates =[];
-    
+    const unavailability = ref([]);
+
+    onMounted(async () => {
+      try {
+        const result = await getUnavailableDates(roomId);
+        unavailability.value = result; 
+        console.log('unavailability: ', unavailability.value);
+      } catch (error) {
+        console.error('Error fetching unavailable dates:', error);
+      }
+    });
+
+    const dateOptions = (date) => {
+        const dateString = date.toISOString().slice(0, 10);
+        if(unavailability.includes(dateString)){
+            return {
+                disable: true,
+                };
+            }
+        return{};
+    };
+
     const eventColorFn = (date) => {
       //
     };
@@ -95,10 +113,10 @@ export default {
         splitterModel: ref(20),
         lockModel,
         eventColorFn,
-        unavailabilities,
         tempDateRange,
         eventsFn,
         dateOptions,
+        unavailability,
     };
   }
 };

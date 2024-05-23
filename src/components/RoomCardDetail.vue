@@ -53,12 +53,12 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
-                            :disable="bookedDates"
+                            :disable="disableCheckIn"
                         />
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn || bookedDates"
+                            :disable="!checkIn || disableCheckOut"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -148,10 +148,27 @@
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate);
             const checkOutRules = getCheckOutRules(checkIn);
-            const bookedDates = getBookedDates(roomId);
+            const bookedDates = ref([]);
             const unavailableDates = getUnavailableDates(roomId);
-            console.log('bookedDates: ', bookedDates);
-            
+
+            onMounted(async () => {
+                try {
+                    bookedDates.value = await getBookedDates(roomId);
+                } catch (error) {
+                    console.error('Error fetching booked dates:', error);
+                }
+            });
+            const disableCheckIn = computed(() => {
+                const dateString = checkIn.value;
+                console.log(bookedDates.value)
+                console.log(bookedDates.value.includes(dateString));
+                return bookedDates.value.includes(dateString);
+            });
+
+            const disableCheckOut = computed(() => {
+                const dateString = checkOut.value;
+                return bookedDates.value.includes(dateString) || !checkIn.value;
+            });
 
             const isBookButtonDisabled = computed(() => {
             return !checkIn.value || !checkOut.value ||
@@ -182,7 +199,9 @@
                 checkInRules,
                 checkOutRules,
                 handleBookRoom,
-                isBookButtonDisabled
+                isBookButtonDisabled,
+                disableCheckIn,
+                disableCheckOut
             }
         },
         methods: {

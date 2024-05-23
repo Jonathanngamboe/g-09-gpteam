@@ -48,7 +48,7 @@ export function getBookedDates(propertyId){
 export function getUnavailableDates(propertyId){
     const unavailableDates = [];
 
-    unavailableService.getUnavailableDates(propertyId)
+    unavailableService.getUnavailableDatesByProperty(propertyId)
         .then(fetchedUnavailableDates => {
             unavailableDates.value = fetchedUnavailableDates;
         })

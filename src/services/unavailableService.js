@@ -61,7 +61,7 @@ export default {
         return api.get(propertyEndpoint)
             .then(response => {
                 const propertyData = response.data;
-                const unavailableUrls = propertyData.properties;
+                const unavailableUrls = propertyData.unavailabilities;
                 const unavailablePromises = unavailableUrls.map(unavailableUrls => api.get(unavailableUrls));
                 return Promise.all(unavailablePromises)
                     .then(unavailableResponses => {
