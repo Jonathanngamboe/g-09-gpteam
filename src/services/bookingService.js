@@ -47,4 +47,29 @@ export default {
                 throw new Error(`Failed to delete booking with ID ${id}: ` + error.message);
             });
     },
+
+    getUserBookings(userId) {
+        return api.get(`${endpoint}user-bookings/${userId}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch bookings for user with ID ${userId}: ` + error.message);
+            });
+    },
+
+    getRoomBookings(roomId) {
+        return api.get(`${endpoint}room-bookings/${roomId}`)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to fetch bookings for room with ID ${roomId}: ` + error.message);
+            });
+    },
+
+    updateBookingStatus(booking) {
+        // Post request to update the booking status
+        return api.post(`${endpoint}update-status/`, booking)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error('Failed to update booking status: ' + error.message);
+            });        
+    }
 };

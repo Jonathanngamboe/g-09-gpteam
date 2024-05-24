@@ -7,40 +7,73 @@
         <q-tab name="two" icon="edit_calendar" />
         <q-tab name="three" icon="history" alert="primary" />
       </q-tabs>
+
       <!-- Tab content -->
       <q-tab-panels v-model="tab" animated>
-        <!-- Room details -->
+
+        <!-- Edit Room -->
         <q-tab-panel name="one">
-          <q-toolbar class="q-mb-md full-width">
+          <!-- Section title -->
+          <q-toolbar class="q-my-md full-width">
+            <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
             <q-toolbar-title>
-              Room Details
+              Room details
             </q-toolbar-title>
           </q-toolbar>
+          <!-- Section content -->
           <q-card-section>
-            <!-- Edit Room -->
             <EditRoom :room="room" />
           </q-card-section>
         </q-tab-panel>
+
         <!-- Calendar -->
         <q-tab-panel name="two">
-          <q-card-section>
-            <q-toolbar class="q-mb-md full-width">
+          <!-- Section title -->
+          <q-toolbar class="q-my-md full-width">
+            <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
             <q-toolbar-title>
-              Availibilities
+              Room calendar
             </q-toolbar-title>
           </q-toolbar>
+          <!-- Section content -->
+          <q-card-section>
+            <EditAvailabilities :room="room" />
           </q-card-section>
         </q-tab-panel>
+
         <!-- Booking history -->
         <q-tab-panel name="three">
-          <q-card-section>
-            <q-toolbar class="q-mb-md full-width">
+          <!-- Section title -->
+          <q-toolbar class="q-my-md full-width">
+            <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
             <q-toolbar-title>
-              Booking History
+              Room booking history
             </q-toolbar-title>
           </q-toolbar>
+          <!-- Section content -->
+          <q-card-section>
+            <bookingHistory :room="room" />
           </q-card-section>
         </q-tab-panel>
+
       </q-tab-panels>
     </q-card>
   </div>
@@ -51,19 +84,49 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import RoomCardDetail from '@/components/RoomCardDetail.vue';
 import propertyService from '../services/propertyService';
 import EditRoom from '@/components/EditRoom.vue';
+import EditAvailabilities from '../components/EditAvailabilities.vue';
+import bookingHistory from '../components/booking-history.vue';
+import authService from '@/services/authService';
 
 export default {
   components: {
     RoomCardDetail,
     EditRoom,
+    EditAvailabilities,
+    bookingHistory,
   },
   setup() {
+    const router = useRouter();
     const route = useRoute();
     const room = ref(null);
+    const user = ref(null)
+
+    onMounted(async () => {
+      try {
+        await authService.getUser();
+
+        if (!authService.user.value) {
+          router.push('/');
+        }
+        user.value = authService.user.value;
+
+      } catch (error) {
+        router.push('/'); 
+        $q.notify({
+          color: 'negative',
+          position: 'top',
+          message: `${error.message}`
+        });
+      }
+    });
+
+    const goBack = () => {
+      router.go(-1);
+    };
 
     onMounted(async () => {
       const roomId = route.query.roomId;
@@ -73,7 +136,9 @@ export default {
 
     return {
       room,
+      user,
       tab: ref('one'),
+      goBack,
     };
   }
 };
