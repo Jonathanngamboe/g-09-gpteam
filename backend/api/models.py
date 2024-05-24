@@ -26,7 +26,7 @@ class Property(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     #Link between tables
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE,related_name='properties')
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='properties')
     property_Type = models.ForeignKey ('PropertyType', on_delete=models.CASCADE, related_name='properties', null=True, default=None)
     city = models.ForeignKey('City', on_delete=models.CASCADE, related_name='cities', null=True, default=None)
     amenities = models.ManyToManyField('Amenity')
@@ -36,10 +36,10 @@ class Unavailability(models.Model):
     id = models.AutoField(primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    comment = models.CharField(max_length=200)
+    comment = models.CharField(max_length=200, blank=True)
 
     #Link between tables
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='unavailabilities')
 
 class PropertyType(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -63,7 +63,7 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     #Link between tables
-    property = models.ForeignKey('Property', on_delete=models.CASCADE)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='bookings')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     status = models.ForeignKey('Status', on_delete=models.CASCADE, default='Pending')
 
@@ -86,4 +86,4 @@ class Message(models.Model):
     sent_at = models.DateTimeField(auto_now_add=True)
 
     #Link between tables
-    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, null=True, default=None)
+    bookings = models.ForeignKey(Booking, on_delete=models.CASCADE, null=True, default=None)

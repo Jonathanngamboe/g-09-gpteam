@@ -50,12 +50,48 @@ export default {
       .get(`dj-rest-auth/user/`)
       .then((response) => {
         user.value = response.data
+        return response.data; // return user data
       })
       .catch(() => {
         user.value = undefined
       })
   },
 
+  getUserById(id) {
+    return api
+      .get(`/customusers/${id}/`)
+      .then((response) => {
+        return response.data
+      })
+      .catch(() => {
+        return undefined
+      })
+  },
+
+  getUserByUrl(url) {
+    const userId = this.extractIdFromUrl(url);
+    if(userId) {
+      return this.getUserById(userId);
+    }
+    return new Error('Invalid User URL');
+  },
+
+  extractIdFromUrl(url) {
+    const match = url.match(/\/api\/customusers\/(\d+)\//);
+    return match ? match[1] : null;
+  },
+
+ 
+  registerUser(payload) {
+    if (!user.value) {
+      return Promise.reject("No user to update.");
+    }
+
+    return api.patch(`customusers/${user.value.pk}/`, payload).then((response) => {
+      user.value = response.data;
+      return response.data;
+    });
+  },
   getCustomuser() {
     return api.get(`/customusers/me/`) 
       .then((response) => {

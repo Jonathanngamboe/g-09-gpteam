@@ -1,44 +1,99 @@
 <template>
+  <div class="col text-center q-gutter-md">
     <!-- Carrousel d'images -->
-    <div class="col text-center q-gutter-md">
-        <q-carousel
-            swipeable
-            animated
-            arrows
-            v-model="slide"
-            v-model:fullscreen="fullscreen"
-            infinite
-            thumbnails
-        >
-            <q-carousel-slide
-                v-for="(image, index) in room.images"
-                :key="index"
-                :name="index"
-                :img-src="image.image ? image.image : image.ext_url"
-            />
-            <template v-slot:control>
-                <q-carousel-control
-                    position="bottom-right"
-                    :offset="[18, 18]"
-                >
-                    <q-btn
-                        push round dense color="white" text-color="primary"
-                        :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                        @click="fullscreen = !fullscreen"
-                    />
-                </q-carousel-control>
-            </template>
-        </q-carousel>
-        <!-- Edit les images -->
+    <q-carousel
+      swipeable
+      animated
+      arrows
+      v-model="slide"
+      v-model:fullscreen="fullscreen"
+      infinite
+      thumbnails
+    >
+      <q-carousel-slide
+        v-for="(image, index) in room.images"
+        :key="index"
+        :name="index"
+        :img-src="image.image_url ? image.image_url : image.ext_url"
+      >
+        <!-- Bouton de suppression pour chaque image en mode édition -->
         <q-btn
-            flat
-            dense
-            label="Edit images"
-            icon-right="edit"
-            @click="editImages"
-            style="font-size: 10px;"
+          v-if="isEditingImage"
+          flat
+          dense
+          label="Delete"
+          icon-right="delete"
+          color="white"
+          @click="confirmDeleteImage(image.id)"
+          style="font-size: 10px; position: absolute; top: 10px; right: 10px;"
         />
+      </q-carousel-slide>
+      <template v-slot:control>
+        <q-carousel-control
+          position="bottom-right"
+          :offset="[18, 18]"
+        >
+          <q-btn
+            push round dense color="white" text-color="primary"
+            :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
+            @click="fullscreen = !fullscreen"
+          />
+        </q-carousel-control>
+      </template>
+    </q-carousel>
+
+  <!-- Editer Images -->
+  <div v-if="isEditingImage">
+    <q-list class="row justify-center">
+        <q-item
+          v-for="(image, index) in room.images"
+          :key="index"
+          @click="selectedImageIndex = index"
+        >
+          <q-item-section>
+            <q-img
+              :src="image.image_url ? image.image_url : image.ext_url"
+              style="width: 50px; height: 50px;"
+            />
+          </q-item-section>
+          <q-item-section>
+            <!-- Delete button for each image -->
+            <q-btn
+              rounded
+              flat
+              dense
+              label="Delete"
+              icon-right="delete"
+              @click="deleteImage(image.id)"
+              style="font-size: 10px;"
+            />
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <!-- Upload button -->
+      <q-uploader
+        flat
+        style="max-width: 250px"
+        label="Upload images"
+        multiple
+        accept=".jpg, image/*"
+        :factory="uploadImage"
+        @uploaded="onUpload"
+        @rejected="onRejected"
+        class="q-my-md q-ml-auto q-mr-auto"
+      />
     </div>
+    <div v-else>
+      <q-btn
+        flat
+        dense
+        label="Edit images"
+        icon-right="edit"
+        @click="toggleEditImages"
+        style="font-size: 10px;"
+      />
+    </div>
+  </div>
 
     <!-- Détails de la pièce -->
     <div class="q-mt-md">
@@ -181,7 +236,7 @@
             </div>
             <div class="col-8">
                 <div v-if="!isEditingDescription" class="text-subtitle2">{{ room.description }}</div>
-                <q-input v-else v-model="editableDescription" />
+                <q-input type="textarea" v-else v-model="editableDescription" />
             </div>
         </div>
     </div>
@@ -193,6 +248,7 @@ import { useQuasar } from 'quasar';
 import propertyService from '../services/propertyService';
 import citiesService from '../services/citiesService';
 import amenitiesService from '../services/amenitiesService';
+import imagesService from '../services/imagesService';
 
 export default {
   props: {
@@ -208,6 +264,11 @@ export default {
     const isEditingAmenities = ref(false);
     const editableAmenities = ref(props.room.amenities.map(a => a.name)); 
     const allAmenities = ref([]);
+    const allImages = ref([]);
+    const isEditingImage = ref(false);
+    const editableImage = ref(props.room.images.url);
+    const selectedImageIndex = ref(0);
+    const showEditImagesModal = ref(false);
 
     const notifySuccess = (message) => {
       $q.notify({
@@ -329,6 +390,70 @@ export default {
       }
     };
 
+    const toggleEditImages = () => {
+      isEditingImage.value = !isEditingImage.value;
+      showEditImagesModal.value = isEditingImage.value;
+      if (isEditingImage.value) {
+        selectedImageIndex.value = 0;
+      }
+    };
+
+  const saveImages = async () => {
+    try {
+      const updatedImages = { images_ids: (allImages.value.find (image => image.url === selectedImageIndex.value))};
+
+      const response = await propertyService.updateProperty(props.room.id, { images: updatedImages });
+      if (response) {
+        notifySuccess('The images have been successfully updated.');
+
+        props.room.images = allImages.value.find (image => image.url === selectedImageIndex.value);
+      }
+      toggleEditImages();
+    } catch (error) {
+      notifyError('An error occurred while updating the images', error);
+    }
+  }; 
+
+  const uploadImage = async (files) => {
+    if (!files || files.length === 0) {
+        notifyError('No file selected');
+        return;
+    }
+
+    const actualFile = files[0]; 
+
+    const formData = new FormData();
+    if (actualFile) {
+        formData.append('image', actualFile);
+    } else {
+        notifyError('No file selected');
+        return;
+    }
+
+    try {
+        const response = await imagesService.uploadImageForProperty(props.room.id, formData);
+        if (response) {
+            propertyService.getPropertyById(props.room.id).then((property) => {
+                props.room.images = property.images;
+                allImages.value = property.images;
+                slide.value = allImages.value.findIndex(image => image.id === response.id);
+            });
+            notifySuccess('Image successfully uploaded.');
+        }
+    } catch (error) {
+        notifyError('An error occurred while uploading the image', error);
+    }
+  };
+
+
+  const onUpload = (response) => {
+    notifySuccess('Images successfully uploaded.');
+  };
+
+  const onRejected = (files) => {
+      notifyError('Image upload failed', { message: `Files were rejected: ${files.map(f => f.name).join(', ')}` });
+  };
+
     const saveCity = async () => {
       try {
         const updatedCity = { city_id: (cities.value.find(city => city.url === editableCity.value)).name };
@@ -375,9 +500,27 @@ export default {
       }
     };
 
-    const editImages = () => {
-      console.log('Edit images');
+    const confirmDeleteImage = async (imageId) => {
+      if (confirm("Are you sure you want to delete this image?")) {
+        await deleteImage(imageId);
+      }
     };
+
+  const deleteImage = async (imageId) => {
+    try {
+      await imagesService.deleteImage(imageId);
+      
+      props.room.images = props.room.images.filter(image => image.id !== imageId);
+      allImages.value = allImages.value.filter(image => image.id !== imageId);
+
+      notifySuccess('Image successfully deleted.');
+
+      const remainingImageIndex = props.room.images.findIndex(image => image.id !== imageId);
+      slide.value = remainingImageIndex >= 0 ? remainingImageIndex : 0;
+    } catch (error) {
+      notifyError('An error occurred while deleting the image', error);
+    }
+  };
 
     return {
       fullscreen,
@@ -405,13 +548,24 @@ export default {
       savePrice,
       formatNumber,
       formatAmenities,
-      editImages,
       isEditingAmenities,
       editableAmenities,
       toggleEditAmenities,
       saveAmenities,
       getAllAmenities,
-      allAmenities
+      allAmenities,
+      allImages,
+      isEditingImage,
+      editableImage,
+      toggleEditImages,
+      selectedImageIndex,
+      saveImages,
+      deleteImage,
+      confirmDeleteImage,
+      showEditImagesModal,
+      uploadImage,
+      onUpload,
+      onRejected
     };
   }
 };
