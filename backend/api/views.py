@@ -91,7 +91,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=False, methods=['get'], url_path='user-bookings/(?P<user_id>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'user-bookings/(?P<user_id>\d+)')
     def user_bookings(self, request, user_id=None):
         """
         Retrieve all bookings for a specific user.
@@ -104,7 +104,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         self.update_booking_status()
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='room-bookings/(?P<room_id>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'room-bookings/(?P<room_id>\d+)')
     def room_bookings(self, request, room_id=None):
         """
         Retrieve all bookings for a specific room.
