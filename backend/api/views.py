@@ -3,7 +3,7 @@ from django.views.decorators.cache import never_cache
 from rest_framework import viewsets, permissions, status
 from .models import  Booking, Property, PropertyType, Amenity, Status, Image, City, Review, Message, CustomUser, Unavailability
 from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSerializer, AmenitySerializer, StatusSerializer, ImageSerializer, CitySerializer, ReviewSerializer, MessageSerializer, CustomUserSerializer, UnavailabilitySerializer
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -250,6 +250,23 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
         return queryset.distinct()
 
+    @action(detail=True, methods=['post'], url_path='add-image')
+    def add_image_to_property(self, request, pk=None):
+        try:
+            property = self.get_object()  # Ceci utilise 'pk' pour obtenir l'objet
+            image_id = request.data.get('imageId')
+            if not image_id:
+                return Response({'error': 'No image ID provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+            image = Image.objects.get(id=image_id)
+            property.images.add(image)
+            property.save()
+            return Response({'message': 'Image added successfully'}, status=status.HTTP_200_OK)
+        except Image.DoesNotExist:
+            return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Property.DoesNotExist:
+            return Response({'error': 'Property not found'}, status=status.HTTP_404_NOT_FOUND)
+
 class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows property types to be viewed or edited.
@@ -281,6 +298,19 @@ class ImageViewSet(viewsets.ModelViewSet):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        file = request.FILES.get('image')
+        if not file:
+            return JsonResponse({'error': 'No file provided'}, status=400)
+
+        file_serializer = self.get_serializer(data={'image_url': file})
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CityViewSet(viewsets.ModelViewSet):
     """
