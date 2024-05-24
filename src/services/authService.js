@@ -50,6 +50,7 @@ export default {
       .get(`dj-rest-auth/user/`)
       .then((response) => {
         user.value = response.data
+        return response.data; // return user data
       })
       .catch(() => {
         user.value = undefined
@@ -80,6 +81,17 @@ export default {
     return match ? match[1] : null;
   },
 
+ 
+  registerUser(payload) {
+    if (!user.value) {
+      return Promise.reject("No user to update.");
+    }
+
+    return api.patch(`customusers/${user.value.pk}/`, payload).then((response) => {
+      user.value = response.data;
+      return response.data;
+    });
+  },
   getCustomuser() {
     return api.get(`/customusers/me/`) 
       .then((response) => {
