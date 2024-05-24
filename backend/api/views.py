@@ -142,8 +142,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         if not property_id:
             return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not self.is_available(property_id, check_in_date, check_out_date):
-            return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+        #if not self.is_available(property_id, check_in_date, check_out_date):
+            #return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
 
         request._full_data = mutable_data  # Update the request data
         return super().create(request, *args, **kwargs)
