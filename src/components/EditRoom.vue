@@ -14,7 +14,7 @@
         v-for="(image, index) in room.images"
         :key="index"
         :name="index"
-        :img-src="image.image ? image.image : image.ext_url"
+        :img-src="image.image_url ? image.image_url : image.ext_url"
       >
         <!-- Bouton de suppression pour chaque image en mode édition -->
         <q-btn
@@ -42,8 +42,48 @@
       </template>
     </q-carousel>
 
-    <!-- Editer les images -->
-    <div v-if="!isEditingImage" class="col justify-between">
+  <!-- Editer Images -->
+  <div v-if="isEditingImage">
+    <q-list class="row justify-center">
+        <q-item
+          v-for="(image, index) in room.images"
+          :key="index"
+          @click="selectedImageIndex = index"
+        >
+          <q-item-section>
+            <q-img
+              :src="image.image_url ? image.image_url : image.ext_url"
+              style="width: 50px; height: 50px;"
+            />
+          </q-item-section>
+          <q-item-section>
+            <!-- Delete button for each image -->
+            <q-btn
+              rounded
+              flat
+              dense
+              label="Delete"
+              icon-right="delete"
+              @click="deleteImage(image.id)"
+              style="font-size: 10px;"
+            />
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <!-- Upload button -->
+      <q-uploader
+        flat
+        style="max-width: 250px"
+        label="Upload images"
+        multiple
+        accept=".jpg, image/*"
+        :factory="uploadImage"
+        @uploaded="onUpload"
+        @rejected="onRejected"
+        class="q-my-md q-ml-auto q-mr-auto"
+      />
+    </div>
+    <div v-else>
       <q-btn
         flat
         dense
@@ -53,70 +93,6 @@
         style="font-size: 10px;"
       />
     </div>
-    <div v-else class="col justify-between">
-      <q-btn
-        flat
-        dense
-        label="Cancel"
-        icon-right="cancel"
-        @click="toggleEditImages"
-        style="font-size: 10px;"
-      />
-   <!--    <q-btn
-        flat
-        dense
-        label="Save"
-        icon-right="save"
-        @click="saveImages"
-        style="font-size: 10px;" -->
-      
-    </div>
-        <!-- Modal pour l'édition des images -->
-        <q-dialog v-model="showEditImagesModal">
-            <div class="q-pa-md text-center">
-              <div style="width: 400px; height: 300px; background-color: #ccc; margin: 0 auto; position: relative;">
-                <p class="q-mt-sm">Slide your image</p>
-                <p class="q-mt-sm">To be implemented</p>
-              <div style="width: 300px; height: 200px; background-color: #f5f5f5; border: 2px dashed #ccc; margin: 20px auto;"></div>
-          </div>
-          </div>
-        </q-dialog> 
-
-    <!-- Formulaire de modification des images -->
-   <!--  <div v-if="isEditingImage" class="q-mt-md">
-      <q-carousel
-        swipeable
-        animated
-        arrows
-        v-model="selectedImageIndex"
-        :options="allImages.map(image => ({ label: image.id, value: image.url }))"
-        emit-value
-        map-options
-        dense
-        infinite
-        thumbnails
-      >
-        <q-carousel-slide
-          v-for="(image, index) in allImages"
-          :key="index"
-          :name="index"
-          :img-src="image.ext_url"
-          class="carousel-slide"
-        />
-        <template v-slot:control>
-          <q-carousel-control
-            position="bottom-right"
-            :offset="[18, 18]"
-          >
-            <q-btn
-              push round dense color="white" text-color="primary"
-              :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
-              @click="fullscreen = !fullscreen"
-            />
-          </q-carousel-control>
-        </template>
-      </q-carousel>
-    </div> -->
   </div>
 
     <!-- Détails de la pièce -->
@@ -260,7 +236,7 @@
             </div>
             <div class="col-8">
                 <div v-if="!isEditingDescription" class="text-subtitle2">{{ room.description }}</div>
-                <q-input v-else v-model="editableDescription" />
+                <q-input type="textarea" v-else v-model="editableDescription" />
             </div>
         </div>
     </div>
@@ -329,21 +305,10 @@ export default {
       }
     };
 
-    const getAllImages = async () => {
-      try {
-        allImages.value = await imagesService.getAllImages();
-        console.log("allImages", allImages.value);
-      } catch (error) {
-        notifyError('An error occurred while retrieving images', error);
-      }
-    };
-
     getAllAmenities();
 
     // Appel de la méthode pour récupérer les villes au chargement du composant
     getAllCities();
-
-    getAllImages();
 
     const createEditMethod = (fieldName, successMessage) => {
       const isEditing = ref(false);
@@ -433,23 +398,61 @@ export default {
       }
     };
 
-  /*   const saveImages = async () => {
-  try {
-    const updatedImages = { images_ids: (allImages.value.find (image => image.url === selectedImageIndex.value))};
-    console.log('updatedImages', updatedImages);
-    const response = await propertyService.updateProperty(props.room.id, { images: updatedImages });
-    if (response) {
-      notifySuccess('The images have been successfully updated.');
-      // Mettre à jour les images de la chambre avec les nouvelles images
-      props.room.images = allImages.value.find (image => image.url === selectedImageIndex.value);
-    }
-    // Fermer le mode édition des images
-    toggleEditImages();
-  } catch (error) {
-    notifyError('An error occurred while updating the images', error);
-  }
-}; */
+  const saveImages = async () => {
+    try {
+      const updatedImages = { images_ids: (allImages.value.find (image => image.url === selectedImageIndex.value))};
 
+      const response = await propertyService.updateProperty(props.room.id, { images: updatedImages });
+      if (response) {
+        notifySuccess('The images have been successfully updated.');
+
+        props.room.images = allImages.value.find (image => image.url === selectedImageIndex.value);
+      }
+      toggleEditImages();
+    } catch (error) {
+      notifyError('An error occurred while updating the images', error);
+    }
+  }; 
+
+  const uploadImage = async (files) => {
+    if (!files || files.length === 0) {
+        notifyError('No file selected');
+        return;
+    }
+
+    const actualFile = files[0]; 
+
+    const formData = new FormData();
+    if (actualFile) {
+        formData.append('image', actualFile);
+    } else {
+        notifyError('No file selected');
+        return;
+    }
+
+    try {
+        const response = await imagesService.uploadImageForProperty(props.room.id, formData);
+        if (response) {
+            propertyService.getPropertyById(props.room.id).then((property) => {
+                props.room.images = property.images;
+                allImages.value = property.images;
+                slide.value = allImages.value.findIndex(image => image.id === response.id);
+            });
+            notifySuccess('Image successfully uploaded.');
+        }
+    } catch (error) {
+        notifyError('An error occurred while uploading the image', error);
+    }
+  };
+
+
+  const onUpload = (response) => {
+    notifySuccess('Images successfully uploaded.');
+  };
+
+  const onRejected = (files) => {
+      notifyError('Image upload failed', { message: `Files were rejected: ${files.map(f => f.name).join(', ')}` });
+  };
 
     const saveCity = async () => {
       try {
@@ -497,34 +500,27 @@ export default {
       }
     };
 
-    const editImages = () => {
-      console.log('Edit images');
-    };
     const confirmDeleteImage = async (imageId) => {
       if (confirm("Are you sure you want to delete this image?")) {
         await deleteImage(imageId);
       }
     };
-// Après avoir supprimé une image, mettez à jour le modèle slide
-const deleteImage = async (imageId) => {
-  try {
-    await imagesService.deleteImage(imageId);
-    // Remove the image from the lists
-    props.room.images = props.room.images.filter(image => image.id !== imageId);
-    allImages.value = allImages.value.filter(image => image.id !== imageId);
-    notifySuccess('Image successfully deleted.');
 
-    // Find the index of the first remaining image
-    const remainingImageIndex = props.room.images.findIndex(image => image.id !== imageId);
+  const deleteImage = async (imageId) => {
+    try {
+      await imagesService.deleteImage(imageId);
+      
+      props.room.images = props.room.images.filter(image => image.id !== imageId);
+      allImages.value = allImages.value.filter(image => image.id !== imageId);
 
-    // Update the slide model of the carousel to point to the index of the first remaining image
-    slide.value = remainingImageIndex >= 0 ? remainingImageIndex : 0;
-  } catch (error) {
-    // Handle errors
-  }
-};
+      notifySuccess('Image successfully deleted.');
 
-
+      const remainingImageIndex = props.room.images.findIndex(image => image.id !== imageId);
+      slide.value = remainingImageIndex >= 0 ? remainingImageIndex : 0;
+    } catch (error) {
+      notifyError('An error occurred while deleting the image', error);
+    }
+  };
 
     return {
       fullscreen,
@@ -552,7 +548,6 @@ const deleteImage = async (imageId) => {
       savePrice,
       formatNumber,
       formatAmenities,
-      editImages,
       isEditingAmenities,
       editableAmenities,
       toggleEditAmenities,
@@ -564,10 +559,13 @@ const deleteImage = async (imageId) => {
       editableImage,
       toggleEditImages,
       selectedImageIndex,
-      // saveImages,
+      saveImages,
       deleteImage,
       confirmDeleteImage,
-      showEditImagesModal
+      showEditImagesModal,
+      uploadImage,
+      onUpload,
+      onRejected
     };
   }
 };
