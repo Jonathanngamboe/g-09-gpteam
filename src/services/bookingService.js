@@ -82,8 +82,8 @@ export default {
             .catch(error => {
                 throw new Error('Failed to fetch property data: ' + error.message);
             });
-    }
-    /*getUserBookings(userId) {
+    },
+    getUserBookings(userId) {
         return api.get(`${endpoint}user-bookings/${userId}`)
             .then(response => response.data)
             .catch(error => {
@@ -106,5 +106,5 @@ export default {
             .catch(error => {
                 throw new Error('Failed to update booking status: ' + error.message);
             });        
-    }*/
+    }
 };
