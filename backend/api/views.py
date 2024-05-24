@@ -24,7 +24,6 @@ import re
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
@@ -281,7 +280,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         # Filter by rating
         if min_rating is not None or max_rating is not None:
             queryset = queryset.annotate(
-                average_rating=Avg('booking__review__rating')
+                average_rating=Avg('bookings__review__rating')
             )
             
             # Initialize the rating conditions
