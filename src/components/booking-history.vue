@@ -15,7 +15,7 @@
                 <div class="q-mt-md">
                     <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
                 </div>
-                <div class="q-mt-md">
+                <div class="q-mt-xs">
                     <q-btn
                         v-if="extractStatusFromUrl(booking.status) === 'confirmed'"
                         unelevated
@@ -24,6 +24,15 @@
                         label="Cancel"
                         icon="cancel"
                         @click="updateBookingStatus(booking.id, 'Cancelled')"
+                    />
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'completed'"
+                        unelevated
+                        rounded
+                        color="primary"
+                        label="Leave a Review"
+                        icon="rate_review"
+                        @click="router.push({ name: 'Review', params: { bookingId: booking.id } })"
                     />
                 </div>
             </q-timeline-entry>
@@ -53,7 +62,7 @@
                     <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
                 </div>
                 <!-- Buttons to approve, reject or cancel booking -->
-                <div class="q-gutter-md q-mt-md">
+                <div class="q-gutter-md q-mt-xs">
                     <q-btn
                         v-if="extractStatusFromUrl(booking.status) === 'pending'"
                         unelevated
@@ -71,6 +80,15 @@
                         :label="extractStatusFromUrl(booking.status) === 'pending' ? 'Reject' : 'Cancel'"
                         icon="cancel"
                         @click="updateBookingStatus(booking.id, 'Cancelled')"
+                    />
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'completed'"
+                        unelevated
+                        rounded
+                        color="primary"
+                        label="Leave a Review"
+                        icon="rate_review"
+                        @click="router.push({ name: 'Review', params: { bookingId: booking.id } })"
                     />
                 </div>
             </q-timeline-entry>
@@ -291,7 +309,8 @@
                 extractStatusFromUrl,
                 getStatusColor,
                 getIcon,
-                updateBookingStatus
+                updateBookingStatus,
+                router
             };
         },
     };
