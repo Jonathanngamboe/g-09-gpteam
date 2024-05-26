@@ -33,7 +33,7 @@
                 </q-carousel>
                 <!-- Room details -->
                 <div class="text-overline text-secondary q-pt-md">{{ room.city.name }}</div>
-                <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" />
+                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px" />
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
                 <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
                 <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
@@ -67,8 +67,22 @@
                         />  
                     </div>           
                     <!-- Book button -->
+                    <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 0">
+                        <q-btn
+                            class="full-width"
+                            icon-right="keyboard_arrow_right"
+                            unelevated
+                            rounded
+                            color="green-14"
+                            label="Book"
+                            :disabled="isBookButtonDisabled"
+                            @click="handleBookRoom(room.id, checkIn, checkOut)"
+                        />
+                    </q-page-sticky>
                     <q-btn
+                        v-else
                         class="full-width"
+                        icon-right="keyboard_arrow_right"
                         unelevated
                         rounded
                         color="green-14"
@@ -100,7 +114,16 @@
                     </div>
                 </div>
             </q-card-section>
-            <!-- TODO: Add the reviews section -->
+            <!-- Reviews section -->
+            <q-card-section v-if="room.reviews.length > 0">
+                <div class="text-h6">Reviews</div>
+                <div v-for="review in room.reviews" :key="review.id" class="q-mt-md">
+                    <q-rating v-model="review.rating" size="16px" readonly color="primary" />
+                    <div class="text-subtitle2 q-mt-xs">{{ review.comment }}</div>
+                    <div class="text-caption text-grey">{{ review.username }} - {{ new Date(review.date).toLocaleDateString() }}</div>
+                    <q-separator class="q-my-md" />
+                </div>
+            </q-card-section>
         </q-card>
     </div>
   </template>
@@ -111,8 +134,7 @@
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
     import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDates, getUnavailableDates } from '@/utils/dateUtils';
-
-
+  
     export default defineComponent({
         props: {
             room: {
@@ -160,8 +182,6 @@
             });
             const disableCheckIn = computed(() => {
                 const dateString = checkIn.value;
-                console.log(bookedDates.value)
-                console.log(bookedDates.value.includes(dateString));
                 return bookedDates.value.includes(dateString);
             });
 
@@ -201,7 +221,7 @@
                 handleBookRoom,
                 isBookButtonDisabled,
                 disableCheckIn,
-                disableCheckOut
+                disableCheckOut,
             }
         },
         methods: {
