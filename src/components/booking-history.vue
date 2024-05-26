@@ -92,6 +92,10 @@
             room: {
                 type: Object,
                 required: false
+            }, 
+            rooms: {
+                type: Array,
+                default: () => []
             }
         },
         setup(props) {
@@ -101,7 +105,23 @@
             const $q = useQuasar();
             
             const fetchBookings = async () => {
-                if(props.room) {
+                if (props.rooms.length > 0) {
+                    try {
+                        const allRoomBookings = await Promise.all(props.rooms.map(room => 
+                            bookingService.getRoomBookings(room.id)
+                        ));
+                        roomBookings.value = allRoomBookings.flat();
+                        roomBookings.value = await getUserInBooking(roomBookings.value);
+                        roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    } catch (error) {
+                        $q.notify({
+                            color: 'negative',
+                            position: 'top',
+                            message: `Failed to fetch room bookings: ${error.message}`
+                        });
+                    }
+                }
+                else if(props.room) {
                     try {
                         // Fetch room bookings
                         roomBookings.value = await bookingService.getRoomBookings(props.room.id);
