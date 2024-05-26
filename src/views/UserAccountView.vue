@@ -1,11 +1,12 @@
 <template>
-  <q-tabs dense align="justify" v-model="tab" mobile-arrows>
-    <q-tab name="user-info" icon="person" />
-    <q-tab name="rooms" icon="bed" />
-    <q-tab name="Messages" icon="message">
+  <q-tabs dense align="justify" v-model="tab" mobile-arrows inline-label no-caps>
+    <q-tab name="user-info" icon="person" label="My personal details" />
+    <q-tab name="rooms" icon="bed" label="My Rooms" />
+    <q-tab name="My Rooms Bookings" icon="book" label="My Rooms Bookings" />
+    <!-- <q-tab name="Messages" icon="message"> 
       <q-badge color="primary" floating>5</q-badge>
-    </q-tab>
-    <q-tab name="Booking History" icon="history" />
+    </q-tab>-->
+    <q-tab name="My Booking History" icon="history" label="My Booking History" />
   </q-tabs>
 
   <!-- Page content for each tab -->
@@ -49,7 +50,7 @@
     </q-tab-panel>
 
     <!-- Messages Tab Panel -->
-    <q-tab-panel name="Messages">
+    <!-- <q-tab-panel name="Messages">
       <q-toolbar class="q-gutter-md q-my-md full-width">
         <q-btn
                 flat
@@ -62,10 +63,29 @@
           My messages
         </q-toolbar-title>
       </q-toolbar> 
+    </q-tab-panel>-->
+
+    <!-- Rooms Bookings Tab Panel -->
+    <q-tab-panel name="My Rooms Bookings">
+      <q-toolbar class="q-gutter-md q-my-md full-width">
+        <q-btn
+                flat
+                round
+                dense
+                icon="arrow_back"
+                @click="goBack"
+            />
+        <q-toolbar-title>
+          My Rooms Bookings
+        </q-toolbar-title>
+      </q-toolbar> 
+      <q-card-section>
+        <bookingHistory :rooms="rooms" />
+      </q-card-section>
     </q-tab-panel>
 
-    <!-- Booking History Tab Panel -->
-    <q-tab-panel name="Booking History">
+    <!-- User Booking History Tab Panel -->
+    <q-tab-panel name="My Booking History">
       <q-toolbar class="q-gutter-md q-my-md full-width">
         <q-btn
                 flat
