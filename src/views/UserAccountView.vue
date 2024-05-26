@@ -1,8 +1,8 @@
 <template>
   <q-tabs dense align="justify" v-model="tab" mobile-arrows inline-label no-caps>
     <q-tab name="user-info" icon="person" label="My personal details" />
-    <q-tab name="rooms" icon="bed" label="My Rooms" />
-    <q-tab name="My Rooms Bookings" icon="book" label="My Rooms Bookings" />
+    <q-tab name="rooms" icon="bed" label="My rooms" />
+    <q-tab name="My rooms Bookings" icon="book" label="My rooms Bookings" />
     <!-- <q-tab name="Messages" icon="message"> 
       <q-badge color="primary" floating>5</q-badge>
     </q-tab>-->
@@ -66,7 +66,7 @@
     </q-tab-panel>-->
 
     <!-- Rooms Bookings Tab Panel -->
-    <q-tab-panel name="My Rooms Bookings">
+    <q-tab-panel name="My rooms Bookings">
       <q-toolbar class="q-gutter-md q-my-md full-width">
         <q-btn
                 flat
@@ -76,7 +76,7 @@
                 @click="goBack"
             />
         <q-toolbar-title>
-          My Rooms Bookings
+          My rooms Bookings
         </q-toolbar-title>
       </q-toolbar> 
       <q-card-section>
