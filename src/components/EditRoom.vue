@@ -82,6 +82,14 @@
         @rejected="onRejected"
         class="q-my-md q-ml-auto q-mr-auto"
       />
+      <q-btn
+        flat
+        dense
+        label="Close"
+        icon-right="close"
+        @click="toggleEditImages"
+        style="font-size: 10px;"
+      />
     </div>
     <div v-else>
       <q-btn
