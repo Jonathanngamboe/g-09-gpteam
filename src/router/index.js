@@ -24,7 +24,8 @@ const routes = [
       { path: "/EditUserInformations", name: "EditUserInformations", component: EditUserInformationsView },
       { path: '/manage-room', name: 'ManageRoom', component: ManageRoomView}, // Nouvelle route ajoutée
       { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/404View.vue') },
-      { path: '/Booking', name: 'Booking', component: () => import('@/views/BookingView.vue') },   
+      { path: '/Booking', name: 'Booking', component: () => import('@/views/BookingView.vue') },
+      { path: '/review', name: 'Review', component: () => import('@/views/ReviewView.vue')}
     ]
   },
 ];
