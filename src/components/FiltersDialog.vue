@@ -1,6 +1,12 @@
 <template>
   <q-dialog v-model="visible" :position="dialogPosition">
     <div class="filters-container">
+      <q-bar class="full-width bg-white text-primary">
+        <q-space />
+        <q-btn dense flat icon="close" v-close-popup>
+            <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+        </q-btn>        
+      </q-bar>
       <!-- Price range filter -->
       <div class="price-range-selector">
         <label for="price-range">Price Range</label>
