@@ -9,9 +9,12 @@
         {{ loginError }}
       </div>
       <!-- Buttons -->
-      <div class="button-group">
+      <div class="col text-center">
         <q-btn style="width: 130px" unelevated rounded color="primary" label="Login" @click="login" :disable="!username || !password" />
-        <q-btn style="width: 130px" unelevated rounded color="primary" label="Register" @click="openRegister" />
+        <!-- Register text with register link -->
+        <div class="text-caption text-grey q-mt-md">
+          Don't have an account? <a @click="openRegister" style="cursor: pointer; color: #027be3;">Register</a>
+        </div>
       </div>
     </div>
   </q-dialog>
@@ -26,7 +29,7 @@ import { useRouter } from 'vue-router';
 import RegisterDialog from './RegisterDialog.vue';
 
 export default defineComponent({
-  emits: ['toggle-login', 'update:isVisible'],
+  emits: ['toggle-login', 'update:isVisible', 'close'],
   props: {
     isVisible: Boolean
   },
