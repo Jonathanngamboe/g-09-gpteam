@@ -19,7 +19,8 @@
                 {{ loginError }}
             </div>
             <!-- Buttons -->
-            <div class="button-group">
+            <div class="row q-gutter-md justify-center">
+                <q-btn style="width: 130px" unelevated rounded color="negative" label="Cancel" @click="visible = false" />
                 <q-btn style="width: 130px" unelevated rounded color="primary" label="Register" @click="register"
                     :disable="!username || !password || !first_name || !last_name || !date_of_birth || !email" />
             </div>
