@@ -8,7 +8,7 @@
           <router-link to="/">
             <img src="https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png" alt="Logo" style="height: 30px" />
           </router-link>
-        </div
+        </div>
 
         <!-- Search bar -->
         <q-toolbar-title class="row justify-center">
