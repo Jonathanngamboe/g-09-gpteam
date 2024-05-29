@@ -10,7 +10,7 @@
       <q-card-section>
         <div class="text-overline text-secondary">{{ room.city?.name || 'Unknown city' }}</div>
         <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" v-if="room.average_rating" />
-        <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title || 'No title available' }}</div>
+        <div class="title text-h5 q-mt-sm q-mb-xs">{{ room.title || 'No title available' }}</div>
         <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) || 'N/A' }} m²</div>
         <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) || 'N/A' }}.- per night</div>
         <div class="text-caption text-grey">
@@ -112,4 +112,9 @@
       width: 100%; /* Set image width to fill card width */
       object-fit: cover; /* Cover ensures the image covers the area, might crop */
     }  
+
+    .title {
+      height: 3.2em; /* Limit title height to 3.2em */
+      text-align: left;
+    }
 </style>
