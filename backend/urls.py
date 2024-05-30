@@ -36,7 +36,9 @@ router.register('unavailabilities', UnavailabilityViewSet)
 urlpatterns = [
     path('api/customusers/me/', current_user, name='current-user'),
     path('api/send-email/', send_emails, name='send-email'),
-
+    path('api/properties/<int:pk>/add-image/', PropertyViewSet.as_view({
+        'post': 'add_image_to_property'
+    }), name='add-image-to-property'),
                   # http://localhost:8000/
     path('', index_view, name='index'),
 

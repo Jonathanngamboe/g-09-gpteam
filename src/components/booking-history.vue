@@ -8,11 +8,14 @@
                 :key="booking.id"
                 :color="getStatusColor(extractStatusFromUrl(booking.status))" 
                 :icon="getIcon(extractStatusFromUrl(booking.status))"
-                :title="booking.property.title + ', booking from ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
+                :title="booking.property.title + ', booked on ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
                 :subtitle="extractStatusFromUrl(booking.status)"
                 :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
             >
                 <div class="q-mt-md">
+                    <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
+                </div>
+                <div class="q-mt-xs">
                     <q-btn
                         v-if="extractStatusFromUrl(booking.status) === 'confirmed'"
                         unelevated
@@ -21,6 +24,15 @@
                         label="Cancel"
                         icon="cancel"
                         @click="updateBookingStatus(booking.id, 'Cancelled')"
+                    />
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'completed'"
+                        unelevated
+                        rounded
+                        color="primary"
+                        label="Leave a Review"
+                        icon="rate_review"
+                        @click="router.push({ name: 'Review', params: { bookingId: booking.id } })"
                     />
                 </div>
             </q-timeline-entry>
@@ -42,12 +54,15 @@
                 :key="booking.id"
                 :color="getStatusColor(extractStatusFromUrl(booking.status))" 
                 :icon="getIcon(extractStatusFromUrl(booking.status))"
-                :title="booking.user.first_name + ' ' + booking.user.last_name + ', booking from ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
+                :title="booking.property.title + ', booked by ' + booking.user.first_name + ' ' + booking.user.last_name + ', on ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
                 :subtitle="extractStatusFromUrl(booking.status)"
                 :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
             >
+                <div class="q-mt-md">
+                    <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
+                </div>
                 <!-- Buttons to approve, reject or cancel booking -->
-                <div class="q-gutter-md q-mt-md">
+                <div class="q-gutter-md q-mt-xs">
                     <q-btn
                         v-if="extractStatusFromUrl(booking.status) === 'pending'"
                         unelevated
@@ -65,6 +80,15 @@
                         :label="extractStatusFromUrl(booking.status) === 'pending' ? 'Reject' : 'Cancel'"
                         icon="cancel"
                         @click="updateBookingStatus(booking.id, 'Cancelled')"
+                    />
+                    <q-btn
+                        v-if="extractStatusFromUrl(booking.status) === 'completed'"
+                        unelevated
+                        rounded
+                        color="primary"
+                        label="Leave a Review"
+                        icon="rate_review"
+                        @click="router.push({ name: 'Review', params: { bookingId: booking.id } })"
                     />
                 </div>
             </q-timeline-entry>
@@ -92,6 +116,10 @@
             room: {
                 type: Object,
                 required: false
+            }, 
+            rooms: {
+                type: Array,
+                default: () => []
             }
         },
         setup(props) {
@@ -101,10 +129,35 @@
             const $q = useQuasar();
             
             const fetchBookings = async () => {
-                if(props.room) {
+                if (props.rooms.length > 0) {
+                    try {
+                        const allRoomBookings = await Promise.all(props.rooms.map(room => 
+                            bookingService.getRoomBookings(room.id)
+                        ));
+
+                        roomBookings.value = allRoomBookings.flat().map(booking => {
+                            const matchedRoom = props.rooms.find(room => room.url === booking.property);
+                            return { ...booking, property: matchedRoom };
+                        });
+
+                        roomBookings.value = await getUserInBooking(roomBookings.value);
+                        roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    } catch (error) {
+                        $q.notify({
+                            color: 'negative',
+                            position: 'top',
+                            message: `Failed to fetch room bookings: ${error.message}`
+                        });
+                    }
+                }
+                else if(props.room) {
                     try {
                         // Fetch room bookings
                         roomBookings.value = await bookingService.getRoomBookings(props.room.id);
+                        // Enrich bookings with property details
+                        roomBookings.value = roomBookings.value.map(booking => {
+                            return { ...booking, property: props.room };
+                        });
                         // Enrich bookings with user details
                         roomBookings.value = await getUserInBooking(roomBookings.value);
                         // Sort bookings by created_at date from newest to oldest
@@ -256,7 +309,8 @@
                 extractStatusFromUrl,
                 getStatusColor,
                 getIcon,
-                updateBookingStatus
+                updateBookingStatus,
+                router
             };
         },
     };

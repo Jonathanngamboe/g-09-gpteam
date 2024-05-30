@@ -6,9 +6,9 @@
         <!-- Logo -->
         <div class="row items-center"> 
           <router-link to="/">
-            <img src="@/assets/logo-vue.png" alt="Logo" style="height: 30px" />
+            <img src="https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png" alt="Logo" style="height: 30px" />
           </router-link>
-        </div
+        </div>
 
         <!-- Search bar -->
         <q-toolbar-title class="row justify-center">

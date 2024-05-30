@@ -47,7 +47,42 @@ export default {
                 throw new Error(`Failed to delete booking with ID ${id}: ` + error.message);
             });
     },
+    //Method to retrieve the bookings of a specifi property
+    getBookedDatesByProperty(propertyId){
+        const propertyEndpoint = `/properties/${propertyId}/`;
+    
+        return api.get(propertyEndpoint)
+            .then(response => {
+                const propertyData = response.data;
+                const bookingUrls = propertyData.bookings;
+                const bookingPromises = bookingUrls.map(bookingUrl => api.get(bookingUrl));
+                return Promise.all(bookingPromises)
+                    .then(bookingResponses => {
+                        const dates = [];
+                        bookingResponses.forEach(response => {
+                            const bookingData = response.data;
+                            let check_in = new Date(bookingData.check_in);
+                            let check_out = new Date(bookingData.check_out);
 
+                            //Add the check-in, check-out and middle dates to the array
+                            dates.push(check_in.toISOString().split('T')[0]);
+
+                            for(let date = new Date(check_in.getTime() + 24*60*60*1000); date < check_out; date.setDate(date.getDate() + 1)) {
+                                dates.push(date.toISOString().split('T')[0]);
+                            }
+
+                            dates.push(check_out.toISOString().split('T')[0]);
+                        });
+                        return dates;
+                    })
+                    .catch(error => {
+                        throw new Error('Failed to fetch the property bookings, (bookingService): ' + error.message);
+                    });
+            })
+            .catch(error => {
+                throw new Error('Failed to fetch property data: ' + error.message);
+            });
+    },
     getUserBookings(userId) {
         return api.get(`${endpoint}user-bookings/${userId}`)
             .then(response => response.data)

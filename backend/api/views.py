@@ -24,7 +24,6 @@ import re
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
@@ -92,7 +91,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=False, methods=['get'], url_path='user-bookings/(?P<user_id>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'user-bookings/(?P<user_id>\d+)')
     def user_bookings(self, request, user_id=None):
         """
         Retrieve all bookings for a specific user.
@@ -105,7 +104,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         self.update_booking_status()
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='room-bookings/(?P<room_id>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'room-bookings/(?P<room_id>\d+)')
     def room_bookings(self, request, room_id=None):
         """
         Retrieve all bookings for a specific room.
@@ -198,8 +197,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         if not property_id:
             return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not self.is_available(property_id, check_in_date, check_out_date):
-            return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+        #if not self.is_available(property_id, check_in_date, check_out_date):
+            #return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
 
         request._full_data = mutable_data  # Update the request data
         return super().create(request, *args, **kwargs)
@@ -281,7 +280,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         # Filter by rating
         if min_rating is not None or max_rating is not None:
             queryset = queryset.annotate(
-                average_rating=Avg('booking__review__rating')
+                average_rating=Avg('bookings__review__rating')
             )
             
             # Initialize the rating conditions
@@ -305,6 +304,23 @@ class PropertyViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(rating_conditions)
 
         return queryset.distinct()
+
+    @action(detail=True, methods=['post'], url_path='add-image')
+    def add_image_to_property(self, request, pk=None):
+        try:
+            property = self.get_object()  # Ceci utilise 'pk' pour obtenir l'objet
+            image_id = request.data.get('imageId')
+            if not image_id:
+                return Response({'error': 'No image ID provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+            image = Image.objects.get(id=image_id)
+            property.images.add(image)
+            property.save()
+            return Response({'message': 'Image added successfully'}, status=status.HTTP_200_OK)
+        except Image.DoesNotExist:
+            return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Property.DoesNotExist:
+            return Response({'error': 'Property not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
@@ -337,6 +353,19 @@ class ImageViewSet(viewsets.ModelViewSet):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        file = request.FILES.get('image')
+        if not file:
+            return JsonResponse({'error': 'No file provided'}, status=400)
+
+        file_serializer = self.get_serializer(data={'image_url': file})
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CityViewSet(viewsets.ModelViewSet):
     """

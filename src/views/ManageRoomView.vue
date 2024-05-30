@@ -2,10 +2,10 @@
   <div v-if="room">
     <q-card flat>
       <!-- Tabs -->
-      <q-tabs mobile-arrows v-model="tab" dense align="justify" >
-        <q-tab name="one" icon="info" />
-        <q-tab name="two" icon="edit_calendar" />
-        <q-tab name="three" icon="history" alert="primary" />
+      <q-tabs inline-label no-caps mobile-arrows v-model="tab" dense align="justify" >
+        <q-tab name="one" icon="info" label="Room details" />
+        <q-tab name="two" icon="edit_calendar" label="Room calendar" />
+        <q-tab name="three" icon="history" alert="primary" label="Room booking history" />
       </q-tabs>
 
       <!-- Tab content -->

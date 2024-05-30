@@ -16,7 +16,7 @@
                         v-for="(image, index) in room.images"
                         :key="index"
                         :name="index"
-                        :img-src="image.image ? image.image : image.ext_url"
+                        :img-src="image.image_url ? image.image_url : image.ext_url"
                     />                
                     <template v-slot:control>
                         <q-carousel-control
@@ -33,7 +33,7 @@
                 </q-carousel>
                 <!-- Room details -->
                 <div class="text-overline text-secondary q-pt-md">{{ room.city.name }}</div>
-                <q-rating readonly color="black" v-model="room.average_rating" :max="5" size="16px" />
+                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px" />
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
                 <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
                 <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
@@ -53,11 +53,12 @@
                             style="width: 48%"
                             :min="minDate"
                             :rules="checkInRules"
+                            :disable="disableCheckIn"
                         />
                         <q-input
                             dense
                             label="Check-out"
-                            :disable="!checkIn"
+                            :disable="!checkIn || disableCheckOut"
                             v-model="checkOut"
                             type="date"
                             style="width: 48%"
@@ -66,8 +67,22 @@
                         />  
                     </div>           
                     <!-- Book button -->
+                    <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 0">
+                        <q-btn
+                            class="full-width"
+                            icon-right="keyboard_arrow_right"
+                            unelevated
+                            rounded
+                            color="green-14"
+                            label="Book"
+                            :disabled="isBookButtonDisabled"
+                            @click="handleBookRoom(room.id, checkIn, checkOut)"
+                        />
+                    </q-page-sticky>
                     <q-btn
+                        v-else
                         class="full-width"
+                        icon-right="keyboard_arrow_right"
                         unelevated
                         rounded
                         color="green-14"
@@ -99,7 +114,16 @@
                     </div>
                 </div>
             </q-card-section>
-            <!-- TODO: Add the reviews section -->
+            <!-- Reviews section -->
+            <q-card-section v-if="room.reviews.length > 0">
+                <div class="text-h6">Reviews</div>
+                <div v-for="review in room.reviews" :key="review.id" class="q-mt-md">
+                    <q-rating v-model="review.rating" size="16px" readonly color="primary" />
+                    <div class="text-subtitle2 q-mt-xs">{{ review.comment }}</div>
+                    <div class="text-caption text-grey">{{ review.username }} - {{ new Date(review.date).toLocaleDateString() }}</div>
+                    <q-separator class="q-my-md" />
+                </div>
+            </q-card-section>
         </q-card>
     </div>
   </template>
@@ -109,16 +133,16 @@
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
-    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules } from '@/utils/dateUtils';
-
+    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDates, getUnavailableDates } from '@/utils/dateUtils';
+  
     export default defineComponent({
         props: {
-        room: {
-            type: Object,
-            required: true
-        }
+            room: {
+                type: Object,
+                required: true
+            }
         },
-        setup () {
+        setup (props) {
             const totalNights = ref(0);
             const today = new Date();
             const minDate = ref(today.toISOString().split('T')[0]);
@@ -126,6 +150,7 @@
             const checkOut = ref('');
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
+            const roomId = props.room.id;
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -145,6 +170,25 @@
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate);
             const checkOutRules = getCheckOutRules(checkIn);
+            const bookedDates = ref([]);
+            const unavailableDates = getUnavailableDates(roomId);
+
+            onMounted(async () => {
+                try {
+                    bookedDates.value = await getBookedDates(roomId);
+                } catch (error) {
+                    console.error('Error fetching booked dates:', error);
+                }
+            });
+            const disableCheckIn = computed(() => {
+                const dateString = checkIn.value;
+                return bookedDates.value.includes(dateString);
+            });
+
+            const disableCheckOut = computed(() => {
+                const dateString = checkOut.value;
+                return bookedDates.value.includes(dateString) || !checkIn.value;
+            });
 
             const isBookButtonDisabled = computed(() => {
             return !checkIn.value || !checkOut.value ||
@@ -170,10 +214,14 @@
                 checkOut,
                 minDate,
                 minCheckoutDate,
+                bookedDates,
+                unavailableDates,
                 checkInRules,
                 checkOutRules,
                 handleBookRoom,
-                isBookButtonDisabled
+                isBookButtonDisabled,
+                disableCheckIn,
+                disableCheckOut,
             }
         },
         methods: {
