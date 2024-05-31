@@ -27,7 +27,7 @@
                 range
                 v-model="tempDateRange"
                 class="full-width full-height"
-                :option="dateOptions"
+                :options="dateOptions"
                 :events="eventsFn"
                 :event-color="eventColorFn"
             />
@@ -42,20 +42,20 @@
             </q-item-label>
             <q-list>
                 <q-item
-                    v-for="(date, index) in unavailability.value" 
+                    v-for="(dateRange, index) in tempDateRange" 
                     :key="index"
                     clickable
                     v-ripple
                 >
                     <q-item-section>
                         <q-item-label>
-                            {{ date }}
+                            From: {{ dateRange.from }} - To: {{ dateRange.to }}
                         </q-item-label>
                     </q-item-section>
                     <q-item-section side>
                         <q-item-label caption>
                             <!-- Show the reason for unavailability -->
-                            {{ unavailability.available ? 'Available' : 'Unavailable' }}
+                            Unavailable
                         </q-item-label>
                     </q-item-section>
                 </q-item>
@@ -68,6 +68,7 @@
 
 import { onMounted, ref } from 'vue';
 import { getUnavailableDates } from '@/utils/dateUtils';
+import { date } from 'quasar';
 
 export default {
   name: 'EditAvailabilities',
@@ -78,45 +79,48 @@ export default {
     }
   },
   setup(props) {
-    const tempDateRange = ref({ from: null, to: null });
-    const eventsFn = (date) => {
-      //
-    };
+    const checkIn = ["2024/05/30", "2024/06/02", "2024/06/07"];
+    const checkOut = ["2024/06/01", "2024/06/05", "2024/06/09"];
+    const tempDateRange = ref([]);
     const lockModel = ref('');
     const roomId = props.room.id;
-    const unavailability = ref([]);
+    console.log('TempDateRange: ', tempDateRange.value)
 
-    onMounted(async () => {
-      try {
-        const result = await getUnavailableDates(roomId);
-        unavailability.value = result; 
-        console.log('unavailability: ', unavailability.value);
-      } catch (error) {
-        console.error('Error fetching unavailable dates:', error);
-      }
-    });
+    for(let i = 0; i < checkIn.length; i++) {
+        tempDateRange.value.push({from: checkIn[i], to: checkOut[i]});
+    };  
 
-    const dateOptions = (date) => {
-        const dateString = date.toISOString().slice(0, 10);
-        if(unavailability.includes(dateString)){
-            return {
-                disable: true,
-                };
-            }
-        return{};
-    };
+    // onMounted(async () => {
+    //     console.log('On mounted')
+    //     try {
+    //         const result = await getUnavailableDates(roomId);
+    //         unavailability.value = result;
+    //         console.log('unavailability Django: ', unavailability.value);
+    //     } catch (error) {
+    //         console.error('Error fetching unavailable dates:', error);
+    //     }
+    // });
 
-    const eventColorFn = (date) => {
-      //
-    };
+    // const dateOptions = (date) => {
+    //     const dateString = date.replace(/\//g, '-');
+    //     return unavailability.value.includes(dateString) ? { disable:True } : {};
+    // };
+
+    // const eventColorFn = (date) => {
+    //     const dateString = date.replace(/\//g, '-');
+    //     return unavailability.value.includes(dateString) ? 'dark' : 'light';
+    // };
+    // const eventsFn = (date) => {
+    //     const dateString = date.replace(/\//g, '-');
+    //     return unavailability.value.includes(dateString) ? ['unavailable'] : [];
+    // };
     return {
         splitterModel: ref(20),
-        lockModel,
-        eventColorFn,
+        lockModel,        
         tempDateRange,
-        eventsFn,
-        dateOptions,
-        unavailability,
+        // eventColorFn,
+        // eventsFn,
+        // dateOptions,
     };
   }
 };
