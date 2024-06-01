@@ -71,14 +71,9 @@ export default {
                             let start_date = new Date(unavailableData.start_date);
                             let end_date = new Date(unavailableData.end_date);
 
-                            //Add the start, end and middle dates to the array
-                            dates.push(start_date.toISOString().split('T')[0]);
-
-                            for(let date = new Date(start_date.getTime() + 24*60*60*1000); date < end_date; date.setDate(date.getDate() + 1)) {
-                                dates.push(date.toISOString().split('T')[0]);
-                            }
-
-                            dates.push(end_date.toISOString().split('T')[0]);
+                            //Add the start and end date to the dates array
+                            dates.push({ start: start_date.toISOString().split('T')[0].replace(/-/g, '/'), end: end_date.toISOString().split('T')[0].replace(/-/g, '/')});
+                            console.log('UnavailableService dates: ', dates);
                         });
                         return dates;
                     })

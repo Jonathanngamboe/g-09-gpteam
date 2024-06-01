@@ -45,12 +45,13 @@ export function getBookedDates(propertyId){
         });
         return bookings;
 }
-export function getUnavailableDates(propertyId){
-    const unavailableDates = [];
+export async function getUnavailableDates(propertyId){
+    let unavailableDates = [];
 
-    unavailableService.getUnavailableDatesByProperty(propertyId)
+    await unavailableService.getUnavailableDatesByProperty(propertyId)
         .then(fetchedUnavailableDates => {
-            unavailableDates.value = fetchedUnavailableDates;
+            unavailableDates = fetchedUnavailableDates;
+            console.log('Unav. dateUtils: ', unavailableDates);
         })
         .catch(error => {
             console.error('Failed to fetch property unavailabilities (dateUtils): ' + error.message);
