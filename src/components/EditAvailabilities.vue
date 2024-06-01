@@ -84,10 +84,6 @@ export default {
         };
     },
   watch:{
-    tempDateRange(newVal, oldVal){
-        console.log('Selected Value:', newVal);
-        console.log('Old Value:', oldVal);
-    },
     lockModel(newVal){
         if(newVal === 'one'){
             this.saveDates();
@@ -140,9 +136,10 @@ export default {
   },
   methods:{
     async saveDates(){
-        const start_date = this.tempDateRange.value.from;
-        const end_date = this.tempDateRange.value.to;
-        console.log('Start Date:', this.tempDateRange.from);
+        const lastDateRange = this.tempDateRange[this.tempDateRange.length - 1];
+        const start_date = lastDateRange.from.replace(/\//g, '-');
+        const end_date = lastDateRange.to.replace(/\//g, '-');
+        console.log('Start Date:', start_date);
         try{
             await updateUnavailableDates(this.room.id, start_date, end_date);
             this.$q.notify({
