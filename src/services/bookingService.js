@@ -64,14 +64,9 @@ export default {
                             let check_in = new Date(bookingData.check_in);
                             let check_out = new Date(bookingData.check_out);
 
-                            //Add the check-in, check-out and middle dates to the array
-                            dates.push(check_in.toISOString().split('T')[0]);
-
-                            for(let date = new Date(check_in.getTime() + 24*60*60*1000); date < check_out; date.setDate(date.getDate() + 1)) {
-                                dates.push(date.toISOString().split('T')[0]);
-                            }
-
-                            dates.push(check_out.toISOString().split('T')[0]);
+                            //Add the check-in and check-out date to the dates array
+                            dates.push(check_in.toISOString().split('T')[0].replace(/-/g, '/'));
+                            dates.push(check_out.toISOString().split('T')[0].replace(/-/g, '/'));
                         });
                         return dates;
                     })

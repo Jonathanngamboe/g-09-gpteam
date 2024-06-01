@@ -67,7 +67,6 @@
 <script>
 
 import { onMounted, ref } from 'vue';
-//import { getUnavailableDatesByProperty } from '@/services/unavailableService';
 import { getUnavailableDates} from '@/utils/dateUtils';
 import { date } from 'quasar';
 
@@ -81,25 +80,18 @@ export default {
   },
   setup(props) {
 
-    const startDate = ["2024/05/30", "2024/06/02", "2024/06/07"];
-    const endDate = ["2024/06/01", "2024/06/05", "2024/06/09"];
     const tempDateRange = ref([]);
     const unavailability = ref([]);
     const lockModel = ref('');
     const roomId = props.room.id;
 
     onMounted(async () => {
-        console.log('On mounted')
         try {
             const result = await getUnavailableDates(roomId);
             unavailability.value = result;
-            console.log('unavailability Django: ', unavailability.value);
-            console.log('Unav. length: ', unavailability.value.length);
             
             for(let i = 0; i < unavailability.value.length; i++) {
-                tempDateRange.value.push({from: unavailability.value[i].start, to: unavailability.value[i].end}); 
-                console.log('TempDateRange: ', tempDateRange.value);
-                console.log('Unavailability: ', unavailability.value[i].start, unavailability.value[i].end);
+                tempDateRange.value.push({from: unavailability.value[i].start, to: unavailability.value[i].end});
             }
         } catch (error) {
             console.error('Error fetching unavailable dates:', error);

@@ -73,7 +73,6 @@ export default {
 
                             //Add the start and end date to the dates array
                             dates.push({ start: start_date.toISOString().split('T')[0].replace(/-/g, '/'), end: end_date.toISOString().split('T')[0].replace(/-/g, '/')});
-                            console.log('UnavailableService dates: ', dates);
                         });
                         return dates;
                     })
