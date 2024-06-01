@@ -33,29 +33,34 @@ export function getCheckOutRules(checkIn) {
         val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in'
     ]);
 }
-export function getBookedDates(propertyId){
-    const bookings = [];
+export async function getBookedDates(propertyId){
+    let bookingDates = [];
 
-    bookingService.getBookedDatesByProperty(propertyId)
+    await bookingService.getBookedDatesByProperty(propertyId)
         .then(fetchedBookings => {
-            bookings.value = fetchedBookings;
+            bookingDates = fetchedBookings;
         })
         .catch(error => {
             console.error('Failed to fetch property bookings (dateUtils): ' + error.message);
         });
-        return bookings;
+        return bookingDates;
 }
-export function getUnavailableDates(propertyId){
-    const unavailableDates = [];
+export async function getUnavailableDates(propertyId){
+    let unavailableDates = [];
 
-    unavailableService.getUnavailableDatesByProperty(propertyId)
+    await unavailableService.getUnavailableDatesByProperty(propertyId)
         .then(fetchedUnavailableDates => {
-            unavailableDates.value = fetchedUnavailableDates;
+            unavailableDates = fetchedUnavailableDates;
         })
         .catch(error => {
             console.error('Failed to fetch property unavailabilities (dateUtils): ' + error.message);
         });
         return unavailableDates;
+}
+export function updateUnavailableDates(propertyId, start_date, end_date) {
+    console.log('Date utils date: ', start_date, end_date, propertyId)
+    const property = 'https://127.0.0.1:8000/api/properties/' + propertyId + '/'
+    unavailableService.updateUnavailableDatesByProperty(propertyId, start_date, end_date, property)
 }
 
 export function getDateOptions(unavailableDates) {
