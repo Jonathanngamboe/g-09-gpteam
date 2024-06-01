@@ -55,6 +55,19 @@ export default {
                 throw new Error(`Failed to delete unavailable with ID ${id}: ` + error.message);
             });
     },
+    updateUnavailableDatesByProperty(propertyId, start_date, end_date, property) {
+        const data = {
+            start_date: start_date,
+            end_date: end_date,
+            property: property
+        };
+        console.log('Unav. Service: ', data);
+        return api.put(`${endpoint}/properties/${propertyId}`, data)
+            .then(response => response.data)
+            .catch(error => {
+                throw new Error(`Failed to update unavailable with property ID ${propertyId}: ` + error);
+            });
+    },
     //Method to retrieve the unavailabilities of a specific property
     getUnavailableDatesByProperty(propertyId){
         const propertyEndpoint = `/properties/${propertyId}/`;

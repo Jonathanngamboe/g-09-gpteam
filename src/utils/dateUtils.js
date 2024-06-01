@@ -57,6 +57,11 @@ export async function getUnavailableDates(propertyId){
         });
         return unavailableDates;
 }
+export function updateUnavailableDates(propertyId, start_date, end_date) {
+    console.log('Date utils date: ', start_date, end_date, propertyId)
+    const property = 'https://127.0.0.1:8000/api/properties/' + propertyId + '/'
+    unavailableService.updateUnavailableDatesByProperty(propertyId, start_date, end_date, property)
+}
 
 export function getDateOptions(unavailableDates) {
     return computed(() => {
