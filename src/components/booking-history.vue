@@ -26,13 +26,13 @@
                         @click="updateBookingStatus(booking.id, 'Cancelled')"
                     />
                     <q-btn
-                        v-if="extractStatusFromUrl(booking.status) === 'completed'"
+                        v-if="extractStatusFromUrl(booking.status) === 'completed'  && !booking.reviewed"
                         unelevated
                         rounded
                         color="primary"
                         label="Leave a Review"
                         icon="rate_review"
-                        @click="showReviewDialog = true"
+                        @click="showReviewDialog = true, reviewType = 'property', selectedBookingUrl = booking.url"
                     />
                 </div>
             </q-timeline-entry>
@@ -82,13 +82,14 @@
                         @click="updateBookingStatus(booking.id, 'Cancelled')"
                     />
                     <q-btn
-                        v-if="extractStatusFromUrl(booking.status) === 'completed'"
+                        v-if="extractStatusFromUrl(booking.status) === 'completed'  && !booking.reviewed"
                         unelevated
                         rounded
                         color="primary"
                         label="Leave a Review"
                         icon="rate_review"
-                        @click="showReviewDialog = true"                    />
+                        @click="showReviewDialog = true, reviewType = 'guest', selectedBookingUrl = booking.url"                  
+                    />
                 </div>
             </q-timeline-entry>
         </q-timeline>
@@ -97,7 +98,12 @@
         </div>
     </div>
     <!-- Write Review Dialog -->
-    <WriteReview :visible="showReviewDialog" @update:visible="val => showReviewDialog = val" />
+    <WriteReview 
+    :visible="showReviewDialog" 
+    @update:visible="val => showReviewDialog = val" 
+    @review-submitted="handleReviewFinished"
+    :reviewType="reviewType" 
+    :bookingUrl="selectedBookingUrl" />
 </template>
 
 <script>
@@ -108,6 +114,7 @@
     import { useRouter } from 'vue-router';
     import { useQuasar } from 'quasar';
     import WriteReview from './WriteReview.vue';
+    import reviewService from '@/services/reviewService';
 
     export default {
         props: {
@@ -128,11 +135,14 @@
             WriteReview
         },
         setup(props) {
+            // Initialize roomBokings with reviewed status as false
             const roomBookings = ref([]);
             const userBookings = ref([]);   
             const router = useRouter();
             const $q = useQuasar();
             const showReviewDialog = ref(false);
+            const reviewType = ref('');
+            const selectedBookingUrl = ref('');        
             
             const fetchBookings = async () => {
                 if (props.rooms.length > 0) {
@@ -146,7 +156,11 @@
                             return { ...booking, property: matchedRoom };
                         });
 
+                        // Enrich bookings with user details
                         roomBookings.value = await getUserInBooking(roomBookings.value);
+                        // Enrich bookings with review status
+                        roomBookings.value = await enrichBookingWithReviewStatus(roomBookings.value, 'guest')
+                        // Sort bookings
                         roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
                         $q.notify({
@@ -166,6 +180,8 @@
                         });
                         // Enrich bookings with user details
                         roomBookings.value = await getUserInBooking(roomBookings.value);
+                        // Enrich bookings with review status
+                        roomBookings.value = await enrichBookingWithReviewStatus(roomBookings.value, 'guest');
                         // Sort bookings by created_at date from newest to oldest
                         roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
@@ -181,6 +197,8 @@
                         userBookings.value = await bookingService.getUserBookings(props.user.pk);
                         // Enrich bookings with property details
                         userBookings.value = await getBookingsProperty(userBookings.value);
+                        // Enrich bookings with review status
+                        userBookings.value = await enrichBookingWithReviewStatus(userBookings.value, 'property');
                         // Sort bookings by created_at date from newest to oldest
                         userBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
@@ -242,6 +260,50 @@
                     });
                 }
             }
+
+            const enrichBookingWithReviewStatus = async (bookings, reviewType) => {
+                for (const booking of bookings) {
+                    booking.reviewed = await hasReviewed(booking, reviewType);
+                }
+                return bookings;
+            };
+
+            const hasReviewed = async (booking, reviewType) => {
+                try {
+                    const reviews = await reviewService.getReviewsByBooking(booking.id);
+
+                    return reviews.some(review => {
+                        const userMatch = review.user && review.user.id === props.user.pk;
+                        const reviewTypeMatch = review.review_type === reviewType;
+                        return userMatch && reviewTypeMatch;
+                    });
+                } catch (error) {
+                    $q.notify({
+                        color: 'negative',
+                        position: 'top',
+                        message: `Failed to check if booking has been reviewed: ${error.message}`
+                    });
+                    return false;
+                }
+            };
+
+            const handleReviewFinished = async (bookingUrl) => {
+                // Find the specific booking
+                let updated = false;
+                for (let booking of [...userBookings.value, ...roomBookings.value]) {
+                    if (booking.url === bookingUrl) {
+                        // Re-check if the booking has been reviewed
+                        const hasBeenReviewed = await hasReviewed(booking, booking.reviewType || 'property'); // ensure default type
+                        booking.reviewed = hasBeenReviewed;
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    // Force update the reactivity in Vue
+                    userBookings.value = [...userBookings.value];
+                    roomBookings.value = [...roomBookings.value];
+                }
+            };
             
             function extractStatusFromUrl(url) {
                 const decodedUrl = decodeURIComponent(url).toLowerCase();
@@ -317,7 +379,10 @@
                 getIcon,
                 updateBookingStatus,
                 router,
-                showReviewDialog
+                showReviewDialog,
+                reviewType,
+                selectedBookingUrl,
+                handleReviewFinished
             };
         },
     };
