@@ -51,11 +51,11 @@
                 <div>
                     <!-- Input fields for the date range -->
                     <div class="row justify-between">
-                        <q-input label="Check-in" v-model="checkIn" style="width: 48%" :min="minDate" :rules="checkInRules">
+                        <q-input dense label="Check-in" v-model="checkIn" style="width: 48%" :min="minDate" :rules="checkInRules" :disable="disableCheckIn">
                             <template v-slot:append>
                                 <q-icon name="event" class="cursor-pointer">
                                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                        <q-date v-model="checkIn">
+                                        <q-date v-model="checkIn" :options="disableDates">
                                             <div class="row items-center justify-end">
                                                 <q-btn v-close-popup label="Close" color="primary" flat />
                                             </div>
@@ -64,11 +64,11 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                        <q-input label="Check-out" v-model="checkOut" style= "width: 48%" :min="minCheckoutDate" :rules="checkOutRules" :disable="!checkIn">
+                        <q-input dense label="Check-out" :disable="!checkIn || disableCheckOut" v-model="checkOut" type="date" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules">
                             <template v-slot:append>
                                 <q-icon name="event" class="cursor-pointer">
                                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                                        <q-date v-model="checkOut">
+                                        <q-date v-model="checkOut" :options="disableDates">
                                             <div class="row items-center justify-end">
                                                 <q-btn v-close-popup label="Close" color="primary" flat />
                                             </div>
@@ -77,25 +77,6 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                        <!-- <q-input dense
-                            label="Check-in"
-                            v-model="checkIn"
-                            style="width: 48%"
-                            :min="minDate"
-                            :rules="checkInRules"
-                            :disable="disableCheckIn"
-                        >
-                        </q-input> -->
-                        <!-- <q-input
-                            dense
-                            label="Check-out"
-                            :disable="!checkIn || disableCheckOut"
-                            v-model="checkOut"
-                            type="date"
-                            style="width: 48%"
-                            :min="minCheckoutDate"
-                            :rules="checkOutRules"
-                        />   -->
                     </div>           
                     <!-- Book button -->
                     <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 0">
@@ -185,6 +166,7 @@
             const roomId = props.room.id;
             const bookedDates = ref([]);
             const tempBookRange = ref([]);
+            const availableDates = ref([]);
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -214,6 +196,8 @@
                     for(let i = 0; i < bookedDates.value.length; i++) {
                         tempBookRange.value.push(bookedDates.value[i]);
                     }
+                    availableDates.value = dates.filter(date => !tempBookRange.value.includes(date));
+                    console.log('Available dates:', availableDates.value)
                 } catch (error) {
                     console.error('Error fetching unavailable dates:', error);
                 }
@@ -249,6 +233,9 @@
                 checkOutRules,
                 handleBookRoom,
                 isBookButtonDisabled,
+                disableDates(date){
+                    return !tempBookRange.value.includes(date) && new Date(date) > today;
+                }
             }
         },
         methods: {
