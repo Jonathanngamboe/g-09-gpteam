@@ -32,7 +32,7 @@
                         color="primary"
                         label="Leave a Review"
                         icon="rate_review"
-                        @click="router.push({ name: 'Review', params: { bookingId: booking.id } })"
+                        @click="showReviewDialog = true"
                     />
                 </div>
             </q-timeline-entry>
@@ -88,8 +88,7 @@
                         color="primary"
                         label="Leave a Review"
                         icon="rate_review"
-                        @click="router.push({ name: 'Review', params: { bookingId: booking.id } })"
-                    />
+                        @click="showReviewDialog = true"                    />
                 </div>
             </q-timeline-entry>
         </q-timeline>
@@ -97,6 +96,8 @@
             <div class="text-h6 full-width text-center">No bookings have been made for this room yet.</div>
         </div>
     </div>
+    <!-- Write Review Dialog -->
+    <WriteReview :visible="showReviewDialog" @update:visible="val => showReviewDialog = val" />
 </template>
 
 <script>
@@ -106,6 +107,7 @@
     import propertyService from '@/services/propertyService';
     import { useRouter } from 'vue-router';
     import { useQuasar } from 'quasar';
+    import WriteReview from './WriteReview.vue';
 
     export default {
         props: {
@@ -122,11 +124,15 @@
                 default: () => []
             }
         },
+        components: {
+            WriteReview
+        },
         setup(props) {
             const roomBookings = ref([]);
             const userBookings = ref([]);   
             const router = useRouter();
             const $q = useQuasar();
+            const showReviewDialog = ref(false);
             
             const fetchBookings = async () => {
                 if (props.rooms.length > 0) {
@@ -310,7 +316,8 @@
                 getStatusColor,
                 getIcon,
                 updateBookingStatus,
-                router
+                router,
+                showReviewDialog
             };
         },
     };
