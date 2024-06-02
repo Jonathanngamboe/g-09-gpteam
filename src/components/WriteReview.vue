@@ -14,10 +14,10 @@
                 <q-rating v-model="rating" color="primary" />
             </q-card-section>
             <q-card-section>
-                <q-input v-model="review" label="Comment" type="textarea" />
+                <q-input v-model="comment" label="Comment" type="textarea" />
             </q-card-section>
             <q-card-section>
-                <q-btn rounded unelevated label="Submit" color="primary" @click="submitReview" class="full-width" :disable="!review || !rating" />
+                <q-btn rounded unelevated label="Submit" color="primary" @click="submitReview" class="full-width" :disable="!comment || !rating" />
             </q-card-section>
         </q-card>
     </q-dialog>    
@@ -30,32 +30,43 @@
 
     export default defineComponent({
         props: {
-            visible: Boolean
+            visible: Boolean,
+            bookingUrl: {
+                type: String,
+                required: true
+            },
+            reviewType: {
+                type: String,
+                required: true
+            }
         },
-        emits: ['update:visible'],
+        emits: ['update:visible', 'review-submitted'],
         setup(props, { emit }) {
             const $q = useQuasar();
-            const review = ref('');
+            const comment = ref('');
             const rating = ref(0);
             const dialogPosition = computed(() => $q.screen.lt.md ? 'bottom' : 'standard');
 
             const submitReview = async () => {
                 try {
-                    await reviewService.create({
-                        review: review.value,
-                        rating: rating.value
+                    await reviewService.createReview({
+                        comment: comment.value,
+                        rating: rating.value,
+                        booking: props.bookingUrl,
+                        review_type: props.reviewType
                     });
                     $q.notify({
                         color: 'positive',
                         position: 'top',
                         message: 'Review submitted successfully'
                     });
+                    emit('review-submitted', props.bookingUrl);
                     emit('update:visible', false);
                 } catch (err) {
                     $q.notify({
                         color: 'negative',
                         position: 'top',
-                        message: `An error occurred: ${err.message}`
+                        message: `${err}`
                     });
                 }
             };
@@ -65,7 +76,7 @@
             };
 
             return {
-                review,
+                comment,
                 rating,
                 submitReview,
                 dialogPosition,
