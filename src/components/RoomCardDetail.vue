@@ -203,7 +203,7 @@
 
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate, tempBookRange);
-            const checkOutRules = getCheckOutRules(checkIn);
+            const checkOutRules = getCheckOutRules(checkIn, tempBookRange);
             const unavailableDates = getUnavailableDates(roomId);            
 
             onMounted(async () => {

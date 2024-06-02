@@ -28,7 +28,7 @@ export function getCheckInRules(minDate, bookedDates) {
     ]);
 }
 
-export function getCheckOutRules(checkIn) {
+export function getCheckOutRules(checkIn, bookedDates) {
     return computed(() => [
         val => !!val || 'Check-out date is required',
         val => new Date(val) > new Date(checkIn.value) || 'Check-out must be after check-in',
