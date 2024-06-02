@@ -1,6 +1,6 @@
 import api from "./api";
 
-const endpoint = "/reviews";
+const endpoint = "/reviews/";
 
 export default {
     getAllReviews() {
@@ -23,7 +23,7 @@ export default {
         return api.post(endpoint, reviewData)
         .then((response) => response.data)
         .catch((error) => {
-            throw new Error("Failed to create review: " + error.message);
+            throw new Error("Failed to create review: " + error.response.data[0]);
         });
     },
     
@@ -42,4 +42,14 @@ export default {
             throw new Error(`Failed to delete review with ID ${id}: ` + error.message);
         });
     },
-    };
+
+    getReviewsByBooking(bookingId) {
+        return api.get(`/reviews/booking/${bookingId}`)
+            .then(response => response.data)
+            .catch(error => {
+                    console.error(error);
+                    throw new Error("Failed to fetch reviews for the booking: " + error.message);
+                });
+    }    
+
+};
