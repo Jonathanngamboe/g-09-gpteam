@@ -39,7 +39,8 @@ urlpatterns = [
     path('api/properties/<int:pk>/add-image/', PropertyViewSet.as_view({
         'post': 'add_image_to_property'
     }), name='add-image-to-property'),
-                  # http://localhost:8000/
+    path('api/reviews/booking/<int:booking_id>/', ReviewViewSet.as_view({'get': 'reviews_by_booking'}), name='reviews-by-booking'),
+    # http://localhost:8000/
     path('', index_view, name='index'),
 
     # http://localhost:8000/api/<router-viewsets>
