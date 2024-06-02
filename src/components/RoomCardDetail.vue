@@ -121,12 +121,12 @@
                 </div>
             </q-card-section>
             <!-- Reviews section -->
-            <q-card-section v-if="room.reviews.length > 0">
+            <q-card-section v-if="propertyReviews.length > 0">
                 <div class="text-h6">Reviews</div>
-                <div v-for="review in room.reviews" :key="review.id" class="q-mt-md">
+                <div v-for="review in propertyReviews" :key="review.id" class="q-mt-md">
                     <q-rating v-model="review.rating" size="16px" readonly color="primary" />
                     <div class="text-subtitle2 q-mt-xs">{{ review.comment }}</div>
-                    <div class="text-caption text-grey">{{ review.username }} - {{ new Date(review.date).toLocaleDateString() }}</div>
+                    <div class="text-caption text-grey">{{ review.user.username }} - {{ new Date(review.created_at).toLocaleDateString() }}</div>
                     <q-separator class="q-my-md" />
                 </div>
             </q-card-section>
@@ -157,6 +157,9 @@
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
             const roomId = props.room.id;
+            const propertyReviews = computed(() => {
+                return props.room.reviews.filter(review => review.review_type === 'property');
+            });
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -228,6 +231,7 @@
                 isBookButtonDisabled,
                 disableCheckIn,
                 disableCheckOut,
+                propertyReviews
             }
         },
         methods: {
