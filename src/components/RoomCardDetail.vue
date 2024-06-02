@@ -64,7 +64,7 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                        <q-input dense label="Check-out" :disable="!checkIn || disableCheckOut" v-model="checkOut" type="date" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules">
+                        <q-input dense label="Check-out" v-model="checkOut" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules" :disable="!checkIn || disableCheckOut">
                             <template v-slot:append>
                                 <q-icon name="event" class="cursor-pointer">
                                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -145,7 +145,7 @@
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
-    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDatesArray, getUnavailableDates } from '@/utils/dateUtils';
+    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDatesArray, getUnavailableDatesArray } from '@/utils/dateUtils';
     import { toRaw } from 'vue';
   
     export default defineComponent({
@@ -165,6 +165,7 @@
             const toggleLogin = inject('toggleLogin');
             const roomId = props.room.id;
             const bookedDates = ref([]);
+            const unavailableDates = ref([]);
             const tempBookRange = ref([]);
             const availableDates = ref([]);
 
@@ -185,19 +186,24 @@
 
             const minCheckoutDate = getMinCheckoutDate(checkIn);
             const checkInRules = getCheckInRules(minDate, tempBookRange);
-            const checkOutRules = getCheckOutRules(checkIn, tempBookRange);
-            const unavailableDates = getUnavailableDates(roomId);            
+            const checkOutRules = getCheckOutRules(checkIn, tempBookRange);         
 
             onMounted(async () => {
                 try {
-                    const result = await getBookedDatesArray(roomId);
-                    bookedDates.value = result;
+                    const bookingResult = await getBookedDatesArray(roomId);
+                    const unavailableResult = await getUnavailableDatesArray(roomId);
+                    bookedDates.value = bookingResult;
+                    unavailableDates.value = unavailableResult;
+                    console.log('bookedDates:', bookedDates.value);
+                    console.log('unavailableDates:', unavailableDates.value);
             
                     for(let i = 0; i < bookedDates.value.length; i++) {
                         tempBookRange.value.push(bookedDates.value[i]);
                     }
-                    availableDates.value = dates.filter(date => !tempBookRange.value.includes(date));
-                    console.log('Available dates:', availableDates.value)
+                    for(let i = 0; i < unavailableDates.value.length; i++) {
+                        tempBookRange.value.push(unavailableDates.value[i]);
+                    }
+                    console.log('tempBookRange:', tempBookRange.value)
                 } catch (error) {
                     console.error('Error fetching unavailable dates:', error);
                 }

@@ -55,6 +55,41 @@ export default {
                 throw new Error(`Failed to delete unavailable with ID ${id}: ` + error.message);
             });
     },
+    getUnavailableDatesByPropertyArray(propertyId){
+        const propertyEndpoint = `/properties/${propertyId}/`;
+        return api.get(propertyEndpoint)
+            .then(response => {
+                const propertyData = response.data;
+                const unavailableUrls = propertyData.unavailabilities;
+                const unavailablePromises = unavailableUrls.map(unavailableUrls => api.get(unavailableUrls));
+                return Promise.all(unavailablePromises)
+                    .then(unavailableResponses => {
+                        const dates = [];
+                        unavailableResponses.forEach(response => {
+                            const unavailableData = response.data;
+                            let start_date = new Date(unavailableData.start_date);
+                            let end_date = new Date(unavailableData.end_date);
+
+                            //Add the check-in, check-out and middle dates to the array
+                            dates.push(start_date.toISOString().split('T')[0].replace(/-/g, '/'));
+
+                            for(let date = new Date(start_date.getTime() + 24*60*60*1000); date < end_date; date.setDate(date.getDate() + 1)) {
+                                dates.push(date.toISOString().split('T')[0].replace(/-/g, '/'));
+                            }
+                            dates.push(end_date.toISOString().split('T')[0].replace(/-/g, '/'));
+                            console.log('unavailableService: ', dates);
+                        });
+                        return dates;
+                    })
+                    .catch(error => {
+                        throw new Error('Failed to fetch the property bookings, (bookingService): ' + error.message);
+                    });
+            })
+            .catch(error => {
+                throw new Error('Failed to fetch property data: ' + error.message);
+            });
+    },
+
     //Method to retrieve the unavailabilities of a specific property
     getUnavailableDatesByProperty(propertyId){
         const propertyEndpoint = `/properties/${propertyId}/`;
