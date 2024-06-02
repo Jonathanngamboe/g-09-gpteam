@@ -33,9 +33,19 @@ class AmenitySerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'name']
 
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
+    booking_id = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        source='booking.id'
+    )
+    booking = serializers.HyperlinkedRelatedField(
+        view_name='booking-detail',
+        queryset=Booking.objects.all(),
+        write_only=True
+    )
+    user = CustomUserSerializer(read_only=True) 
     class Meta:
         model = Review
-        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'bookings']
+        fields = ['url', 'id', 'rating', 'comment', 'created_at', 'booking', 'booking_id', 'review_type', 'user']
 
 class UnavailabilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
