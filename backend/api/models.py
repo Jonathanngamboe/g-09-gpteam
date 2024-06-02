@@ -39,7 +39,7 @@ class Unavailability(models.Model):
     comment = models.CharField(max_length=200, blank=True)
 
     #Link between tables
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='unavailabilities')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='unavailabilities', null=True, default=None)
 
 class PropertyType(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -68,13 +68,20 @@ class Booking(models.Model):
     status = models.ForeignKey('Status', on_delete=models.CASCADE, default='Pending')
 
 class Review(models.Model):
+    REVIEW_TYPES = (
+        ('property', 'Property Review'),
+        ('guest', 'Guest Review'),
+    )
     id = models.AutoField(primary_key=True)
-    rating = models.PositiveIntegerField(validators=[MaxValueValidator(5), MinValueValidator(0)])
+    review_type = models.CharField(max_length=10, choices=REVIEW_TYPES, default='property')
+    rating = models.PositiveIntegerField(validators=[MaxValueValidator(5), MinValueValidator(1)])
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     #Link between tables
-    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, default=None)
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, null=True, default=None)
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_reviews', null=True, blank=True)
 
 class Status(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -86,4 +93,4 @@ class Message(models.Model):
     sent_at = models.DateTimeField(auto_now_add=True)
 
     #Link between tables
-    bookings = models.ForeignKey(Booking, on_delete=models.CASCADE, null=True, default=None)
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, null=True, default=None)
