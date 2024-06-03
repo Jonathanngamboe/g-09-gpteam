@@ -77,7 +77,6 @@ export default {
                                 dates.push(date.toISOString().split('T')[0].replace(/-/g, '/'));
                             }
                             dates.push(end_date.toISOString().split('T')[0].replace(/-/g, '/'));
-                            console.log('unavailableService: ', dates);
                         });
                         return dates;
                     })
