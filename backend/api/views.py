@@ -277,10 +277,11 @@ class PropertyViewSet(viewsets.ModelViewSet):
                 for amenity in amenities_list:
                     queryset = queryset.filter(amenities__name__iexact=amenity)
 
-        # Filter by rating
+        # Calculate average rating specifically for 'property' type reviews
         if min_rating is not None or max_rating is not None:
             queryset = queryset.annotate(
-                average_rating=Avg('bookings__review__rating')
+                average_rating=Avg('bookings__review__rating',
+                                   filter=Q(bookings__review__review_type='property'))
             )
             
             # Initialize the rating conditions
@@ -394,7 +395,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if Review.objects.filter(booking=booking, user=self.request.user, review_type=serializer.validated_data.get('review_type')).exists():
             raise ValidationError('You have already reviewed this booking.')
 
-        if self.request.user != booking.user:
+        if self.request.user != booking.user and self.request.user != booking.property.owner:
             raise ValidationError('You cannot review bookings not associated with your account.')
 
         serializer.save(user=self.request.user)
@@ -408,6 +409,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(reviews, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='user/(?P<user_id>\d+)/guest')
+    def user_guest_reviews(self, request, user_id=None):
+        """
+        Retrieve all "guest" type reviews where the specific user was the guest.
+        """
+        # Get the user object, ensure the user exists
+        user = get_object_or_404(CustomUser, pk=user_id)
+
+        # Filter reviews linked to bookings where the user was the guest and review type is 'guest'
+        reviews = Review.objects.filter(booking__user=user, review_type='guest')
+
+        # Serialize and return the data
+        serializer = self.get_serializer(reviews, many=True)
+        return Response(serializer.data)
+    
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def add_property_review(self, request, pk=None):
         """Add a review for a property by the guest after a stay."""
