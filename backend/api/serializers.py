@@ -80,8 +80,13 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'url', 'title', 'description', 'address', 'city', 'city_id', 'price_per_night', 'surface', 'is_active', 'created_at', 'updated_at', 'owner', 'images','images_ids','average_rating', 'amenities', 'amenities_ids', 'reviews', 'unavailabilities', 'bookings']
 
     def get_average_rating(self, obj):
-        average = Review.objects.filter(booking__property=obj).aggregate(Avg('rating'))
+        average = Review.objects.filter(
+            booking__property=obj,  
+            review_type='property'  
+        ).aggregate(Avg('rating'))  
+
         return average['rating__avg'] if average['rating__avg'] is not None else 0
+
 
     def get_reviews(self, obj):
         reviews = Review.objects.filter(booking__property=obj)
