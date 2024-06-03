@@ -50,6 +50,15 @@ export default {
                     console.error(error);
                     throw new Error("Failed to fetch reviews for the booking: " + error.message);
                 });
-    }    
+    },
+    
+    getReviewsByUser(userId) {
+        return api.get(`/reviews/user/${userId}/guest`)
+            .then(response => response.data)
+            .catch(error => {
+                    console.error(error);
+                    throw new Error("Failed to fetch reviews for the user: " + error.message);
+                });
+    },
 
 };
