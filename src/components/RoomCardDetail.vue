@@ -39,7 +39,7 @@
                 </q-carousel>
                 <!-- Room details -->
                 <div class="text-overline text-secondary q-pt-md">{{ room.city.name }}</div>
-                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px" v-if="room.average_rating"/>
+                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px"/>
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
                 <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
                 <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
