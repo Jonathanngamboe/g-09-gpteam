@@ -1,6 +1,28 @@
 <template>
     <!-- Booking History Timeline -->
     <div class="q-pa-md items-center" v-if="dataLoaded">
+        <div class="q-pa-md q-gutter-md row justify-between">
+            <!-- Sort button -->
+            <q-btn rounded unelevated outline label="Sort" icon="sort" class="border-bottom">
+                <q-menu fit :offset="[0, 10]">
+                <q-list>
+                    <q-item v-for="option in sortOptions" :key="option.value" clickable v-close-popup @click="applySort(option)">
+                    <q-item-section>{{ option.label }}</q-item-section>
+                    </q-item>
+                </q-list>
+                </q-menu>
+            </q-btn>
+            <!-- Filters button -->
+            <q-btn rounded unelevated outline label="Filters" icon="tune" class="border-bottom">
+                <q-menu fit :offset="[0, 10]">
+                    <q-list>
+                        <q-item v-for="filter in filterOptions" :key="filter.value" clickable v-close-popup @click="applyFilter(filter)">
+                            <q-item-section :class="{ 'active-filter': activeFilter === filter.value }">{{ filter.label }}</q-item-section>
+                        </q-item>
+                    </q-list>
+                </q-menu>
+            </q-btn>
+        </div>
         <!-- User's Booking History Timeline -->
         <q-timeline v-if="userBookings.length > 0">
             <q-timeline-entry
@@ -153,6 +175,8 @@
         },
         setup(props) {
             // Initialize roomBokings with reviewed status as false
+            const originalUserBookings = ref([]);
+            const originalRoomBookings = ref([]);
             const roomBookings = ref([]);
             const userBookings = ref([]);   
             const router = useRouter();
@@ -163,6 +187,53 @@
             const showUserReviewsDialog = ref(false);
             const userSelected = ref({});
             const dataLoaded = ref(false);
+            const activeFilter = ref(null);
+            const filterOptions = ref([
+                { label: 'All', value: 'all' },
+                { label: 'Confirmed', value: 'confirmed' },
+                { label: 'Cancelled', value: 'cancelled' },
+                { label: 'Completed', value: 'completed' },
+                { label: 'In Progress', value: 'in progress' },
+                { label: 'Pending', value: 'pending' },
+            ]);
+            const sortOptions = [
+                { label: 'Newest First', value: 'newest' },
+                { label: 'Oldest First', value: 'oldest' }
+            ];
+
+            const applyFilter = (filter) => {
+                activeFilter.value = filter.value;
+                if (filter.value === 'all') {
+                    userBookings.value = [...originalUserBookings.value];
+                    roomBookings.value = [...originalRoomBookings.value];
+                } else {
+                    userBookings.value = originalUserBookings.value.filter(booking => extractStatusFromUrl(booking.status) === filter.value);
+                    roomBookings.value = originalRoomBookings.value.filter(booking => extractStatusFromUrl(booking.status) === filter.value);
+                }
+            };
+
+            const resetFilters = () => {
+                applyFilter({ value: 'all' });
+            };
+
+            const applySort = (option) => {
+                if (!option || !option.value) {
+                    $q.notify({
+                    color: 'negative',
+                    position: 'top',
+                    message: 'Invalid sort option selected.',
+                    icon: 'error'
+                    });
+                    return;
+                }
+                if (option.value === 'newest') {
+                    userBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                } else if (option.value === 'oldest') {
+                    userBookings.value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    roomBookings.value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                }
+            };
             
             const fetchBookings = async () => {
                 if (props.rooms.length > 0) {
@@ -171,17 +242,17 @@
                             bookingService.getRoomBookings(room.id)
                         ));
 
-                        roomBookings.value = allRoomBookings.flat().map(booking => {
+                        originalRoomBookings.value = allRoomBookings.flat().map(booking => {
                             const matchedRoom = props.rooms.find(room => room.url === booking.property);
                             return { ...booking, property: matchedRoom };
                         });
 
                         // Enrich bookings with user details
-                        roomBookings.value = await getUserInBooking(roomBookings.value);
+                        originalRoomBookings.value = await getUserInBooking(originalRoomBookings.value);
                         // Enrich bookings with review status
-                        roomBookings.value = await enrichBookingWithReviewStatus(roomBookings.value, 'guest')
+                        originalRoomBookings.value = await enrichBookingWithReviewStatus(originalRoomBookings.value, 'guest')
                         // Sort bookings
-                        roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        originalRoomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
                         $q.notify({
                             color: 'negative',
@@ -193,17 +264,17 @@
                 else if(props.room) {
                     try {
                         // Fetch room bookings
-                        roomBookings.value = await bookingService.getRoomBookings(props.room.id);
+                        originalRoomBookings.value = await bookingService.getRoomBookings(props.room.id);
                         // Enrich bookings with property details
-                        roomBookings.value = roomBookings.value.map(booking => {
+                        originalRoomBookings.value = originalRoomBookings.value.map(booking => {
                             return { ...booking, property: props.room };
                         });
                         // Enrich bookings with user details
-                        roomBookings.value = await getUserInBooking(roomBookings.value);
+                        originalRoomBookings.value = await getUserInBooking(originalRoomBookings.value);
                         // Enrich bookings with review status
-                        roomBookings.value = await enrichBookingWithReviewStatus(roomBookings.value, 'guest');
+                        originalRoomBookings.value = await enrichBookingWithReviewStatus(originalRoomBookings.value, 'guest');
                         // Sort bookings by created_at date from newest to oldest
-                        roomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        originalRoomBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
                         $q.notify({
                             color: 'negative',
@@ -214,13 +285,13 @@
                 } else if(props.user) {
                     try {
                         // Fetch user bookings
-                        userBookings.value = await bookingService.getUserBookings(props.user.pk);
+                        originalUserBookings.value = await bookingService.getUserBookings(props.user.pk);
                         // Enrich bookings with property details
-                        userBookings.value = await getBookingsProperty(userBookings.value);
+                        originalUserBookings.value = await getBookingsProperty(originalUserBookings.value);
                         // Enrich bookings with review status
-                        userBookings.value = await enrichBookingWithReviewStatus(userBookings.value, 'property');
+                        originalUserBookings.value = await enrichBookingWithReviewStatus(originalUserBookings.value, 'property');
                         // Sort bookings by created_at date from newest to oldest
-                        userBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        originalUserBookings.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     } catch (error) {
                         $q.notify({
                             color: 'negative',
@@ -229,6 +300,7 @@
                         });
                     }
                 }
+                resetFilters();
                 dataLoaded.value = true;
             };
 
@@ -406,8 +478,24 @@
                 handleReviewFinished,
                 showUserReviewsDialog,
                 userSelected,
-                dataLoaded
+                dataLoaded,
+                sortOptions,
+                applySort,
+                filterOptions,
+                applyFilter,
+                activeFilter,
+                resetFilters
             };
         },
     };
 </script>
+
+<style scoped>
+    .border-bottom {
+        border: 0 solid var(--q-primary); 
+        border-bottom-width: revert;
+    }
+    .active-filter {
+        color: var(--q-secondary);
+    }
+</style>
