@@ -6,7 +6,7 @@ from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSe
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound, ParseError
 from django.core.mail import EmailMessage, get_connection
 from backend.settings import base
 from django.http import JsonResponse
@@ -277,10 +277,11 @@ class PropertyViewSet(viewsets.ModelViewSet):
                 for amenity in amenities_list:
                     queryset = queryset.filter(amenities__name__iexact=amenity)
 
-        # Filter by rating
+        # Calculate average rating specifically for 'property' type reviews
         if min_rating is not None or max_rating is not None:
             queryset = queryset.annotate(
-                average_rating=Avg('bookings__review__rating')
+                average_rating=Avg('bookings__review__rating',
+                                   filter=Q(bookings__review__review_type='property'))
             )
             
             # Initialize the rating conditions
@@ -382,6 +383,72 @@ class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        print("Data received:", self.request.data)
+        booking = serializer.validated_data.get('booking')
+
+        if booking.status.name != "Completed":
+            raise ValidationError('You can only review completed bookings.')
+
+        # Vérification si l'utilisateur a déjà laissé un avis sur cette réservation
+        if Review.objects.filter(booking=booking, user=self.request.user, review_type=serializer.validated_data.get('review_type')).exists():
+            raise ValidationError('You have already reviewed this booking.')
+
+        if self.request.user != booking.user and self.request.user != booking.property.owner:
+            raise ValidationError('You cannot review bookings not associated with your account.')
+
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'], url_path='booking/(?P<booking_id>\d+)')
+    def reviews_by_booking(self, request, booking_id=None):
+        """
+        Retrieve reviews by booking ID.
+        """
+        reviews = self.get_queryset().filter(booking__id=booking_id)
+        serializer = self.get_serializer(reviews, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<user_id>\d+)/guest')
+    def user_guest_reviews(self, request, user_id=None):
+        """
+        Retrieve all "guest" type reviews where the specific user was the guest.
+        """
+        # Get the user object, ensure the user exists
+        user = get_object_or_404(CustomUser, pk=user_id)
+
+        # Filter reviews linked to bookings where the user was the guest and review type is 'guest'
+        reviews = Review.objects.filter(booking__user=user, review_type='guest')
+
+        # Serialize and return the data
+        serializer = self.get_serializer(reviews, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def add_property_review(self, request, pk=None):
+        """Add a review for a property by the guest after a stay."""
+        return self.add_review(request, 'property', pk)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def add_guest_review(self, request, pk=None):
+        """Add a review for a guest by the property owner after their stay."""
+        return self.add_review(request, 'guest', pk)
+
+    def add_review(self, request, review_type, pk):
+        booking = get_object_or_404(Booking, pk=pk)
+        if booking.status.name != "Completed":
+            return Response({'error': 'Only completed bookings can be reviewed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verification to ensure review is not duplicated
+        if Review.objects.filter(booking=booking, user=request.user, review_type=review_type).exists():
+            return Response({'error': 'You have already submitted a review for this.'}, status=status.HTTP_409_CONFLICT)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(review_type=review_type, booking=booking, user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class MessageViewSet(viewsets.ModelViewSet):
     """

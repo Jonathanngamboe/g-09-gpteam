@@ -39,7 +39,7 @@
                 </q-carousel>
                 <!-- Room details -->
                 <div class="text-overline text-secondary q-pt-md">{{ room.city.name }}</div>
-                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px" />
+                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px"/>
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
                 <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
                 <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
@@ -79,7 +79,7 @@
                         </q-input>
                     </div>           
                     <!-- Book button -->
-                    <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 0">
+                    <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 5">
                         <q-btn
                             class="full-width"
                             icon-right="keyboard_arrow_right"
@@ -127,14 +127,27 @@
                 </div>
             </q-card-section>
             <!-- Reviews section -->
-            <q-card-section v-if="room.reviews.length > 0">
+            <q-card-section v-if="propertyReviews.length > 0">
+                <q-separator class="q-my-md" />
                 <div class="text-h6">Reviews</div>
-                <div v-for="review in room.reviews" :key="review.id" class="q-mt-md">
-                    <q-rating v-model="review.rating" size="16px" readonly color="primary" />
-                    <div class="text-subtitle2 q-mt-xs">{{ review.comment }}</div>
-                    <div class="text-caption text-grey">{{ review.username }} - {{ new Date(review.date).toLocaleDateString() }}</div>
-                    <q-separator class="q-my-md" />
-                </div>
+                <q-list separator class="q-mt-md">
+                    <q-item v-for="review in propertyReviews" :key="review.id">
+                    <q-item-section avatar>
+                        <q-avatar color="primary" text-color="white">
+                        {{ review.user.first_name.charAt(0).toUpperCase() }}
+                        </q-avatar>
+                    </q-item-section>
+                    <q-item-section>
+                        <div class="text-subtitle2">{{ review.user.first_name }} {{ review.user.last_name }}</div>
+                        <q-rating v-model="review.rating" size="xs" readonly color="primary" />
+                        <div class="text-caption q-mt-xs">{{ review.comment }}</div>
+                    </q-item-section>
+                    <q-item-section side top>
+                        <div class="text-caption text-grey">{{ new Date(review.created_at).toLocaleDateString() }}</div>
+                    </q-item-section>
+                    </q-item>
+                </q-list>
+                <q-separator class="q-my-md" />
             </q-card-section>
         </q-card>
     </div>
@@ -164,6 +177,9 @@
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
             const roomId = props.room.id;
+            const propertyReviews = computed(() => {
+                return props.room.reviews.filter(review => review.review_type === 'property');
+            });
             const bookedDates = ref([]);
             const unavailableDates = ref([]);
             const tempBookRange = ref([]);
@@ -241,7 +257,8 @@
                 isBookButtonDisabled,
                 disableDates(date){
                     return !tempBookRange.value.includes(date) && new Date(date) > today;
-                }
+                },
+                propertyReviews
             }
         },
         methods: {

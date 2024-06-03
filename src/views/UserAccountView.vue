@@ -80,7 +80,7 @@
         </q-toolbar-title>
       </q-toolbar> 
       <q-card-section>
-        <bookingHistory :rooms="rooms" />
+        <bookingHistory :rooms="rooms" :user="user" />
       </q-card-section>
     </q-tab-panel>
 
