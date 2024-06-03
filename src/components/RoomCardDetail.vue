@@ -51,26 +51,32 @@
                 <div>
                     <!-- Input fields for the date range -->
                     <div class="row justify-between">
-                        <q-input
-                            dense
-                            label="Check-in"
-                            v-model="checkIn"
-                            type="date"
-                            style="width: 48%"
-                            :min="minDate"
-                            :rules="checkInRules"
-                            :disable="disableCheckIn"
-                        />
-                        <q-input
-                            dense
-                            label="Check-out"
-                            :disable="!checkIn || disableCheckOut"
-                            v-model="checkOut"
-                            type="date"
-                            style="width: 48%"
-                            :min="minCheckoutDate"
-                            :rules="checkOutRules"
-                        />  
+                        <q-input dense label="Check-in" v-model="checkIn" style="width: 48%" :min="minDate" :rules="checkInRules" :disable="disableCheckIn">
+                            <template v-slot:append>
+                                <q-icon name="event" class="cursor-pointer">
+                                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                                        <q-date v-model="checkIn" :options="disableDates">
+                                            <div class="row items-center justify-end">
+                                                <q-btn v-close-popup label="Close" color="primary" flat />
+                                            </div>
+                                        </q-date>
+                                    </q-popup-proxy>
+                                </q-icon>
+                            </template>
+                        </q-input>
+                        <q-input dense label="Check-out" v-model="checkOut" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules" :disable="!checkIn || disableCheckOut">
+                            <template v-slot:append>
+                                <q-icon name="event" class="cursor-pointer">
+                                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                                        <q-date v-model="checkOut" :options="disableDates">
+                                            <div class="row items-center justify-end">
+                                                <q-btn v-close-popup label="Close" color="primary" flat />
+                                            </div>
+                                        </q-date>
+                                    </q-popup-proxy>
+                                </q-icon>
+                            </template>
+                        </q-input>
                     </div>           
                     <!-- Book button -->
                     <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 5">
@@ -152,7 +158,8 @@
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
-    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDates, getUnavailableDates } from '@/utils/dateUtils';
+    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDatesArray, getUnavailableDatesArray } from '@/utils/dateUtils';
+    import { toRaw } from 'vue';
   
     export default defineComponent({
         props: {
@@ -173,6 +180,10 @@
             const propertyReviews = computed(() => {
                 return props.room.reviews.filter(review => review.review_type === 'property');
             });
+            const bookedDates = ref([]);
+            const unavailableDates = ref([]);
+            const tempBookRange = ref([]);
+            const availableDates = ref([]);
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -190,26 +201,28 @@
             }
 
             const minCheckoutDate = getMinCheckoutDate(checkIn);
-            const checkInRules = getCheckInRules(minDate);
-            const checkOutRules = getCheckOutRules(checkIn);
-            const bookedDates = ref([]);
-            const unavailableDates = getUnavailableDates(roomId);
+            const checkInRules = getCheckInRules(minDate, tempBookRange);
+            const checkOutRules = getCheckOutRules(checkIn, tempBookRange);         
 
             onMounted(async () => {
                 try {
-                    bookedDates.value = await getBookedDates(roomId);
+                    const bookingResult = await getBookedDatesArray(roomId);
+                    const unavailableResult = await getUnavailableDatesArray(roomId);
+                    bookedDates.value = bookingResult;
+                    unavailableDates.value = unavailableResult;
+                    console.log('bookedDates:', bookedDates.value);
+                    console.log('unavailableDates:', unavailableDates.value);
+            
+                    for(let i = 0; i < bookedDates.value.length; i++) {
+                        tempBookRange.value.push(bookedDates.value[i]);
+                    }
+                    for(let i = 0; i < unavailableDates.value.length; i++) {
+                        tempBookRange.value.push(unavailableDates.value[i]);
+                    }
+                    console.log('tempBookRange:', tempBookRange.value)
                 } catch (error) {
-                    console.error('Error fetching booked dates:', error);
+                    console.error('Error fetching unavailable dates:', error);
                 }
-            });
-            const disableCheckIn = computed(() => {
-                const dateString = checkIn.value;
-                return bookedDates.value.includes(dateString);
-            });
-
-            const disableCheckOut = computed(() => {
-                const dateString = checkOut.value;
-                return bookedDates.value.includes(dateString) || !checkIn.value;
             });
 
             const isBookButtonDisabled = computed(() => {
@@ -242,8 +255,9 @@
                 checkOutRules,
                 handleBookRoom,
                 isBookButtonDisabled,
-                disableCheckIn,
-                disableCheckOut,
+                disableDates(date){
+                    return !tempBookRange.value.includes(date) && new Date(date) > today;
+                },
                 propertyReviews
             }
         },

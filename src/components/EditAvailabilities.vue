@@ -28,13 +28,12 @@
                 v-model="tempDateRange"
                 class="full-width full-height"
                 :options="dateOptions"
-                :events="eventsFn"
+                :events="eventsCalendar"
                 :event-color="eventColorFn"
+                @input="handleDateChange"
             />
         </div>
-
         <q-separator />
-
         <!-- Availabilities list -->
         <div class="q-ma-md">
             <q-item-label header>
@@ -69,6 +68,7 @@
 import { onMounted, ref } from 'vue';
 import { getUnavailableDates, updateUnavailableDates} from '@/utils/dateUtils';
 import { date } from 'quasar';
+import { toRaw } from 'vue';
 
 export default {
   name: 'EditAvailabilities',
@@ -84,10 +84,6 @@ export default {
         };
     },
   watch:{
-    tempDateRange(newVal, oldVal){
-        console.log('Selected Value:', newVal);
-        console.log('Old Value:', oldVal);
-    },
     lockModel(newVal){
         if(newVal === 'one'){
             this.saveDates();
@@ -100,7 +96,7 @@ export default {
     const lockModel = ref('');
     const roomId = props.room.id;
     console.log('TempDateRange:', tempDateRange.value);
-
+    
     onMounted(async () => {
         try {
             const result = await getUnavailableDates(roomId);
@@ -109,40 +105,56 @@ export default {
             for(let i = 0; i < unavailability.value.length; i++) {
                 tempDateRange.value.push({from: unavailability.value[i].start, to: unavailability.value[i].end});
             }
+
         } catch (error) {
             console.error('Error fetching unavailable dates:', error);
         }
     });
     
     // const dateOptions = (date) => {
-    // //     const dateString = date.replace(/\//g, '-');
-    // //     return unavailability.value.includes(dateString) ? { disable:True } : {};
+    //      const dateString = date;
+    //      for(let i = 0; i < unavailability.value.length; i++){
+    //         if(dateString >= tempDateRange.value[i].from && dateString <= tempDateRange.value[i].to) {
+    //             return { disable: true };
+    //         }
+    //     };
+    //     return {};
     // };
 
     // const eventColorFn = (date) => {
     //     // const dateString = date.replace(/\//g, '-');
     //     // return unavailability.value.includes(dateString) ? 'dark' : 'light';
     // };
-    // const eventsFn = (date) => {
-    //     // const dateString = date.replace(/\//g, '-');
-    //     // return unavailability.value.includes(dateString) ? ['unavailable'] : [];
-    // };
+
 
     return {
         splitterModel: ref(20),
         lockModel,        
         tempDateRange,
         // eventColorFn,
-        // eventsFn,
-        // dateOptions,
+        //dateOptions,
         unavailability,
     };
   },
   methods:{
+    handleDateChange(newDate){
+        const date = newDate.replace(/\//g, '-');
+
+        const index = this.tempDateRange.findIndex(range => range.from === date || range.to === date);
+        console.log('Index:', index);
+
+        if(index !== -1){
+        this.tempDateRange.splice(index, 1);
+        this.deleteDates(date, date);
+        console.log('Splice:', this.tempDateRange);
+        }
+    },
     async saveDates(){
-        const start_date = this.tempDateRange.value.from;
-        const end_date = this.tempDateRange.value.to;
-        console.log('Start Date:', this.tempDateRange.from);
+        const lastDateRange = this.tempDateRange[this.tempDateRange.length - 1];
+        const start_date = lastDateRange.from.replace(/\//g, '-');
+        const end_date = lastDateRange.to.replace(/\//g, '-');
+
+       
         try{
             await updateUnavailableDates(this.room.id, start_date, end_date);
             this.$q.notify({
@@ -162,8 +174,9 @@ export default {
                 icon: 'warning'
             });
         }
+
     }
-  },
+    },
 };
 
 </script>
