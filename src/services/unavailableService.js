@@ -55,13 +55,14 @@ export default {
                 throw new Error(`Failed to delete unavailable with ID ${id}: ` + error.message);
             });
     },
+    
     getUnavailableDatesByPropertyArray(propertyId){
         const propertyEndpoint = `/properties/${propertyId}/`;
         return api.get(propertyEndpoint)
             .then(response => {
                 const propertyData = response.data;
                 const unavailableUrls = propertyData.unavailabilities;
-                const unavailablePromises = unavailableUrls.map(unavailableUrls => api.get(unavailableUrls));
+                const unavailablePromises = unavailableUrls.map(unavailableUrl => api.get(unavailableUrl));
                 return Promise.all(unavailablePromises)
                     .then(unavailableResponses => {
                         const dates = [];
@@ -69,14 +70,18 @@ export default {
                             const unavailableData = response.data;
                             let start_date = new Date(unavailableData.start_date);
                             let end_date = new Date(unavailableData.end_date);
-
-                            //Add the check-in, check-out and middle dates to the array
-                            dates.push(start_date.toISOString().split('T')[0].replace(/-/g, '/'));
-
-                            for(let date = new Date(start_date.getTime() + 24*60*60*1000); date < end_date; date.setDate(date.getDate() + 1)) {
-                                dates.push(date.toISOString().split('T')[0].replace(/-/g, '/'));
+    
+                            // Format the date to the desired format immediately
+                            let formattedStartDate = start_date.toISOString().split('T')[0].replace(/-/g, '/');
+                            dates.push(formattedStartDate);
+    
+                            // Ensure end date is added only if it is different from start date
+                            for(let date = new Date(start_date.getTime() + 24*60*60*1000); date <= end_date; date.setDate(date.getDate() + 1)) {
+                                let formattedDate = date.toISOString().split('T')[0].replace(/-/g, '/');
+                                if (!dates.includes(formattedDate)) { // Prevent duplication
+                                    dates.push(formattedDate);
+                                }
                             }
-                            dates.push(end_date.toISOString().split('T')[0].replace(/-/g, '/'));
                         });
                         return dates;
                     })
@@ -87,7 +92,7 @@ export default {
             .catch(error => {
                 throw new Error('Failed to fetch property data: ' + error.message);
             });
-    },
+    },    
 
     //Method to retrieve the unavailabilities of a specific property
     getUnavailableDatesByProperty(propertyId){
