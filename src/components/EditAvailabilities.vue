@@ -5,51 +5,31 @@
         <q-card flat class="q-mb-md">
             <q-card-section>
                 <div class="text-h6">Manage Dates</div>
-                <q-item-label header>
-                    Select a date range and use the buttons below to lock or unlock it.
+                <q-item-label header class="q-pl-none">
+                    Select a date range and use the button below to lock the dates. To unlock a date, click on the trash icon next to the date.
                 </q-item-label>
-                <q-btn-toggle
-                    v-model="lockModel"
-                    spread
-                    no-caps
-                    rounded
-                    unelevated
-                    style="border: 1px solid #f0f0f0;"
-                    toggle-color="primary"
-                    color="white"
-                    text-color="primary"
-                    :options="[
-                        {label: 'Lock date', value: 'one', icon: 'lock'},
-                        {label: 'Unlock date', value: 'two', icon: 'lock_open'}
-                    ]"
-                />
             </q-card-section>
         </q-card>
 
-        <q-separator />
-
         <!-- Color legend -->
-        <div class="q-ma-md">
-            <div class="text-h6 q-mb-md">Color Legend</div>
-            <div class="row justify-between">
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <div style="height: 10px; width: 10px; background-color: red; border-radius: 50%; margin-right: 8px;"></div>
-                Unavailable
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <div style="height: 10px; width: 10px; background-color: blue; border-radius: 50%; margin-right: 8px;"></div>
-                Booked
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <div style="height: 10px; width: 10px; background-color: transparent; border-radius: 50%; margin-right: 8px; border: 1px solid #000;"></div>
-                Available
-                </div>
+        <div class="row justify-between">
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="height: 10px; width: 10px; background-color: #f44336; border-radius: 50%; margin-right: 8px;"></div>
+            Unavailable
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="height: 10px; width: 10px; background-color: #2196f3; border-radius: 50%; margin-right: 8px;"></div>
+            Booked
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="height: 10px; width: 10px; background-color: transparent; border-radius: 50%; margin-right: 8px; border: 1px solid #000;"></div>
+            Available
             </div>
         </div>
         <q-separator />
 
         <!-- Calendar -->
-        <div class="q-ma-md full-width full-height">
+        <div class="q-ma-md full-width full-height q-gutter-md">
             <q-date
                 flat
                 landscape
@@ -61,8 +41,17 @@
                 :event-color="date => eventColor(date)"
                 @input="handleDateChange"
             />
+            <q-btn
+                push
+                rounded
+                unelevated
+                style="border: 1px solid #f0f0f0;"
+                label="Lock Dates"
+                icon="lock"
+                class="full-width"
+                @click="lockDates"
+            />
         </div>
-        <q-separator />
 
         <!-- Availabilities list -->
         <q-card flat class="q-ma-md">
@@ -101,7 +90,7 @@
 
 <script>
 
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import unavailableService from '@/services/unavailableService';
 import bookingService from '@/services/bookingService';
 import { useQuasar } from 'quasar';
@@ -117,18 +106,17 @@ export default {
     data() {
         return {
             lockModel: 'two',
-            $q: useQuasar(),
         };
     },
     setup(props) {
         const tempDateRange = ref([
             { from: '', to: ''}
         ]);
-        //const tempDateRange = ref([]);
         const unavailabilities = ref([]);
         const bookings = ref([]);
         const lockModel = ref('');
         const allEvents = ref([]);
+        const $q = useQuasar();
         
         onMounted(async () => {
             try {
@@ -136,7 +124,7 @@ export default {
                 bookings.value = await bookingService.getBookedDatesByPropertyArray(props.room.id);
                 allEvents.value = [...unavailabilities.value, ...bookings.value];
             } catch (error) {
-                this.$q.notify({
+                $q.notify({
                     color: 'negative',
                     position: 'top',
                     message: `${error.message}`,
@@ -165,6 +153,61 @@ export default {
             });
         });
 
+        const lockDates = async () => {
+            let startDate = new Date(tempDateRange.value.from || tempDateRange.value);
+            let endDate = new Date(tempDateRange.value.to || startDate);
+            let datesToLock = [];
+            let errors = { locked: false, booked: false };
+
+            while (startDate <= endDate) {
+                let dateStr = `${startDate.getFullYear()}/${(startDate.getMonth() + 1).toString().padStart(2, '0')}/${startDate.getDate().toString().padStart(2, '0')}`;
+
+                if (unavailabilities.value.includes(dateStr)) {
+                    errors.locked = true;
+                    break;
+                } else if (bookings.value.includes(dateStr)) {
+                    errors.booked = true;
+                    break;
+                }
+                datesToLock.push(dateStr);
+                startDate.setDate(startDate.getDate() + 1);
+            }
+
+            if (errors.locked || errors.booked) {
+                $q.notify({
+                    color: 'negative',
+                    message: `One or more dates are already ${errors.locked ? 'locked' : 'booked'}`,
+                    position: 'top',
+                    icon: 'report_problem'
+                });
+            } else if (datesToLock.length > 0) {
+                let formattedStartDate = datesToLock[0].replace(/\//g, '-');
+                let formattedEndDate = datesToLock[datesToLock.length - 1].replace(/\//g, '-');
+
+                console.log(datesToLock);
+                await unavailableService.createUnavailable({
+                    property: props.room.url,
+                    start_date: formattedStartDate,
+                    end_date: formattedEndDate,
+                    comment: 'Locked via UI'
+                });
+                unavailabilities.value = [...unavailabilities.value, ...datesToLock];
+                allEvents.value = [...unavailabilities.value, ...bookings.value];
+                $q.notify({
+                    color: 'positive',
+                    message: 'Dates locked successfully',
+                    position: 'top',
+                    icon: 'lock'
+                });
+            }
+        };
+
+        watch(lockModel, (newVal, oldVal) => {
+            if (newVal === 'one') {
+                lockDates();
+            }
+        });
+
         return {
             splitterModel: ref(20),
             lockModel,        
@@ -174,6 +217,7 @@ export default {
             bookings,
             allEvents,
             filteredEvents,
+            lockDates,
         };
     },
     methods:{
@@ -200,23 +244,13 @@ export default {
             this.unavailabilities = await unavailableService.getUnavailableDatesByPropertyArray(this.room.id);
             this.bookings = await bookingService.getBookedDatesByPropertyArray(this.room.id);
             this.allEvents = [...this.unavailabilities, ...this.bookings];
-        } catch (error) {
-            this.$q.notify({
-                color: 'negative',
-                position: 'top',
-                message: `${error.message}`,
-                icon: 'report_problem',
-            });
-        }
-    }
-    },
-    watch: {
-        lockModel(newVal, oldVal) {
-            // Ensure logic here is clear and works as intended
-            if (newVal === 'one' && oldVal === 'two') { // Locking a range
-                // Add lock status or similar action
-            } else if (newVal === 'two' && oldVal === 'one') { // Unlocking a range
-                // Remove lock status or similar action
+            } catch (error) {
+                this.$q.notify({
+                    color: 'negative',
+                    position: 'top',
+                    message: `${error.message}`,
+                    icon: 'report_problem',
+                });
             }
         }
     },
