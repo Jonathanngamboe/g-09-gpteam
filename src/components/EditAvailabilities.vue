@@ -45,8 +45,9 @@
                 push
                 rounded
                 unelevated
+                no-caps
                 style="border: 1px solid #f0f0f0;"
-                label="Lock Dates"
+                label="Lock dates"
                 icon="lock"
                 class="full-width"
                 @click="lockDates"
@@ -56,7 +57,7 @@
         <!-- Availabilities list -->
         <q-card flat class="q-ma-md">
             <q-card-section>
-                <div class="text-h6">Room Unavailabilities</div>
+                <div class="text-h6 q-mb-md">Room Unavailabilities</div>
 
                 <div class="q-pa-md q-gutter-md row justify-between">
                     <!-- Sort button -->
@@ -84,28 +85,38 @@
             <q-separator />
             <q-card-section>
                 <q-list>
-                <q-item
-                    v-for="event in filteredEvents"
-                    :key="event.date"
-                    clickable
-                    v-ripple
-                    class="q-mb-md"
-                >
-                    <q-item-section avatar>
-                        <q-avatar :color="unavailabilities.some(d => d === event) ? 'red' : 'blue'" style="width: 10px; height: 10px;"/>
-                    </q-item-section>
-                    <q-item-section>
-                    <q-item-label>{{ event }}</q-item-label>
-                    <q-item-label caption>
-                        <!-- Display status based on event.  is determined by checking if the event date is in the unavailabilities or bookings array -->
-                        {{ unavailabilities.some(d => d === event) ? 'Unavailable' : 'Booked' }}
-                    </q-item-label>
-                    </q-item-section>
-                    <q-item-section side top v-if="unavailabilities.some(d => d === event)">
-                    <q-btn flat round icon="delete" @click="deleteDate(event)" />
-                    </q-item-section>
-                </q-item>
+                    <q-item
+                        v-for="(event, index) in filteredEvents"
+                        :key="index"
+                        clickable
+                        v-ripple
+                        class="q-mb-md"
+                    >
+                        <q-item-section avatar>
+                            <q-avatar :color="unavailabilities.some(d => d === event) ? 'red' : 'blue'" style="width: 10px; height: 10px;"/>
+                        </q-item-section>
+                        <q-item-section>
+                            <q-item-label>{{ event }}</q-item-label>
+                            <q-item-label caption>
+                                <!-- Display status based on event.  is determined by checking if the event date is in the unavailabilities or bookings array -->
+                                {{ unavailabilities.some(d => d === event) ? 'Unavailable' : 'Booked' }}
+                            </q-item-label>
+                        </q-item-section>
+                        <q-item-section side top v-if="unavailabilities.some(d => d === event)">
+                            <q-btn flat round icon="delete" @click="deleteDate(event)" />
+                        </q-item-section>
+                    </q-item>
                 </q-list>
+                <q-pagination
+                    v-if="allEvents.length > itempsPerPage"
+                    v-model="currentPage"
+                    color="primary"
+                    :max="Math.ceil(allEvents.length / itempsPerPage - 1) || 1"
+                    :max-pages="5"
+                    :boundary-numbers="false"
+                    direction-links
+                    class="justify-center"
+                />
             </q-card-section>
         </q-card>
     </div>
@@ -126,18 +137,14 @@ export default {
             required: true
         }
     },
-    data() {
-        return {
-            lockModel: 'two',
-        };
-    },
     setup(props) {
+        const currentPage = ref(1);
+        const itempsPerPage = ref(10);
         const tempDateRange = ref([
             { from: '', to: ''}
         ]);
         const unavailabilities = ref([]);
         const bookings = ref([]);
-        const lockModel = ref('');
         const allEvents = ref([]);
         const $q = useQuasar();
         const sortOptions = [
@@ -210,8 +217,10 @@ export default {
                 const eventDate = new Date(event.replace(/-/g, '/'));
                 eventDate.setHours(0, 0, 0, 0); // Normalize event date
                 return eventDate >= today;
-            });
+            }).slice((currentPage.value-1)*itempsPerPage.value,(currentPage.value-1)*itempsPerPage.value+itempsPerPage.value);
         });
+
+        console.log(filteredEvents);
 
         const lockDates = async () => {
             let startDate = new Date(tempDateRange.value.from || tempDateRange.value);
@@ -244,7 +253,6 @@ export default {
                 let formattedStartDate = datesToLock[0].replace(/\//g, '-');
                 let formattedEndDate = datesToLock[datesToLock.length - 1].replace(/\//g, '-');
 
-                console.log(datesToLock);
                 await unavailableService.createUnavailable({
                     property: props.room.url,
                     start_date: formattedStartDate,
@@ -263,15 +271,7 @@ export default {
             }
         };
 
-        watch(lockModel, (newVal, oldVal) => {
-            if (newVal === 'one') {
-                lockDates();
-            }
-        });
-
         return {
-            splitterModel: ref(20),
-            lockModel,        
             tempDateRange,
             eventColor,
             unavailabilities,
@@ -283,7 +283,9 @@ export default {
             filterOptions,
             activeFilter,
             applySort,
-            applyFilter
+            applyFilter,
+            currentPage,
+            itempsPerPage
         };
     },
     methods:{
@@ -293,8 +295,7 @@ export default {
             const index = this.tempDateRange.findIndex(range => range.from === date || range.to === date);
 
             if(index !== -1){
-            this.tempDateRange.splice(index, 1);
-            //this.deleteDate(date, date);
+                this.tempDateRange.splice(index, 1);
             }
         },
         async deleteDate(date) {
