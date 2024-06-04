@@ -1,6 +1,12 @@
 <template>
   <q-dialog v-model="visible" :position="Position">
     <div class="form-dimension">
+      <q-bar class="full-width bg-white text-primary">
+        <q-space />
+        <q-btn dense flat icon="close" v-close-popup>
+            <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+        </q-btn>        
+      </q-bar>
       <img alt="Vue logo" src="https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png" class="modal-logo" />
       <q-input type="text" v-model="username" placeholder="username" :rules="[val => !!val || 'Please enter your username']" />
       <q-input type="password" v-model="password" placeholder="password" :rules="[val => !!val || 'Please enter your password']" />
