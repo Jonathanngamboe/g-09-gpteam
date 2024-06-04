@@ -90,7 +90,7 @@
                     </q-item-label>
                     </q-item-section>
                     <q-item-section side top v-if="unavailabilities.some(d => d === event)">
-                    <q-btn flat round icon="delete" @click="deleteDates(event.date, event.date)" />
+                    <q-btn flat round icon="delete" @click="deleteDate(event)" />
                     </q-item-section>
                 </q-item>
                 </q-list>
@@ -117,6 +117,7 @@ export default {
     data() {
         return {
             lockModel: 'two',
+            $q: useQuasar(),
         };
     },
     setup(props) {
@@ -127,7 +128,6 @@ export default {
         const unavailabilities = ref([]);
         const bookings = ref([]);
         const lockModel = ref('');
-        const $q = useQuasar();
         const allEvents = ref([]);
         
         onMounted(async () => {
@@ -136,7 +136,7 @@ export default {
                 bookings.value = await bookingService.getBookedDatesByPropertyArray(props.room.id);
                 allEvents.value = [...unavailabilities.value, ...bookings.value];
             } catch (error) {
-                $q.notify({
+                this.$q.notify({
                     color: 'negative',
                     position: 'top',
                     message: `${error.message}`,
@@ -181,18 +181,34 @@ export default {
             const date = newDate.replace(/\//g, '-');
 
             const index = this.tempDateRange.findIndex(range => range.from === date || range.to === date);
-            console.log('Index:', index);
 
             if(index !== -1){
             this.tempDateRange.splice(index, 1);
-            this.deleteDates(date, date);
-            console.log('Splice:', this.tempDateRange);
+            //this.deleteDate(date, date);
             }
         },
-        deleteDates(from, to){
-            const index = this.allEvents.findIndex(event => event.date === from || event.date === to);
-            this.allEvents.splice(index, 1);
+        async deleteDate(date) {
+        try {
+            await unavailableService.deleteUnavailableByDate(this.room.id, this.room.url, date);
+            this.$q.notify({
+                color: 'positive',
+                position: 'top',
+                message: 'Date successfully unlocked.',
+                icon: 'check_circle',
+            });
+            // Refresh the list of unavailabilities
+            this.unavailabilities = await unavailableService.getUnavailableDatesByPropertyArray(this.room.id);
+            this.bookings = await bookingService.getBookedDatesByPropertyArray(this.room.id);
+            this.allEvents = [...this.unavailabilities, ...this.bookings];
+        } catch (error) {
+            this.$q.notify({
+                color: 'negative',
+                position: 'top',
+                message: `${error.message}`,
+                icon: 'report_problem',
+            });
         }
+    }
     },
     watch: {
         lockModel(newVal, oldVal) {
