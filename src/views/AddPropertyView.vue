@@ -24,12 +24,12 @@
             <div class="text-grey">
                 <label for="city">City</label>
                 <q-select id="city" v-model="property.city" :options="cities" flat dense required
-                    @update:model-value="updateZipCode" style="margin-bottom: 2%;" />
+                  style="margin-bottom: 2%;" />
             </div>
-            <div class="text-grey">
+           <!-- <div class="text-grey">
                 <label for="zip">Zip code</label>
                 <q-input id="zip" v-model="property.zip" flat dense required />
-            </div>
+            </div>-->
             <div class="text-grey">
                 <label for="surface">Surface (sqm)</label>
                 <q-input id="surface" v-model="property.surface" flat dense required />
@@ -69,7 +69,7 @@ import amenitiesService from "@/services/amenitiesService";
 import imagesService from "@/services/imagesService";
 import propertyTypesService from "@/services/propertyTypesService";
 import citiesService from "@/services/citiesService";
-//import uploadImage from "./UploadImage.vue";
+import uploadImage from "./UploadImage.vue";
 import { useQuasar } from 'quasar';
 
 export default {
@@ -84,6 +84,7 @@ export default {
             description: '',
             address: '',
             city: null,
+            
             zip: '',
             price_per_night: 0.0, // Inizializzato come numero
             surface: null,
@@ -99,13 +100,13 @@ export default {
         const cities = ref([]);
 
         const isFormValid = computed(() => {
-            return property.value.title && property.value.price_per_night && property.value.amenities.length > 0 && property.value.images.length > 0;
+            return property.value.title && property.value.price_per_night && property.value.images.length > 0;
         });
 
         const loadPropertyTypes = async () => {
             try {
                 const types = await propertyTypesService.getAllPropertyTypes();
-                propertyTypes.value = types.map(t => ({ label: t.name, value: t.id }));  // Usando gli ID
+                propertyTypes.value = types.map(t => ({ label: t.name, value: t }));  
             } catch (error) {
                 $q.notify({
                     message: 'Failed to load property types',
@@ -119,7 +120,7 @@ export default {
         const loadImages = async () => {
             try {
                 const images = await imagesService.getAllImages();
-                imageOptions.value = images.map(i => ({ label: i.url, value: i.id }));
+                imageOptions.value = images.map(i => ({ label: i.url, value: i }));
             } catch (error) {
                 console.error('Failed to load images:', error);
             }
@@ -128,7 +129,7 @@ export default {
         const loadAmenities = async () => {
             try {
                 const amenities = await amenitiesService.getAllAmenities();
-                amenitiesOptions.value = amenities.map(a => ({ label: a.name, value: a.id }));  // Usando gli ID
+                amenitiesOptions.value = amenities.map(a => ({ label: a.name, value: a.name }));  
             } catch (error) {
                 $q.notify({
                     message: 'Failed to load amenities',
@@ -142,7 +143,7 @@ export default {
         const loadCities = async () => {
             try {
                 const allCities = await citiesService.getAllCities();
-                cities.value = allCities.map(c => ({ label: c.name, value: c.id }));  // Usando gli ID
+                cities.value = allCities.map(c => ({ label: c.name, value: c }));
             } catch (error) {
                 $q.notify({
                     message: 'Failed to load cities',
@@ -152,12 +153,17 @@ export default {
                 });
             }
         };
+        const addImageToOptions = (newImage) => {
+            imageOptions.value.push({ label: newImage.ext_url || newImage.image_url, value: newImage.id });
+            property.value.images.push(newImage.id);
+        };
+       
 
-        const updateZipCode = (city) => {
+        /*const updateZipCode = (city) => {
             if (city && city.value) {
                 property.value.zip = city.value.zip;
             }
-        };
+        };*/
 
         onMounted(() => {
             loadAmenities();
@@ -171,16 +177,24 @@ export default {
                 try {
                     const user = await authService.getCustomuser();
                     property.value.owner = user.url;
+                    
 
                     const propertyData = {
                         ...property.value,
-                        city: property.value.city.value,  // Converti in ID
-                        property_Type: property.value.property_Type.value,  // Converti in ID
-                        price_per_night: parseFloat(property.value.price_per_night).toFixed(2),  // Assicurati che sia un decimale
-                        images: property.value.images  // Gli ID delle immagini sono già corretti
+                        city: property.value.city.value,
+                        city_id: property.value.city.value.name, 
+                        property_Type: property.value.property_Type.value,  
+                        price_per_night: parseFloat(property.value.price_per_night).toFixed(2),  
+                        images: property.value.images.map(img => img.value), 
+                        images_ids: property.value.images.map(img => img.value.id),
+                        bookings: [],
+                        unavailabilities: [],
+                        amenities_ids: property.value.amenities.map(amenity => amenity)
+                        
+                         
                     };
-
-                    console.log('Property data to be sent:', propertyData);  // Logga i dati per debugging
+                    
+                    console.log('Property data to be sent:', propertyData);  
 
                     const response = await propertyService.addProperty(propertyData);
                     if (response) {
@@ -211,7 +225,10 @@ export default {
             amenitiesOptions,
             imageOptions,
             cities,
-            updateZipCode
+            loadImages,
+            addImageToOptions,
+            //updateZipCode
+            //updateCity,
         };
     }
 };
