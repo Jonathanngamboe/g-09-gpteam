@@ -57,6 +57,29 @@
         <q-card flat class="q-ma-md">
             <q-card-section>
                 <div class="text-h6">Room Unavailabilities</div>
+
+                <div class="q-pa-md q-gutter-md row justify-between">
+                    <!-- Sort button -->
+                    <q-btn rounded unelevated outline label="Sort" icon="sort" class="border-bottom">
+                        <q-menu fit :offset="[0, 10]">
+                        <q-list>
+                            <q-item v-for="option in sortOptions" :key="option.value" clickable v-close-popup @click="applySort(option)">
+                            <q-item-section>{{ option.label }}</q-item-section>
+                            </q-item>
+                        </q-list>
+                        </q-menu>
+                    </q-btn>
+                    <!-- Filters button -->
+                    <q-btn rounded unelevated outline label="Filters" icon="tune" class="border-bottom">
+                        <q-menu fit :offset="[0, 10]">
+                            <q-list>
+                                <q-item v-for="filter in filterOptions" :key="filter.value" clickable v-close-popup @click="applyFilter(filter)">
+                                    <q-item-section :class="{ 'active-filter': activeFilter === filter.value }">{{ filter.label }}</q-item-section>
+                                </q-item>
+                            </q-list>
+                        </q-menu>
+                    </q-btn>
+                </div>
             </q-card-section>
             <q-separator />
             <q-card-section>
@@ -117,6 +140,43 @@ export default {
         const lockModel = ref('');
         const allEvents = ref([]);
         const $q = useQuasar();
+        const sortOptions = [
+            { label: 'Date', value: 'date' },
+            { label: 'Status', value: 'status' },
+        ];
+        const filterOptions = [
+            { label: 'All', value: 'all' },
+            { label: 'Unavailable', value: 'unavailable' },
+            { label: 'Booked', value: 'booked' },
+        ];
+        const activeFilter = ref('all');
+
+        const applySort = (option) => {
+            if(option.value === 'date'){
+                allEvents.value.sort((a, b) => new Date(a) - new Date(b));
+            } else if(option.value === 'status'){
+                allEvents.value.sort((a, b) => {
+                    if(unavailabilities.value.includes(a) && bookings.value.includes(b)){
+                        return -1;
+                    } else if(bookings.value.includes(a) && unavailabilities.value.includes(b)){
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
+            }
+        };
+
+        const applyFilter = (filter) => {
+            activeFilter.value = filter.value;
+            if(filter.value === 'all'){
+                allEvents.value = [...unavailabilities.value, ...bookings.value];
+            } else if(filter.value === 'unavailable'){
+                allEvents.value = unavailabilities.value;
+            } else if(filter.value === 'booked'){
+                allEvents.value = bookings.value;
+            }
+        };
         
         onMounted(async () => {
             try {
@@ -193,6 +253,7 @@ export default {
                 });
                 unavailabilities.value = [...unavailabilities.value, ...datesToLock];
                 allEvents.value = [...unavailabilities.value, ...bookings.value];
+                activeFilter.value = 'all';
                 $q.notify({
                     color: 'positive',
                     message: 'Dates locked successfully',
@@ -218,6 +279,11 @@ export default {
             allEvents,
             filteredEvents,
             lockDates,
+            sortOptions,
+            filterOptions,
+            activeFilter,
+            applySort,
+            applyFilter
         };
     },
     methods:{
@@ -257,3 +323,13 @@ export default {
 };
 
 </script>
+
+<style scoped>
+    .border-bottom {
+        border: 0 solid var(--q-primary); 
+        border-bottom-width: revert;
+    }
+    .active-filter {
+        color: var(--q-secondary);
+    }
+</style>
