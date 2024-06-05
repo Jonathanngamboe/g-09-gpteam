@@ -1,6 +1,6 @@
 <template>
     <div class="title">
-        <h2>Adding a room for rent</h2>
+        <h2>Add a new room</h2>
     </div>
     <div class="form formdimension">
         <q-form @submit="submitForm">
@@ -54,10 +54,14 @@
                 <q-select id="images" v-model="property.images" :options="imageOptions" multiple outlined dense style="margin-bottom: 2%;" />
             </div>
             
+            <label for="upload-image" class="text-grey">Upload an image</label>
             <upload-image @image-uploaded="loadImages" />
-            <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
-                :disable="!isFormValid" />
-            <q-toggle v-model="property.is_active" label="Is Active?" />
+
+            <div class="row justify-center">
+                <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
+                    :disable="!isFormValid" />
+                <!-- <q-toggle v-model="property.is_active" label="Is Active?" /> -->
+            </div>
         </q-form>
     </div>
 </template>
