@@ -2,8 +2,8 @@
     <div class="upload-image">
         <q-form @submit.prevent="uploadImage">
             <input type="file" @change="handleFileChange" style="margin-bottom: 2%;" />
-            <q-input v-model="image.ext_url" label="External URL (optional)" outlined dense />
-            <q-btn type="submit" label="Upload Image" color="primary" />
+           <!-- <q-input v-model="image.ext_url" label="External URL (optional)" outlined dense />-->
+            <q-btn type="submit"  unelevated rounded color="primary" label="Upload Image" />
         </q-form>
     </div>
 </template>

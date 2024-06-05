@@ -51,8 +51,9 @@
             </div>
             <div class="text-grey">
                 <label for="images">Images</label>
-                <q-select id="images" v-model="property.images" :options="imageOptions" multiple outlined dense />
+                <q-select id="images" v-model="property.images" :options="imageOptions" multiple outlined dense style="margin-bottom: 2%;" />
             </div>
+            
             <upload-image @image-uploaded="loadImages" />
             <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
                 :disable="!isFormValid" />
@@ -74,9 +75,9 @@ import { useQuasar } from 'quasar';
 
 export default {
     name: 'AddPropertyView',
-    /*components: {
+    components: {
         uploadImage,
-    },*/
+    },
     setup() {
         const $q = useQuasar();
         const property = ref({
