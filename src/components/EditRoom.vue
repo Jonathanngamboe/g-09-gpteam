@@ -73,6 +73,8 @@
       <!-- Upload button -->
       <q-uploader
         flat
+        bordered
+        color="secondary"
         style="max-width: 250px"
         label="Upload images"
         multiple
