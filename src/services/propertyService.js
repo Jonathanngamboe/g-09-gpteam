@@ -58,7 +58,6 @@ const propertyService = {
       amenities: propertyData.amenities,
       amenities_ids: propertyData.amenities_ids,  
       property_Type: propertyData.property_Type,
-      images: propertyData.images,
       images_ids: propertyData.images_ids,  
       is_active: propertyData.is_active,
       owner: propertyData.owner, 
