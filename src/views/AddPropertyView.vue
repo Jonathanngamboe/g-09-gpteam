@@ -15,7 +15,7 @@
             </div>
             <div class="text-grey">
                 <label for="price_per_night">Price per Night</label>
-                <q-input id="price_per_night" v-model="property.price_per_night" flat dense required />
+                <q-input id="price_per_night" v-model="property.price_per_night" flat dense required type="number"/>
             </div>
             <div class="text-grey">
                 <label for="address">Address</label>
@@ -26,19 +26,16 @@
                 <q-select id="city" v-model="property.city" :options="cities" flat dense required
                   style="margin-bottom: 2%;" />
             </div>
-           <!-- <div class="text-grey">
-                <label for="zip">Zip code</label>
-                <q-input id="zip" v-model="property.zip" flat dense required />
-            </div>-->
             <div class="text-grey">
                 <label for="surface">Surface (sqm)</label>
-                <q-input id="surface" v-model="property.surface" flat dense required />
+                <q-input id="surface" v-model="property.surface" flat dense required type="number"/>
             </div>
             <div class="text-grey">
                 <label for="property_type">Property Type</label>
                 <q-select id="property_type" v-model="property.property_Type" :options="propertyTypes" flat dense
                     required style="margin-bottom: 2%;" />
             </div>
+            <!-- <citySelect v-model="property.city" /> -->
 
             <div>
                 <p>Select room amenities</p>
@@ -49,18 +46,27 @@
                     </q-item>
                 </q-list>
             </div>
-            <div class="text-grey">
-                <label for="images">Images</label>
-                <q-select id="images" v-model="property.images" :options="imageOptions" multiple outlined dense style="margin-bottom: 2%;" />
-            </div>
             
-            <label for="upload-image" class="text-grey">Upload an image</label>
-            <upload-image @image-uploaded="loadImages" />
+            <!-- Upload button -->
+            <q-uploader
+                flat
+                bordered
+                label="Upload images"
+                multiple
+                accept=".jpg, image/*"
+                color="secondary"
+                :factory="uploadImage"
+                @uploaded="onUpload"
+                @rejected="onRejected"
+                @removed="onRemoved"
+                hide-upload-button
+                auto-upload
+                class="q-my-md full-width"
+            />
 
             <div class="row justify-center">
                 <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
                     :disable="!isFormValid" />
-                <!-- <q-toggle v-model="property.is_active" label="Is Active?" /> -->
             </div>
         </q-form>
     </div>
@@ -68,22 +74,24 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import propertyService from "@/services/propertyService";
 import authService from "@/services/authService";
 import amenitiesService from "@/services/amenitiesService";
-import imagesService from "@/services/imagesService";
 import propertyTypesService from "@/services/propertyTypesService";
 import citiesService from "@/services/citiesService";
-import uploadImage from "./UploadImage.vue";
 import { useQuasar } from 'quasar';
+import citySelect from '@/components/CitySelect.vue'
+import imagesService from "@/services/imagesService";
 
 export default {
     name: 'AddPropertyView',
     components: {
-        uploadImage,
+        citySelect
     },
     setup() {
         const $q = useQuasar();
+        const router = useRouter();
         const property = ref({
             title: '',
             description: '',
@@ -100,12 +108,12 @@ export default {
         });
 
         const propertyTypes = ref([]);
-        const imageOptions = ref([]);
+        const imagesFiles = ref([]);
         const amenitiesOptions = ref([]);
         const cities = ref([]);
 
         const isFormValid = computed(() => {
-            return property.value.title && property.value.price_per_night && property.value.images.length > 0;
+            return property.value.title && property.value.price_per_night > 0 && property.value.address && property.value.city && property.value.property_Type && property.value.surface > 0;
         });
 
         const loadPropertyTypes = async () => {
@@ -115,20 +123,6 @@ export default {
             } catch (error) {
                 $q.notify({
                     message: 'Failed to load property types',
-                    color: 'red-14',
-                    position: 'top',
-                    icon: 'error'
-                });
-            }
-        };
-
-        const loadImages = async () => {
-            try {
-                const images = await imagesService.getAllImages();
-                imageOptions.value = images.map(i => ({ label: i.url, value: i }));
-            } catch (error) {
-                $q.notify({
-                    message: 'Failed to load images',
                     color: 'red-14',
                     position: 'top',
                     icon: 'error'
@@ -162,22 +156,54 @@ export default {
                     icon: 'error'
                 });
             }
-        };
-        const addImageToOptions = (newImage) => {
-            imageOptions.value.push({ label: newImage.ext_url || newImage.image_url, value: newImage.id });
-            property.value.images.push(newImage.id);
-        };
-       
+        };       
 
-        /*const updateZipCode = (city) => {
-            if (city && city.value) {
-                property.value.zip = city.value.zip;
+        const onUpload = (response) => {
+            if (response) {
+                $q.notify({
+                    message: 'Image added successfully',
+                    color: 'green-14',
+                    position: 'top',
+                    icon: 'thumb_up'
+                });
             }
-        };*/
+        };
+
+        const onRejected = (files) => {
+            if (files.length > 0) {
+                $q.notify({
+                    message: 'Image already uploaded',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
+            }
+        };
+
+        const onRemoved = (filesToRemove) => {
+            filesToRemove.forEach(fileToRemove => {
+                imagesFiles.value = imagesFiles.value.filter(f => f.__key !== fileToRemove.__key);
+            });
+        };
+
+        const uploadImage = (files) => {
+            if (!files || files.length === 0) {
+                $q.notify({
+                    message: 'No file selected',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            files.forEach(file => {
+                imagesFiles.value.push(file);  
+            });
+        };
 
         onMounted(() => {
             loadAmenities();
-            loadImages();
             loadPropertyTypes();
             loadCities();
         });
@@ -195,8 +221,7 @@ export default {
                         city_id: property.value.city.value.name, 
                         property_Type: property.value.property_Type.value,  
                         price_per_night: parseFloat(property.value.price_per_night).toFixed(2),  
-                        images: property.value.images.map(img => img.value), 
-                        images_ids: property.value.images.map(img => img.value.id),
+                        images_ids: [],
                         bookings: [],
                         unavailabilities: [],
                         amenities_ids: property.value.amenities.map(amenity => amenity)
@@ -206,6 +231,17 @@ export default {
                     
                     const response = await propertyService.addProperty(propertyData);
                     if (response) {
+
+                        // Upload image
+                        if (imagesFiles.value.length > 0) {
+                            for (let file of imagesFiles.value) {
+                                let individualFormData = new FormData();
+                                individualFormData.append('image', file);
+                                await imagesService.uploadImageForProperty(response.id, individualFormData);
+                            }
+                        }
+
+                        router.push({ path: '/manage-room', query: { roomId: response.id }});
                         $q.notify({
                             message: 'Property added successfully',
                             color: 'green-14',
@@ -214,8 +250,9 @@ export default {
                         });
                     }
                 } catch (error) {
+                    console.log(error);
                     $q.notify({
-                        message: `Failed to add property: ${error.message}`,
+                        message: `${error}`,
                         color: 'red-14',
                         position: 'top',
                         icon: 'error'
@@ -230,10 +267,11 @@ export default {
             isFormValid,
             propertyTypes,
             amenitiesOptions,
-            imageOptions,
             cities,
-            loadImages,
-            addImageToOptions,
+            onUpload,
+            onRejected,
+            uploadImage,
+            onRemoved
         };
     }
 };
