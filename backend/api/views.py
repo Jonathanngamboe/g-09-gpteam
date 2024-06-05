@@ -243,10 +243,15 @@ class PropertyViewSet(viewsets.ModelViewSet):
         amenities_param = self.request.query_params.get('amenities', '')
         min_rating = self.request.query_params.get('minRating', None)
         max_rating = self.request.query_params.get('maxRating', None)
+        property_type = self.request.query_params.get('propertyType', None)
 
         # Filter by destination
         if destination:
             queryset = queryset.filter(city__name__icontains=destination)
+
+        # Filter by property type
+        if property_type:
+            queryset = queryset.filter(property_Type__name__iexact=property_type)
         
         # Filter by availability
         if check_in and check_out:

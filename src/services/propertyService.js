@@ -35,6 +35,7 @@ const propertyService = {
       amenities: filters.amenities.join(','),
       minRating: filters.rating.min,
       maxRating: filters.rating.max !== Infinity ? filters.rating.max : 5,
+      propertyType: filters.propertyType,
     };
     
     return api.get(endpoint, { params })

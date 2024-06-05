@@ -7,6 +7,18 @@
             <q-tooltip class="bg-white text-primary">Close</q-tooltip>
         </q-btn>        
       </q-bar>
+      <!-- Property type filter -->
+      <div class="type-filter q-mb-md">
+        <label for="type-filter">Property Type</label>
+        <q-select
+          v-model="tempFilters.propertyType"
+          :options="allTypesOptions"
+          label="Type"
+          emit-value
+          map-options
+          dense
+        />
+      </div>
       <!-- Price range filter -->
       <div class="price-range-selector">
         <label for="price-range">Price Range</label>
@@ -136,6 +148,7 @@ import { ref, reactive, computed, defineComponent, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import amenitiesService from '../services/amenitiesService';
 import { filters, clearFilters } from '../utils/globalState';
+import propertyTypesService from '../services/propertyTypesService';
 
 export default defineComponent({
   emits: ["on-filter", "on-reset", "toggle-filters", "update:isVisible"],
@@ -149,6 +162,7 @@ export default defineComponent({
     const allAmenitiesOptions = ref([]);
     const amenitiesLength = ref(0);
     let cachedAmenities = [];
+    const allTypesOptions = ref([]);
 
     const visible = computed({
       get: () => props.isVisible,
@@ -159,7 +173,8 @@ export default defineComponent({
     const tempFilters = reactive({
       priceRange: { ...filters.priceRange },
       amenities: [...filters.amenities],
-      rating: { ...filters.rating }
+      rating: { ...filters.rating },
+      propertyType: filters.propertyType
     });
 
     // Reactive property for ratingModel
@@ -192,7 +207,25 @@ export default defineComponent({
       }
     };
 
-    onMounted(fetchAmenities);
+    const fetchTypes = async () => {
+      try {
+        const response = await propertyTypesService.getAllPropertyTypes();
+        allTypesOptions.value = response.map(type => ({ label: type.name, value: type.name }));
+      } catch (error) {
+        allTypesOptions.value = [];
+        $q.notify({
+          message: error.response.data.message || 'Failed to load property types from the server',
+          color: 'negative',
+          position: 'top',
+          icon: 'error'
+        });
+      }
+    }
+
+    onMounted(() => {
+      fetchAmenities();
+      fetchTypes();
+    });
 
     // Computed list of amenities based on toggle
     const displayedAmenities = computed(() => {
@@ -219,7 +252,8 @@ export default defineComponent({
       Object.assign(filters, {
         priceRange: { ...tempFilters.priceRange },
         amenities: [...tempFilters.amenities],
-        rating: { ...ratingModel.value }
+        rating: { ...ratingModel.value },
+        propertyType: tempFilters.propertyType
       })
       emit("on-filter", filters)
       emit("toggle-filters")
@@ -232,7 +266,8 @@ export default defineComponent({
       Object.assign(tempFilters, {
         priceRange: { ...filters.priceRange },
         amenities: [],
-        rating: ratingModel.value
+        rating: ratingModel.value,
+        propertyType: ''
       })
       ratingModel.value = { min: 0, max: 5 }
       emit("on-reset")
@@ -257,7 +292,8 @@ export default defineComponent({
       dialogPosition,
       tempFilters,
       visible,
-      amenitiesLength
+      amenitiesLength,
+      allTypesOptions
     };
   }
 })

@@ -14,19 +14,22 @@ const searchCriteria = reactive({
 const filters = reactive({
     priceRange: { min: 1, max: 2000 },
     amenities: [],
-    rating: { min: 0, max: 5 }
+    rating: { min: 0, max: 5 },
+    propertyType: null
 });
 
-export function setFilters(priceRange, amenities, rating) {
+export function setFilters(priceRange, amenities, rating, propertyType){
     filters.priceRange = priceRange;
     filters.amenities = amenities;
     filters.rating = rating;
+    propertyType = propertyType;
 }
 
 export function clearFilters() {
     filters.priceRange = { min: 1, max: 2000 }
     filters.amenities = [];
     filters.rating = { min: 0, max: 5 };
+    filters.propertyType = null;
 }
 
 export function setSearchCriteria(destination, checkIn, checkOut) {
