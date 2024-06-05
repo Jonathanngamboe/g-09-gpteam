@@ -199,10 +199,15 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         if not self.is_available(property_id, check_in_date, check_out_date):
             return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check that you can't book your own flat
+        property = Property.objects.get(id=property_id)
+        if property.owner == request.user:
+            return Response({'error': 'You cannot book your own property'}, status=status.HTTP_400_BAD_REQUEST)
 
         request._full_data = mutable_data  # Update the request data
         return super().create(request, *args, **kwargs)
-
+    
     def is_available(self, property_id, check_in, check_out):
         existing_bookings = Booking.objects.filter(
             property_id=property_id,
