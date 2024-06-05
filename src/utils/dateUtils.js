@@ -77,7 +77,6 @@ export async function getUnavailableDatesArray(propertyId){
     await unavailableService.getUnavailableDatesByPropertyArray(propertyId)
         .then(fetchedUnavailableDates => {
             unavailableDates = fetchedUnavailableDates;
-            console.log('dateUtils: ', unavailableDates);
         })
         .catch(error => {
             console.error('Failed to fetch property unavailabilities (dateUtils): ' + error.message);
