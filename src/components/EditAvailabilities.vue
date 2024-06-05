@@ -54,8 +54,8 @@
             />
         </div>
 
-        <!-- Availabilities list -->
-        <q-card flat class="q-ma-md">
+        <!-- Unavailabilities list -->
+        <q-card flat class="q-ma-md" v-if="allEvents.length > 0">
             <q-card-section>
                 <div class="text-h6 q-mb-md">Room Unavailabilities</div>
 
