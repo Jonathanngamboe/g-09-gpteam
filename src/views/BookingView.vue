@@ -58,7 +58,7 @@
         <q-dialog v-model="showDialog" :position="dialogPosition">
             <q-card>
                 <q-card-section class="row items-center justify-center q-pa-none">
-                    <q-date landscape flat v-model="tempDateRange" range :options="dateOptions || disableDates" class="full-width"/>
+                    <q-date landscape flat v-model="tempDateRange" range :options="dateOptions" class="full-width"/>
                 </q-card-section>
                 <q-card-section class="row justify-between">
                     <q-btn flat rounded label="Cancel" color="negative" @click="showDialog = false" />
@@ -81,7 +81,7 @@
   import statusService from '@/services/statusService';
 
   export default {
-    setup(props) {
+    setup() {
         const $q = useQuasar();
         const route = useRoute();
         const router = useRouter();
@@ -100,7 +100,6 @@
         
         const unavailableDates = ref([]);
         const bookedDates = ref([]);
-        const tempBookRange = ref([]);
         const dateOptions = getDateOptions(unavailableDates);
 
         const room = ref({});
@@ -139,15 +138,9 @@
                     const unavailableResult = await getUnavailableDatesArray(route.query.roomId);
                     bookedDates.value = bookingResult;
                     unavailableDates.value = unavailableResult;
-            
-                    for(let i = 0; i < bookedDates.value.length; i++) {
-                        tempBookRange.value.push(bookedDates.value[i]);
-                    }
-                    for(let i = 0; i < unavailableDates.value.length; i++) {
-                        tempBookRange.value.push(unavailableDates.value[i]);
-                    }
+                    unavailableDates.value.push(...bookingResult);
                 } catch (error) {
-                    console.error('Error fetching unavailable dates:', error);
+                    $q.notify({ color: 'red', textColor: 'white', icon: 'error', position: 'top', message: 'Failed to get booked dates.' });
                 }
         });
 
@@ -335,10 +328,7 @@
             tempDateRange,
             dialogPosition,
             formatNumber,
-            getOwner,
-            disableDates(date){
-                    return !tempBookRange.value.includes(date);
-                },
+            getOwner
         };
     }
   }
