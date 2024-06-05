@@ -13,8 +13,8 @@
                 color="white"
                 text-color="primary"
                 :options="[
-                {label: 'Lock date', value: 'one'},
-                {label: 'Unlock date', value: 'two'}
+                    {label: 'Lock date', value: 'one'},
+                    {label: 'Unlock date', value: 'two'}
                 ]"
             />
         </div>
@@ -24,17 +24,16 @@
             <q-date
                 flat
                 landscape
-                range
+                range multiple
                 v-model="tempDateRange"
                 class="full-width full-height"
-                :option="dateOptions"
-                :events="eventsFn"
+                :options="dateOptions"
+                :events="eventsCalendar"
                 :event-color="eventColorFn"
+                @input="handleDateChange"
             />
         </div>
-
         <q-separator />
-
         <!-- Availabilities list -->
         <div class="q-ma-md">
             <q-item-label header>
@@ -42,20 +41,20 @@
             </q-item-label>
             <q-list>
                 <q-item
-                    v-for="(date, index) in unavailability.value" 
+                    v-for="(dateRange, index) in tempDateRange" 
                     :key="index"
                     clickable
                     v-ripple
                 >
                     <q-item-section>
                         <q-item-label>
-                            {{ date }}
+                            From: {{ dateRange.from }} - To: {{ dateRange.to }}
                         </q-item-label>
                     </q-item-section>
                     <q-item-section side>
                         <q-item-label caption>
                             <!-- Show the reason for unavailability -->
-                            {{ unavailability.available ? 'Available' : 'Unavailable' }}
+                            Unavailable
                         </q-item-label>
                     </q-item-section>
                 </q-item>
@@ -67,7 +66,9 @@
 <script>
 
 import { onMounted, ref } from 'vue';
-import { getUnavailableDates } from '@/utils/dateUtils';
+import { getUnavailableDates, updateUnavailableDates} from '@/utils/dateUtils';
+import { date } from 'quasar';
+import { toRaw } from 'vue';
 
 export default {
   name: 'EditAvailabilities',
@@ -77,48 +78,105 @@ export default {
         required: true
     }
   },
+    data() {
+        return {
+            lockModel: 'two',
+        };
+    },
+  watch:{
+    lockModel(newVal){
+        if(newVal === 'one'){
+            this.saveDates();
+        }
+    },
+  },
   setup(props) {
-    const tempDateRange = ref({ from: null, to: null });
-    const eventsFn = (date) => {
-      //
-    };
+    const tempDateRange = ref([]);
+    const unavailability = ref([]);
     const lockModel = ref('');
     const roomId = props.room.id;
-    const unavailability = ref([]);
-
+    console.log('TempDateRange:', tempDateRange.value);
+    
     onMounted(async () => {
-      try {
-        const result = await getUnavailableDates(roomId);
-        unavailability.value = result; 
-        console.log('unavailability: ', unavailability.value);
-      } catch (error) {
-        console.error('Error fetching unavailable dates:', error);
-      }
-    });
-
-    const dateOptions = (date) => {
-        const dateString = date.toISOString().slice(0, 10);
-        if(unavailability.includes(dateString)){
-            return {
-                disable: true,
-                };
+        try {
+            const result = await getUnavailableDates(roomId);
+            unavailability.value = result;
+            
+            for(let i = 0; i < unavailability.value.length; i++) {
+                tempDateRange.value.push({from: unavailability.value[i].start, to: unavailability.value[i].end});
             }
-        return{};
-    };
 
-    const eventColorFn = (date) => {
-      //
-    };
+        } catch (error) {
+            console.error('Error fetching unavailable dates:', error);
+        }
+    });
+    
+    // const dateOptions = (date) => {
+    //      const dateString = date;
+    //      for(let i = 0; i < unavailability.value.length; i++){
+    //         if(dateString >= tempDateRange.value[i].from && dateString <= tempDateRange.value[i].to) {
+    //             return { disable: true };
+    //         }
+    //     };
+    //     return {};
+    // };
+
+    // const eventColorFn = (date) => {
+    //     // const dateString = date.replace(/\//g, '-');
+    //     // return unavailability.value.includes(dateString) ? 'dark' : 'light';
+    // };
+
+
     return {
         splitterModel: ref(20),
-        lockModel,
-        eventColorFn,
+        lockModel,        
         tempDateRange,
-        eventsFn,
-        dateOptions,
+        // eventColorFn,
+        //dateOptions,
         unavailability,
     };
-  }
+  },
+  methods:{
+    handleDateChange(newDate){
+        const date = newDate.replace(/\//g, '-');
+
+        const index = this.tempDateRange.findIndex(range => range.from === date || range.to === date);
+        console.log('Index:', index);
+
+        if(index !== -1){
+        this.tempDateRange.splice(index, 1);
+        this.deleteDates(date, date);
+        console.log('Splice:', this.tempDateRange);
+        }
+    },
+    async saveDates(){
+        const lastDateRange = this.tempDateRange[this.tempDateRange.length - 1];
+        const start_date = lastDateRange.from.replace(/\//g, '-');
+        const end_date = lastDateRange.to.replace(/\//g, '-');
+
+       
+        try{
+            await updateUnavailableDates(this.room.id, start_date, end_date);
+            this.$q.notify({
+                color: 'green',
+                textColor: 'white',
+                position: 'top',
+                message: 'Dates saved successfully',
+                icon: 'check'
+            });
+        }catch (error){
+            console.log('Error saving dates:', error);
+            this.$q.notify({
+                color: 'red',
+                textColor: 'white',
+                position: 'top',
+                message: 'Error saving dates',
+                icon: 'warning'
+            });
+        }
+
+    }
+    },
 };
 
 </script>

@@ -1,24 +1,60 @@
 <template>
-
     <div class="title">
         <h2>Adding a room for rent</h2>
     </div>
     <div class="form formdimension">
         <q-form @submit="submitForm">
-            <q-input v-model="property.title" label="Room Name" outlined dense required />
-            <q-input v-model="property.description" label="Description" type="textarea" rows="5" outlined dense required
-                style="margin-bottom: 2%;" />
-            <q-input v-model="property.price_per_night" label="Price per Night" outlined dense required />
-            <q-input v-model="property.address" label="Address" outlined dense required />
-            <q-input v-model="property.city" label="City" outlined dense required />
-            <q-input v-model="property.zip" label="Zip code" outlined dense required />
-            <q-input v-model="property.surface" label="Surface (sqm)" outlined dense required />
-            <q-select v-model="property.property_Type" :options="propertyTypes" label="Property Type" outlined dense
-                required style="margin-bottom: 2%;" />
-            <q-select v-model="property.amenities" :options="amenitiesOptions" label="Amenities" multiple outlined dense
-                required style="margin-bottom: 2%;" />
-            <q-select v-model="property.images" :options="imageOptions" label="Images" multiple outlined dense required
-                style="margin-bottom: 2%;" />
+            <div class="text-grey">
+                <label for="title">Room Name</label>
+                <q-input id="title" v-model="property.title" flat dense required />
+            </div>
+            <div class="text-grey">
+                <label for="description">Description</label>
+                <q-input id="description" v-model="property.description" type="textarea" rows="1" flat dense required
+                    style="margin-bottom: 2%;" />
+            </div>
+            <div class="text-grey">
+                <label for="price_per_night">Price per Night</label>
+                <q-input id="price_per_night" v-model="property.price_per_night" flat dense required />
+            </div>
+            <div class="text-grey">
+                <label for="address">Address</label>
+                <q-input id="address" v-model="property.address" flat dense required />
+            </div>
+            <div class="text-grey">
+                <label for="city">City</label>
+                <q-select id="city" v-model="property.city" :options="cities" flat dense required
+                  style="margin-bottom: 2%;" />
+            </div>
+           <!-- <div class="text-grey">
+                <label for="zip">Zip code</label>
+                <q-input id="zip" v-model="property.zip" flat dense required />
+            </div>-->
+            <div class="text-grey">
+                <label for="surface">Surface (sqm)</label>
+                <q-input id="surface" v-model="property.surface" flat dense required />
+            </div>
+            <div class="text-grey">
+                <label for="property_type">Property Type</label>
+                <q-select id="property_type" v-model="property.property_Type" :options="propertyTypes" flat dense
+                    required style="margin-bottom: 2%;" />
+            </div>
+
+            <div>
+                <p>Select room amenities</p>
+                <q-list style="display: flex; flex-wrap: wrap;">
+                    <q-item v-for="option in amenitiesOptions" :key="option.value" style="width: 50%;">
+                        <q-checkbox :label="option.label" :val="option.value" v-model="property.amenities">
+                        </q-checkbox>
+                    </q-item>
+                </q-list>
+            </div>
+            <div class="text-grey">
+                <label for="images">Images</label>
+                <q-select id="images" v-model="property.images" :options="imageOptions" multiple outlined dense style="margin-bottom: 2%;" />
+            </div>
+            
+            <upload-image @image-uploaded="loadImages" />
             <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
                 :disable="!isFormValid" />
             <q-toggle v-model="property.is_active" label="Is Active?" />
@@ -34,17 +70,24 @@ import amenitiesService from "@/services/amenitiesService";
 import imagesService from "@/services/imagesService";
 import propertyTypesService from "@/services/propertyTypesService";
 import citiesService from "@/services/citiesService";
+import uploadImage from "./UploadImage.vue";
+import { useQuasar } from 'quasar';
 
 export default {
     name: 'AddPropertyView',
+    components: {
+        uploadImage,
+    },
     setup() {
+        const $q = useQuasar();
         const property = ref({
             title: '',
             description: '',
             address: '',
             city: null,
+            
             zip: '',
-            price_per_night: null,
+            price_per_night: 0.0, // Inizializzato come numero
             surface: null,
             property_Type: null,
             amenities: [],
@@ -55,27 +98,30 @@ export default {
         const propertyTypes = ref([]);
         const imageOptions = ref([]);
         const amenitiesOptions = ref([]);
-
+        const cities = ref([]);
 
         const isFormValid = computed(() => {
-            return property.value.title && property.value.price_per_night && property.value.amenities.length > 0 && property.value.images.length > 0;
+            return property.value.title && property.value.price_per_night && property.value.images.length > 0;
         });
-
-
 
         const loadPropertyTypes = async () => {
             try {
                 const types = await propertyTypesService.getAllPropertyTypes();
-                propertyTypes.value = types.map(t => ({ label: t.name, value: t.id }));
+                propertyTypes.value = types.map(t => ({ label: t.name, value: t }));  
             } catch (error) {
-                console.error('Failed to load property types:', error);
+                $q.notify({
+                    message: 'Failed to load property types',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
             }
         };
 
         const loadImages = async () => {
             try {
                 const images = await imagesService.getAllImages();
-                imageOptions.value = images.map(i => ({ label: i.image, value: i.id }));
+                imageOptions.value = images.map(i => ({ label: i.url, value: i }));
             } catch (error) {
                 console.error('Failed to load images:', error);
             }
@@ -84,60 +130,93 @@ export default {
         const loadAmenities = async () => {
             try {
                 const amenities = await amenitiesService.getAllAmenities();
-                amenitiesOptions.value = amenities.map(a => ({ label: a.name, value: a.id }));
+                amenitiesOptions.value = amenities.map(a => ({ label: a.name, value: a.name }));  
             } catch (error) {
-                console.error('Failed to load amenities:', error);
+                $q.notify({
+                    message: 'Failed to load amenities',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
             }
         };
+
+        const loadCities = async () => {
+            try {
+                const allCities = await citiesService.getAllCities();
+                cities.value = allCities.map(c => ({ label: c.name, value: c }));
+            } catch (error) {
+                $q.notify({
+                    message: 'Failed to load cities',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
+            }
+        };
+        const addImageToOptions = (newImage) => {
+            imageOptions.value.push({ label: newImage.ext_url || newImage.image_url, value: newImage.id });
+            property.value.images.push(newImage.id);
+        };
+       
+
+        /*const updateZipCode = (city) => {
+            if (city && city.value) {
+                property.value.zip = city.value.zip;
+            }
+        };*/
 
         onMounted(() => {
             loadAmenities();
             loadImages();
             loadPropertyTypes();
-
+            loadCities();
         });
-
 
         const submitForm = async () => {
             if (isFormValid.value) {
                 try {
                     const user = await authService.getCustomuser();
-
-                    console.log('user:', user);
                     property.value.owner = user.url;
-                    console.log('user:', user.url);
-                    console.log('Submitting property:', property.value);
-                    console.log('city:', property.value.city);
-                    /*let cityId = await ensureCityExists(property.value.city);
-                    const cityData = await citiesService.createCity(property.value.city, property.value.zip );
-                    console.log('cityData:', cityData);
-                    const cityId = cityData.id;
-                    property.value.city = cityId;*/
                     
-                    const response = await propertyService.addProperty(property.value);
-                    console.log('Property added successfully:', response);
+
+                    const propertyData = {
+                        ...property.value,
+                        city: property.value.city.value,
+                        city_id: property.value.city.value.name, 
+                        property_Type: property.value.property_Type.value,  
+                        price_per_night: parseFloat(property.value.price_per_night).toFixed(2),  
+                        images: property.value.images.map(img => img.value), 
+                        images_ids: property.value.images.map(img => img.value.id),
+                        bookings: [],
+                        unavailabilities: [],
+                        amenities_ids: property.value.amenities.map(amenity => amenity)
+                        
+                         
+                    };
+                    
+                    console.log('Property data to be sent:', propertyData);  
+
+                    const response = await propertyService.addProperty(propertyData);
+                    if (response) {
+                        $q.notify({
+                            message: 'Property added successfully',
+                            color: 'green-14',
+                            position: 'top',
+                            icon: 'thumb_up'
+                        });
+                    }
                 } catch (error) {
+                    $q.notify({
+                        message: `Failed to add property: ${error.message}`,
+                        color: 'red-14',
+                        position: 'top',
+                        icon: 'error'
+                    });
                     console.error('Error adding property:', error);
                 }
             }
         };
-
-       /* async function ensureCityExists(cityName) {
-            try {
-
-                const existingCity = await citiesService.getCityByName(cityName);
-                if (existingCity) {
-                    return existingCity.id;
-                } else {
-
-                    const newCity = await citiesService.createCity({ name: cityName });
-                    return newCity.id;
-                }
-            } catch (error) {
-                console.error('Error handling city:', error);
-                throw error;
-            }
-        };*/
 
         return {
             property,
@@ -146,7 +225,11 @@ export default {
             propertyTypes,
             amenitiesOptions,
             imageOptions,
-
+            cities,
+            loadImages,
+            addImageToOptions,
+            //updateZipCode
+            //updateCity,
         };
     }
 };

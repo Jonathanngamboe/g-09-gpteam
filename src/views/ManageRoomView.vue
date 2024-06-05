@@ -70,7 +70,7 @@
           </q-toolbar>
           <!-- Section content -->
           <q-card-section>
-            <bookingHistory :room="room" />
+            <bookingHistory :room="room" :user="user" />
           </q-card-section>
         </q-tab-panel>
 

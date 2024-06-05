@@ -58,7 +58,7 @@
         <q-dialog v-model="showDialog" :position="dialogPosition">
             <q-card>
                 <q-card-section class="row items-center justify-center q-pa-none">
-                    <q-date flat v-model="tempDateRange" range :options="dateOptions" class="full-width"/>
+                    <q-date landscape flat v-model="tempDateRange" range :options="dateOptions" class="full-width"/>
                 </q-card-section>
                 <q-card-section class="row justify-between">
                     <q-btn flat rounded label="Cancel" color="negative" @click="showDialog = false" />

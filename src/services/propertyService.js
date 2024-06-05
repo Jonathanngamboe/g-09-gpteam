@@ -51,13 +51,18 @@ const propertyService = {
       description: propertyData.description,
       address: propertyData.address,
       city: propertyData.city,
+      city_id: propertyData.city_id,
       price_per_night: propertyData.price_per_night,
       surface: propertyData.surface,
-      amenities: propertyData.amenities,  
+      amenities: propertyData.amenities,
+      amenities_ids: propertyData.amenities_ids,  
       property_Type: propertyData.property_Type,
-      images: propertyData.images,  
+      images: propertyData.images,
+      images_ids: propertyData.images_ids,  
       is_active: propertyData.is_active,
       owner: propertyData.owner, 
+      bookings: propertyData.bookings,
+      unavailabilities: propertyData.unavailabilities,
     };
 
     return api.post('properties/', data)

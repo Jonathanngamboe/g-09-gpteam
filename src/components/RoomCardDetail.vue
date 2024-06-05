@@ -1,5 +1,11 @@
 <template>
     <div style="min-width: 100%;">
+        <q-bar class="full-width bg-white text-primary">
+            <q-space />
+            <q-btn dense flat icon="close" v-close-popup>
+                <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+            </q-btn>        
+        </q-bar>
         <q-card>
             <q-card-section>
                 <!-- Image carousel -->
@@ -33,7 +39,7 @@
                 </q-carousel>
                 <!-- Room details -->
                 <div class="text-overline text-secondary q-pt-md">{{ room.city.name }}</div>
-                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px" />
+                <q-rating readonly color="primary" v-model="room.average_rating" :max="5" size="16px"/>
                 <div class="text-h5 q-mt-sm q-mb-xs">{{ room.title }}</div>
                 <div class="text-subtitle1 q-mb-xs">{{ formatNumber(room.surface) }} m²</div>
                 <div class="text-h7 text-dark q-mb-xs">CHF {{ formatNumber(room.price_per_night) }}.- per night</div>
@@ -45,29 +51,35 @@
                 <div>
                     <!-- Input fields for the date range -->
                     <div class="row justify-between">
-                        <q-input
-                            dense
-                            label="Check-in"
-                            v-model="checkIn"
-                            type="date"
-                            style="width: 48%"
-                            :min="minDate"
-                            :rules="checkInRules"
-                            :disable="disableCheckIn"
-                        />
-                        <q-input
-                            dense
-                            label="Check-out"
-                            :disable="!checkIn || disableCheckOut"
-                            v-model="checkOut"
-                            type="date"
-                            style="width: 48%"
-                            :min="minCheckoutDate"
-                            :rules="checkOutRules"
-                        />  
+                        <q-input dense label="Check-in" v-model="checkIn" style="width: 48%" :min="minDate" :rules="checkInRules" :disable="disableCheckIn">
+                            <template v-slot:append>
+                                <q-icon name="event" class="cursor-pointer">
+                                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                                        <q-date v-model="checkIn" :options="disableDates">
+                                            <div class="row items-center justify-end">
+                                                <q-btn v-close-popup label="Close" color="primary" flat />
+                                            </div>
+                                        </q-date>
+                                    </q-popup-proxy>
+                                </q-icon>
+                            </template>
+                        </q-input>
+                        <q-input dense label="Check-out" v-model="checkOut" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules" :disable="!checkIn || disableCheckOut">
+                            <template v-slot:append>
+                                <q-icon name="event" class="cursor-pointer">
+                                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                                        <q-date v-model="checkOut" :options="disableDates">
+                                            <div class="row items-center justify-end">
+                                                <q-btn v-close-popup label="Close" color="primary" flat />
+                                            </div>
+                                        </q-date>
+                                    </q-popup-proxy>
+                                </q-icon>
+                            </template>
+                        </q-input>
                     </div>           
                     <!-- Book button -->
-                    <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 0">
+                    <q-page-sticky expand position="bottom" :offset="[0, 20]" class="q-px-xl" v-if="room.reviews.length > 5">
                         <q-btn
                             class="full-width"
                             icon-right="keyboard_arrow_right"
@@ -115,14 +127,27 @@
                 </div>
             </q-card-section>
             <!-- Reviews section -->
-            <q-card-section v-if="room.reviews.length > 0">
+            <q-card-section v-if="propertyReviews.length > 0">
+                <q-separator class="q-my-md" />
                 <div class="text-h6">Reviews</div>
-                <div v-for="review in room.reviews" :key="review.id" class="q-mt-md">
-                    <q-rating v-model="review.rating" size="16px" readonly color="primary" />
-                    <div class="text-subtitle2 q-mt-xs">{{ review.comment }}</div>
-                    <div class="text-caption text-grey">{{ review.username }} - {{ new Date(review.date).toLocaleDateString() }}</div>
-                    <q-separator class="q-my-md" />
-                </div>
+                <q-list separator class="q-mt-md">
+                    <q-item v-for="review in propertyReviews" :key="review.id">
+                    <q-item-section avatar>
+                        <q-avatar color="primary" text-color="white">
+                        {{ review.user.first_name.charAt(0).toUpperCase() }}
+                        </q-avatar>
+                    </q-item-section>
+                    <q-item-section>
+                        <div class="text-subtitle2">{{ review.user.first_name }} {{ review.user.last_name }}</div>
+                        <q-rating v-model="review.rating" size="xs" readonly color="primary" />
+                        <div class="text-caption q-mt-xs">{{ review.comment }}</div>
+                    </q-item-section>
+                    <q-item-section side top>
+                        <div class="text-caption text-grey">{{ new Date(review.created_at).toLocaleDateString() }}</div>
+                    </q-item-section>
+                    </q-item>
+                </q-list>
+                <q-separator class="q-my-md" />
             </q-card-section>
         </q-card>
     </div>
@@ -133,7 +158,8 @@
     import { useRouter } from 'vue-router';
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
-    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDates, getUnavailableDates } from '@/utils/dateUtils';
+    import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDatesArray, getUnavailableDatesArray } from '@/utils/dateUtils';
+    import { toRaw } from 'vue';
   
     export default defineComponent({
         props: {
@@ -151,6 +177,13 @@
             const router = useRouter();
             const toggleLogin = inject('toggleLogin');
             const roomId = props.room.id;
+            const propertyReviews = computed(() => {
+                return props.room.reviews.filter(review => review.review_type === 'property');
+            });
+            const bookedDates = ref([]);
+            const unavailableDates = ref([]);
+            const tempBookRange = ref([]);
+            const availableDates = ref([]);
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -168,26 +201,28 @@
             }
 
             const minCheckoutDate = getMinCheckoutDate(checkIn);
-            const checkInRules = getCheckInRules(minDate);
-            const checkOutRules = getCheckOutRules(checkIn);
-            const bookedDates = ref([]);
-            const unavailableDates = getUnavailableDates(roomId);
+            const checkInRules = getCheckInRules(minDate, tempBookRange);
+            const checkOutRules = getCheckOutRules(checkIn, tempBookRange);         
 
             onMounted(async () => {
                 try {
-                    bookedDates.value = await getBookedDates(roomId);
+                    const bookingResult = await getBookedDatesArray(roomId);
+                    const unavailableResult = await getUnavailableDatesArray(roomId);
+                    bookedDates.value = bookingResult;
+                    unavailableDates.value = unavailableResult;
+                    console.log('bookedDates:', bookedDates.value);
+                    console.log('unavailableDates:', unavailableDates.value);
+            
+                    for(let i = 0; i < bookedDates.value.length; i++) {
+                        tempBookRange.value.push(bookedDates.value[i]);
+                    }
+                    for(let i = 0; i < unavailableDates.value.length; i++) {
+                        tempBookRange.value.push(unavailableDates.value[i]);
+                    }
+                    console.log('tempBookRange:', tempBookRange.value)
                 } catch (error) {
-                    console.error('Error fetching booked dates:', error);
+                    console.error('Error fetching unavailable dates:', error);
                 }
-            });
-            const disableCheckIn = computed(() => {
-                const dateString = checkIn.value;
-                return bookedDates.value.includes(dateString);
-            });
-
-            const disableCheckOut = computed(() => {
-                const dateString = checkOut.value;
-                return bookedDates.value.includes(dateString) || !checkIn.value;
             });
 
             const isBookButtonDisabled = computed(() => {
@@ -220,8 +255,10 @@
                 checkOutRules,
                 handleBookRoom,
                 isBookButtonDisabled,
-                disableCheckIn,
-                disableCheckOut,
+                disableDates(date){
+                    return !tempBookRange.value.includes(date) && new Date(date) > today;
+                },
+                propertyReviews
             }
         },
         methods: {
