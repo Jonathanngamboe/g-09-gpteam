@@ -1,8 +1,10 @@
 <template>
     <div class="upload-image">
-        <q-form @submit.prevent="uploadImage" class="q-gutter-md row items-center justify-between">
-            <input type="file" @change="handleFileChange" style="margin-bottom: 2%;" class="q-ml-none" />
-           <!-- <q-input v-model="image.ext_url" label="External URL (optional)" outlined dense />-->
+        <q-form @submit.prevent="uploadImage">
+            <input type="file" id="inputAddImage" @change="handleFileChange" style="display:none; margin-bottom: 2%;" />
+            <q-btn onclick="document.getElementById('inputAddImage').click()" type="submit"  unelevated rounded color="primary" label="Select an image" />
+            <span v-if="selectedFile" class="file-name" style="margin-left:1%;">{{ selectedFile.name }}</span><br><br>
+           <!--<q-input v-model="image.ext_url" label="External URL (optional)" outlined dense />-->
             <q-btn type="submit"  unelevated rounded color="primary" label="Upload Image" />
         </q-form>
     </div>
@@ -15,6 +17,7 @@ import { useQuasar } from 'quasar';
 
 export default {
     name: 'UploadImage',
+    
     setup(_, { emit }) {
         const $q = useQuasar();
         const selectedFile = ref(null);
@@ -70,6 +73,6 @@ export default {
 
 <style scoped>
 .upload-image {
-    margin: 20px;
+    margin-bottom: 2% ;
 }
 </style>
