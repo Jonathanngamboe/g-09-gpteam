@@ -1,6 +1,6 @@
 import api from './api';
 
-const endpoint = '/property_types';
+const endpoint = '/property-types';
 
 export default {
     getAllPropertyTypes() {
