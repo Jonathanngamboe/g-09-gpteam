@@ -339,7 +339,7 @@ class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = PropertyType.objects.all()
     serializer_class = PropertyTypeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class AmenityViewSet(viewsets.ModelViewSet):
     """
@@ -363,7 +363,7 @@ class ImageViewSet(viewsets.ModelViewSet):
     """
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         file = request.FILES.get('image')
@@ -476,13 +476,3 @@ class UnavailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = UnavailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
     
-# def add_property_view(request):
-#    if request.method == 'POST':
-#        property_data = request.POST  
-#        try:
-#            new_property = propertyService.addProperty(property_data)
-#            return JsonResponse({'success': True, 'message': 'Property added successfully', 'property': new_property})
-#        except Exception as e:
-#            return JsonResponse({'success': False, 'error': str(e)})
-#    else:
-#        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed for this endpoint'}, status=405)
