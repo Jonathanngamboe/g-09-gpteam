@@ -98,7 +98,7 @@
         const tempDateRange = ref({ from: null, to: null });
         const isConfirmButtonDisabled = ref(true);
         
-        const unavailableDates = ref([]); // TODO: Fetch unavailable dates from the database. Example: { start: "2024-05-20", end: "2024-05-22"}
+        const unavailableDates = ref([]);
         const bookedDates = ref([]);
         const tempBookRange = ref([]);
         const dateOptions = getDateOptions(unavailableDates);
@@ -128,7 +128,6 @@
                 if (route.query.roomId) {
                     room.value = await propertyService.getPropertyById(route.query.roomId);
                     updateDateRange(route.query.checkIn, route.query.checkOut);
-                    // TODO: Fetch unavailable dates from the database
                 } else {
                     notify('Please select a room first.', 'red');
                     router.push('/');
@@ -166,6 +165,16 @@
                 showDialog.value = false;
             }
         };
+
+        async function getOwner() {
+            try {
+                const owner = await authService.getUserByUrl(room.value.owner);
+                return owner;
+            } catch (error) {
+                notify('Failed to get owner information.', 'red');
+                return null;
+            }
+        }
 
         function updateDateRange(from, to) {
             if(validateDates(from, to)) {
@@ -277,7 +286,27 @@
                     } else {
                         notify('Failed to send confirmation email: ' + emailResponse.message, 'red');
                     }
-                    // TODO: Send booking notification email to the host   
+                    // Send booking notification email to the host 
+                    const owner = await getOwner();
+                    const notificationEmail = {
+                        email: owner.email,
+                        subject: 'New booking',
+                        message: `Hi ${owner.first_name}!\n\n` +
+                            `You have a new booking for ${room.value.title}!\n\n` +
+                            `Dates: ${formattedDateRange.value}\n` +
+                            `Price per night: CHF ${formatNumber(room.value.price_per_night)}\n` +
+                            `Number of nights: ${formatNumber(totalNights.value)}\n` +
+                            `Total price: CHF ${formatNumber(room.value.price_per_night * totalNights.value)}\n\n` +
+                            (message.value ? `Message from guest: ${message.value}\n\n` : '') +
+                            `Payment method: ${paymentMethod.value}\n\n` +
+                            `Please contact the guest to confirm the booking.\n\nGPTeam`
+                    };
+                    const notificationResponse = await mailService.sendEmail(notificationEmail);
+                    if (notificationResponse.status === 'success') {
+                        notify('Booking notification email sent successfully.', 'green');
+                    } else {
+                        notify('Failed to send notification email to the host: ' + notificationResponse.message, 'red');
+                    }  
                 } else {
                     notify('Booking creation failed: ' + bookingResponse.message, 'red');
                 }
@@ -306,6 +335,7 @@
             tempDateRange,
             dialogPosition,
             formatNumber,
+            getOwner,
             disableDates(date){
                     return !tempBookRange.value.includes(date);
                 },
