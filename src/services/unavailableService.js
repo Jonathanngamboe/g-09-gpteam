@@ -131,10 +131,7 @@ export default {
     
     deleteUnavailableByDate(propertyId, propertyUrl, date) {
         return this.getUnavailableDatesByProperty(propertyId)
-            .then(unavailabilities => {
-                //console.log("Initial unavailabilities:", unavailabilities);
-                //console.log("Target date to delete:", date);
-    
+            .then(unavailabilities => {    
                 const targetDate = new Date(date);
                 const formattedTargetDate = this.formatDate(targetDate);
     
@@ -144,25 +141,18 @@ export default {
                     const formattedStartDate = this.formatDate(startDate);
                     const formattedEndDate = this.formatDate(endDate);
     
-                    //console.log("Processing unavailability:", unavailability.id, "from", formattedStartDate, "to", formattedEndDate);
-
-                    //console.log("Formatted target date:", formattedTargetDate);
-                    //console.log("Formatted start date:", formattedStartDate);
     
                     if (formattedTargetDate === formattedStartDate) {
                         if (formattedStartDate === formattedEndDate) {
-                            //console.log("Deleting single-day unavailability for date:", formattedStartDate);
                             return api.delete(`${endpoint}${unavailability.id}`);
                         } else {
                             const newStartDate = new Date(startDate.setDate(startDate.getDate() + 1));
                             const formattedNewStartDate = this.formatDate(newStartDate);
-                            //console.log("Updating start date from", formattedStartDate, "to", formattedNewStartDate);
                             return this.updateUnavailable(unavailability.id, { start_date: formattedNewStartDate, end_date: formattedEndDate, property: propertyUrl, comment: unavailability.comment });
                         }
                     } else if (formattedTargetDate === formattedEndDate) {
                         const newEndDate = new Date(endDate.setDate(endDate.getDate() - 1));
                         const formattedNewEndDate = this.formatDate(newEndDate);
-                        //console.log("Updating end date from", formattedEndDate, "to", formattedNewEndDate);
                         return this.updateUnavailable(unavailability.id, { start_date: formattedStartDate, end_date: formattedNewEndDate, property: propertyUrl, comment: unavailability.comment });
                     } else if (targetDate > startDate && targetDate < endDate) {
                         // Nouvelle fin pour la première plage: la veille de la date cible
@@ -172,9 +162,6 @@ export default {
                         // Nouveau début pour la deuxième plage: le lendemain de la date cible
                         const newStartDate2 = new Date(targetDate.getTime() + 86400000); // un jour après
                         const formattedNewStartDate2 = this.formatDate(newStartDate2);
-                    
-                        //console.log("Splitting unavailability from", formattedStartDate, "to", formattedEndDate, "into two parts:", formattedStartDate, "to", formattedNewEndDate1, "and", formattedNewStartDate2, "to", formattedEndDate);
-
 
                         // Delete the current unavailability and create two new ones
                         return this.deleteUnavailable(unavailability.id)

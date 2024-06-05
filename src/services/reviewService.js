@@ -47,7 +47,6 @@ export default {
         return api.get(`/reviews/booking/${bookingId}`)
             .then(response => response.data)
             .catch(error => {
-                    console.error(error);
                     throw new Error("Failed to fetch reviews for the booking: " + error.message);
                 });
     },
@@ -56,7 +55,6 @@ export default {
         return api.get(`/reviews/user/${userId}/guest`)
             .then(response => response.data)
             .catch(error => {
-                    console.error(error);
                     throw new Error("Failed to fetch reviews for the user: " + error.message);
                 });
     },

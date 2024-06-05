@@ -3,9 +3,6 @@
     <q-tab name="user-info" icon="person" label="My personal details" />
     <q-tab name="rooms" icon="bed" label="My rooms" />
     <q-tab name="My rooms Bookings" icon="book" label="My rooms Bookings" />
-    <!-- <q-tab name="Messages" icon="message"> 
-      <q-badge color="primary" floating>5</q-badge>
-    </q-tab>-->
     <q-tab name="My Booking History" icon="history" label="My Booking History" />
   </q-tabs>
 
@@ -48,22 +45,6 @@
         <MyRooms :rooms="rooms" />
       </q-card-section>
     </q-tab-panel>
-
-    <!-- Messages Tab Panel -->
-    <!-- <q-tab-panel name="Messages">
-      <q-toolbar class="q-gutter-md q-my-md full-width">
-        <q-btn
-                flat
-                round
-                dense
-                icon="arrow_back"
-                @click="goBack"
-            />
-        <q-toolbar-title>
-          My messages
-        </q-toolbar-title>
-      </q-toolbar> 
-    </q-tab-panel>-->
 
     <!-- Rooms Bookings Tab Panel -->
     <q-tab-panel name="My rooms Bookings">

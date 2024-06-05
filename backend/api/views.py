@@ -197,12 +197,17 @@ class BookingViewSet(viewsets.ModelViewSet):
         if not property_id:
             return Response({'error': 'Invalid property URL'}, status=status.HTTP_400_BAD_REQUEST)
 
-        #if not self.is_available(property_id, check_in_date, check_out_date):
-            #return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+        if not self.is_available(property_id, check_in_date, check_out_date):
+            return Response({'error': 'Property is not available for the selected dates', 'details': 'Existing booking conflicts with the requested dates'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check that you can't book your own flat
+        property = Property.objects.get(id=property_id)
+        if property.owner == request.user:
+            return Response({'error': 'You cannot book your own property'}, status=status.HTTP_400_BAD_REQUEST)
 
         request._full_data = mutable_data  # Update the request data
         return super().create(request, *args, **kwargs)
-
+    
     def is_available(self, property_id, check_in, check_out):
         existing_bookings = Booking.objects.filter(
             property_id=property_id,
@@ -238,10 +243,15 @@ class PropertyViewSet(viewsets.ModelViewSet):
         amenities_param = self.request.query_params.get('amenities', '')
         min_rating = self.request.query_params.get('minRating', None)
         max_rating = self.request.query_params.get('maxRating', None)
+        property_type = self.request.query_params.get('propertyType', None)
 
         # Filter by destination
         if destination:
             queryset = queryset.filter(city__name__icontains=destination)
+
+        # Filter by property type
+        if property_type:
+            queryset = queryset.filter(property_Type__name__iexact=property_type)
         
         # Filter by availability
         if check_in and check_out:
@@ -329,7 +339,7 @@ class PropertyTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = PropertyType.objects.all()
     serializer_class = PropertyTypeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class AmenityViewSet(viewsets.ModelViewSet):
     """
@@ -353,7 +363,7 @@ class ImageViewSet(viewsets.ModelViewSet):
     """
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         file = request.FILES.get('image')
@@ -466,13 +476,3 @@ class UnavailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = UnavailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
     
-# def add_property_view(request):
-#    if request.method == 'POST':
-#        property_data = request.POST  
-#        try:
-#            new_property = propertyService.addProperty(property_data)
-#            return JsonResponse({'success': True, 'message': 'Property added successfully', 'property': new_property})
-#        except Exception as e:
-#            return JsonResponse({'success': False, 'error': str(e)})
-#    else:
-#        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed for this endpoint'}, status=405)

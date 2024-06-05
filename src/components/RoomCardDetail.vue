@@ -51,7 +51,7 @@
                 <div>
                     <!-- Input fields for the date range -->
                     <div class="row justify-between">
-                        <q-input dense label="Check-in" v-model="checkIn" style="width: 48%" :min="minDate" :rules="checkInRules" :disable="disableCheckIn">
+                        <q-input dense label="Check-in" v-model="checkIn" style="width: 48%" :min="minDate" :rules="checkInRules">
                             <template v-slot:append>
                                 <q-icon name="event" class="cursor-pointer">
                                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -64,7 +64,7 @@
                                 </q-icon>
                             </template>
                         </q-input>
-                        <q-input dense label="Check-out" v-model="checkOut" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules" :disable="!checkIn || disableCheckOut">
+                        <q-input dense label="Check-out" v-model="checkOut" style="width: 48%" :min="minCheckoutDate" :rules="checkOutRules" :disable="!checkIn">
                             <template v-slot:append>
                                 <q-icon name="event" class="cursor-pointer">
                                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">

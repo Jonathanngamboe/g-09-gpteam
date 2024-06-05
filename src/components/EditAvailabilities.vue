@@ -54,8 +54,8 @@
             />
         </div>
 
-        <!-- Availabilities list -->
-        <q-card flat class="q-ma-md">
+        <!-- Unavailabilities list -->
+        <q-card flat class="q-ma-md" v-if="allEvents.length > 0">
             <q-card-section>
                 <div class="text-h6 q-mb-md">Room Unavailabilities</div>
 
@@ -219,8 +219,6 @@ export default {
                 return eventDate >= today;
             }).slice((currentPage.value-1)*itempsPerPage.value,(currentPage.value-1)*itempsPerPage.value+itempsPerPage.value);
         });
-
-        console.log(filteredEvents);
 
         const lockDates = async () => {
             let startDate = new Date(tempDateRange.value.from || tempDateRange.value);

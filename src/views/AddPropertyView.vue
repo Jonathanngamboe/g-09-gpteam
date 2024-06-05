@@ -1,6 +1,6 @@
 <template>
     <div class="title">
-        <h2>Adding a room for rent</h2>
+        <h2>Add a new room</h2>
     </div>
     <div class="form formdimension">
         <q-form @submit="submitForm">
@@ -54,10 +54,14 @@
                 <q-select id="images" v-model="property.images" :options="imageOptions" multiple outlined dense style="margin-bottom: 2%;" />
             </div>
             
+            <label for="upload-image" class="text-grey">Upload an image</label>
             <upload-image @image-uploaded="loadImages" />
-            <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
-                :disable="!isFormValid" />
-            <q-toggle v-model="property.is_active" label="Is Active?" />
+
+            <div class="row justify-center">
+                <q-btn type="submit" style="width: 130px" unelevated rounded color="primary" label="Add Room"
+                    :disable="!isFormValid" />
+                <!-- <q-toggle v-model="property.is_active" label="Is Active?" /> -->
+            </div>
         </q-form>
     </div>
 </template>
@@ -123,7 +127,12 @@ export default {
                 const images = await imagesService.getAllImages();
                 imageOptions.value = images.map(i => ({ label: i.url, value: i }));
             } catch (error) {
-                console.error('Failed to load images:', error);
+                $q.notify({
+                    message: 'Failed to load images',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
             }
         };
 
@@ -195,8 +204,6 @@ export default {
                          
                     };
                     
-                    console.log('Property data to be sent:', propertyData);  
-
                     const response = await propertyService.addProperty(propertyData);
                     if (response) {
                         $q.notify({
@@ -213,7 +220,6 @@ export default {
                         position: 'top',
                         icon: 'error'
                     });
-                    console.error('Error adding property:', error);
                 }
             }
         };
@@ -228,8 +234,6 @@ export default {
             cities,
             loadImages,
             addImageToOptions,
-            //updateZipCode
-            //updateCity,
         };
     }
 };

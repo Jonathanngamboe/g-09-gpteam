@@ -1,127 +1,132 @@
 <template>
     <!-- Booking History Timeline -->
     <div class="q-pa-md items-center" v-if="dataLoaded">
-        <div class="q-pa-md q-gutter-md row justify-between">
-            <!-- Sort button -->
-            <q-btn rounded unelevated outline label="Sort" icon="sort" class="border-bottom">
-                <q-menu fit :offset="[0, 10]">
-                <q-list>
-                    <q-item v-for="option in sortOptions" :key="option.value" clickable v-close-popup @click="applySort(option)">
-                    <q-item-section>{{ option.label }}</q-item-section>
-                    </q-item>
-                </q-list>
-                </q-menu>
-            </q-btn>
-            <!-- Filters button -->
-            <q-btn rounded unelevated outline label="Filters" icon="tune" class="border-bottom">
-                <q-menu fit :offset="[0, 10]">
+        <div v-if="userBookings.length > 0 || roomBookings.length > 0">
+            <div class="q-pa-md q-gutter-md row justify-between">
+                <!-- Sort button -->
+                <q-btn rounded unelevated outline label="Sort" icon="sort" class="border-bottom">
+                    <q-menu fit :offset="[0, 10]">
                     <q-list>
-                        <q-item v-for="filter in filterOptions" :key="filter.value" clickable v-close-popup @click="applyFilter(filter)">
-                            <q-item-section :class="{ 'active-filter': activeFilter === filter.value }">{{ filter.label }}</q-item-section>
+                        <q-item v-for="option in sortOptions" :key="option.value" clickable v-close-popup @click="applySort(option)">
+                        <q-item-section>{{ option.label }}</q-item-section>
                         </q-item>
                     </q-list>
-                </q-menu>
-            </q-btn>
-        </div>
-        <!-- User's Booking History Timeline -->
-        <q-timeline v-if="userBookings.length > 0">
-            <q-timeline-entry
-                v-for="booking in userBookings"
-                :key="booking.id"
-                :color="getStatusColor(extractStatusFromUrl(booking.status))" 
-                :icon="getIcon(extractStatusFromUrl(booking.status))"
-                :title="booking.property.title + ', booked on ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
-                :subtitle="extractStatusFromUrl(booking.status)"
-                :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
-            >
-                <div class="q-mt-md">
-                    <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
-                </div>
-                <div class="q-mt-xs">
-                    <q-btn
-                        v-if="extractStatusFromUrl(booking.status) === 'confirmed'"
-                        unelevated
-                        rounded
-                        color="negative"
-                        label="Cancel"
-                        icon="cancel"
-                        @click="updateBookingStatus(booking.id, 'Cancelled')"
-                    />
-                    <q-btn
-                        v-if="!booking.reviewed && extractStatusFromUrl(booking.status) === 'completed'"
-                        unelevated
-                        rounded
-                        color="primary"
-                        label="Leave a Review"
-                        icon="rate_review"
-                        @click="showReviewDialog = true, reviewType = 'property', selectedBookingUrl = booking.url"
-                    />
-                </div>
-            </q-timeline-entry>
-        </q-timeline>
-        <div v-else-if="!userBookings" class="row justify-center q-gutter-md">
-            <div class="text-h6 full-width text-center">You have no bookings yet. Click the button below to book a property.</div>
-            <q-btn
-                unelevated
-                rounded
-                color="primary"
-                label="Search Properties"
-                @click="bookProperty"
-            />
-        </div>
-        <!-- Room Booking History Timeline -->
-        <q-timeline v-else-if="roomBookings.length > 0">
-            <q-timeline-entry
-                v-for="booking in roomBookings"
-                :key="booking.id"
-                :color="getStatusColor(extractStatusFromUrl(booking.status))" 
-                :icon="getIcon(extractStatusFromUrl(booking.status))"
-                :title="booking.property.title + ', booked by ' + booking.user.first_name + ' ' + booking.user.last_name + ', on ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
-                :subtitle="extractStatusFromUrl(booking.status)"
-                :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
->
-                <!-- User name clickable -->
-                <div class="cursor-pointer q-mt-md" @click="showUserReviewsDialog = true, userSelected = booking.user" v-if="booking.property.reviews.length > 0">
-                    <q-chip icon="person" :label="booking.user.first_name + ' ' + booking.user.last_name + '´s reviews'"></q-chip>
-                </div>
+                    </q-menu>
+                </q-btn>
+                <!-- Filters button -->
+                <q-btn rounded unelevated outline label="Filters" icon="tune" class="border-bottom">
+                    <q-menu fit :offset="[0, 10]">
+                        <q-list>
+                            <q-item v-for="filter in filterOptions" :key="filter.value" clickable v-close-popup @click="applyFilter(filter)">
+                                <q-item-section :class="{ 'active-filter': activeFilter === filter.value }">{{ filter.label }}</q-item-section>
+                            </q-item>
+                        </q-list>
+                    </q-menu>
+                </q-btn>
+            </div>
+            <!-- User's Booking History Timeline -->
+            <q-timeline v-if="userBookings.length > 0">
+                <q-timeline-entry
+                    v-for="booking in userBookings"
+                    :key="booking.id"
+                    :color="getStatusColor(extractStatusFromUrl(booking.status))" 
+                    :icon="getIcon(extractStatusFromUrl(booking.status))"
+                    :title="booking.property.title + ', booked on ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
+                    :subtitle="extractStatusFromUrl(booking.status)"
+                    :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
+                >
+                    <div class="q-mt-md">
+                        <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
+                    </div>
+                    <div class="q-mt-xs">
+                        <q-btn
+                            v-if="extractStatusFromUrl(booking.status) === 'confirmed'"
+                            unelevated
+                            rounded
+                            color="negative"
+                            label="Cancel"
+                            icon="cancel"
+                            @click="updateBookingStatus(booking.id, 'Cancelled')"
+                        />
+                        <q-btn
+                            v-if="!booking.reviewed && extractStatusFromUrl(booking.status) === 'completed'"
+                            unelevated
+                            rounded
+                            color="primary"
+                            label="Leave a Review"
+                            icon="rate_review"
+                            @click="showReviewDialog = true, reviewType = 'property', selectedBookingUrl = booking.url"
+                        />
+                    </div>
+                </q-timeline-entry>
+            </q-timeline>
+            <div v-else-if="!userBookings" class="row justify-center q-gutter-md">
+                <div class="text-h6 full-width text-center">You have no bookings yet. Click the button below to book a property.</div>
+                <q-btn
+                    unelevated
+                    rounded
+                    color="primary"
+                    label="Search Properties"
+                    @click="bookProperty"
+                />
+            </div>
+            <!-- Room Booking History Timeline -->
+            <q-timeline v-else-if="roomBookings.length > 0">
+                <q-timeline-entry
+                    v-for="booking in roomBookings"
+                    :key="booking.id"
+                    :color="getStatusColor(extractStatusFromUrl(booking.status))" 
+                    :icon="getIcon(extractStatusFromUrl(booking.status))"
+                    :title="booking.property.title + ', booked by ' + booking.user.first_name + ' ' + booking.user.last_name + ', on ' + new Date(booking.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
+                    :subtitle="extractStatusFromUrl(booking.status)"
+                    :body="new Date(booking.check_in).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) + ' - ' + new Date(booking.check_out).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })"
+    >
+                    <!-- User name clickable -->
+                    <div class="cursor-pointer q-mt-md" @click="showUserReviewsDialog = true, userSelected = booking.user" v-if="booking.property.reviews.length > 0">
+                        <q-chip icon="person" :label="booking.user.first_name + ' ' + booking.user.last_name + '´s reviews'"></q-chip>
+                    </div>
 
-                <div class="q-mt-md">
-                    <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
-                </div>
-                <!-- Buttons to approve, reject or cancel booking -->
-                <div class="q-gutter-md q-mt-xs">
-                    <q-btn
-                        v-if="extractStatusFromUrl(booking.status) === 'pending'"
-                        unelevated
-                        rounded
-                        color="positive"
-                        label="Accept"
-                        icon="check"
-                        @click="updateBookingStatus(booking.id, 'Confirmed')"
-                    />
-                    <q-btn
-                        v-if="extractStatusFromUrl(booking.status) === 'pending' || extractStatusFromUrl(booking.status) === 'confirmed'"
-                        unelevated
-                        rounded
-                        color="negative"
-                        :label="extractStatusFromUrl(booking.status) === 'pending' ? 'Reject' : 'Cancel'"
-                        icon="cancel"
-                        @click="updateBookingStatus(booking.id, 'Cancelled')"
-                    />
-                    <q-btn
-                        v-if="!booking.reviewed && extractStatusFromUrl(booking.status) === 'completed'"
-                        unelevated
-                        rounded
-                        color="primary"
-                        label="Leave a Review"
-                        icon="rate_review"
-                        @click="showReviewDialog = true, reviewType = 'guest', selectedBookingUrl = booking.url"                  
-                    />
-                </div>
-            </q-timeline-entry>
-        </q-timeline>
-        <div v-else-if="!roomBookings" class="row justify-center q-gutter-md">
-            <div class="text-h6 full-width text-center">No bookings have been made for this room yet.</div>
+                    <div class="q-mt-md">
+                        <img :src="booking.property.images ? booking.property.images[0].image_url || booking.property.images[0].ext_url : ''" alt="Property image" class="room-image" style="width: auto; height: 120px; object-fit: cover;">
+                    </div>
+                    <!-- Buttons to approve, reject or cancel booking -->
+                    <div class="q-gutter-md q-mt-xs">
+                        <q-btn
+                            v-if="extractStatusFromUrl(booking.status) === 'pending'"
+                            unelevated
+                            rounded
+                            color="positive"
+                            label="Accept"
+                            icon="check"
+                            @click="updateBookingStatus(booking.id, 'Confirmed')"
+                        />
+                        <q-btn
+                            v-if="extractStatusFromUrl(booking.status) === 'pending' || extractStatusFromUrl(booking.status) === 'confirmed'"
+                            unelevated
+                            rounded
+                            color="negative"
+                            :label="extractStatusFromUrl(booking.status) === 'pending' ? 'Reject' : 'Cancel'"
+                            icon="cancel"
+                            @click="updateBookingStatus(booking.id, 'Cancelled')"
+                        />
+                        <q-btn
+                            v-if="!booking.reviewed && extractStatusFromUrl(booking.status) === 'completed'"
+                            unelevated
+                            rounded
+                            color="primary"
+                            label="Leave a Review"
+                            icon="rate_review"
+                            @click="showReviewDialog = true, reviewType = 'guest', selectedBookingUrl = booking.url"                  
+                        />
+                    </div>
+                </q-timeline-entry>
+            </q-timeline>
+            <div v-else-if="!roomBookings" class="row justify-center q-gutter-md">
+                <div class="text-h6 full-width text-center">No bookings have been made for this room yet.</div>
+            </div>
+        </div>
+        <div v-else class="row justify-center q-gutter-md">
+            <div class="text-h6 full-width text-center">No bookings have been made yet.</div>
         </div>
     </div>
     <div v-else class="text-center q-pa-md text-h6 full-width full-height bg-white text-primary">
