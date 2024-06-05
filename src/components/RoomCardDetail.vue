@@ -159,7 +159,6 @@
     import authService from '@/services/authService';  
     import { setLastIntent } from '@/utils/globalState';
     import { getMinCheckoutDate, getCheckInRules, getCheckOutRules, getBookedDatesArray, getUnavailableDatesArray } from '@/utils/dateUtils';
-    import { toRaw } from 'vue';
   
     export default defineComponent({
         props: {
@@ -183,7 +182,6 @@
             const bookedDates = ref([]);
             const unavailableDates = ref([]);
             const tempBookRange = ref([]);
-            const availableDates = ref([]);
 
             function handleBookRoom(roomId, checkIn, checkOut) {
                 if(authService.user.value) {
@@ -210,8 +208,6 @@
                     const unavailableResult = await getUnavailableDatesArray(roomId);
                     bookedDates.value = bookingResult;
                     unavailableDates.value = unavailableResult;
-                    console.log('bookedDates:', bookedDates.value);
-                    console.log('unavailableDates:', unavailableDates.value);
             
                     for(let i = 0; i < bookedDates.value.length; i++) {
                         tempBookRange.value.push(bookedDates.value[i]);
@@ -219,7 +215,6 @@
                     for(let i = 0; i < unavailableDates.value.length; i++) {
                         tempBookRange.value.push(unavailableDates.value[i]);
                     }
-                    console.log('tempBookRange:', tempBookRange.value)
                 } catch (error) {
                     console.error('Error fetching unavailable dates:', error);
                 }

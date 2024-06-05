@@ -54,7 +54,6 @@ export default {
         this.user.first_name = authService.user.value.first_name;
         this.user.last_name = authService.user.value.last_name;
         this.user.email = authService.user.value.email;
-        console.log('User details updated:', authService.user.value);
       /* } catch (error) {
         console.error('An error occurred:', error);
       } */

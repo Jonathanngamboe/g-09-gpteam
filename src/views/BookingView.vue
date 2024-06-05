@@ -58,7 +58,7 @@
         <q-dialog v-model="showDialog" :position="dialogPosition">
             <q-card>
                 <q-card-section class="row items-center justify-center q-pa-none">
-                    <q-date landscape flat v-model="tempDateRange" range :options="dateOptions" class="full-width"/>
+                    <q-date landscape flat v-model="tempDateRange" range :options="dateOptions || disableDates" class="full-width"/>
                 </q-card-section>
                 <q-card-section class="row justify-between">
                     <q-btn flat rounded label="Cancel" color="negative" @click="showDialog = false" />
@@ -76,12 +76,12 @@
   import propertyService from '@/services/propertyService';
   import authService from '@/services/authService';
   import mailService from '@/services/mailService';
-  import { getDateOptions } from '@/utils/dateUtils';
+  import { getDateOptions, getBookedDatesArray, getUnavailableDatesArray } from '@/utils/dateUtils';
   import bookingService from '@/services/bookingService';
   import statusService from '@/services/statusService';
 
   export default {
-    setup() {
+    setup(props) {
         const $q = useQuasar();
         const route = useRoute();
         const router = useRouter();
@@ -99,6 +99,8 @@
         const isConfirmButtonDisabled = ref(true);
         
         const unavailableDates = ref([]); // TODO: Fetch unavailable dates from the database. Example: { start: "2024-05-20", end: "2024-05-22"}
+        const bookedDates = ref([]);
+        const tempBookRange = ref([]);
         const dateOptions = getDateOptions(unavailableDates);
 
         const room = ref({});
@@ -133,6 +135,21 @@
                 }
                 paymentMethod.value = paymentOptions.value[0].value;
             }
+            try {
+                    const bookingResult = await getBookedDatesArray(route.query.roomId);
+                    const unavailableResult = await getUnavailableDatesArray(route.query.roomId);
+                    bookedDates.value = bookingResult;
+                    unavailableDates.value = unavailableResult;
+            
+                    for(let i = 0; i < bookedDates.value.length; i++) {
+                        tempBookRange.value.push(bookedDates.value[i]);
+                    }
+                    for(let i = 0; i < unavailableDates.value.length; i++) {
+                        tempBookRange.value.push(unavailableDates.value[i]);
+                    }
+                } catch (error) {
+                    console.error('Error fetching unavailable dates:', error);
+                }
         });
 
         const editDates = () => {
@@ -288,7 +305,10 @@
             formattedDateRange,
             tempDateRange,
             dialogPosition,
-            formatNumber
+            formatNumber,
+            disableDates(date){
+                    return !tempBookRange.value.includes(date);
+                },
         };
     }
   }
