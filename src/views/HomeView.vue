@@ -315,7 +315,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style>
   .room-container {
     display: flex;
     flex-direction: column;
@@ -354,9 +354,14 @@ export default defineComponent({
   }
 
   .border-bottom {
-          border: 0 solid var(--q-primary); 
-          border-bottom-width: revert;
-      }
+      border: 0 solid var(--q-primary); 
+      border-bottom-width: revert;
+  }
+
+  .room-image {
+    height: 200px;
+    object-fit: cover;
+  }
 
   /* Define a media query for very small screens where cards should take full width */
   @media (max-width: 599px) {

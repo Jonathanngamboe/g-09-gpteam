@@ -3,7 +3,7 @@
       <!-- Room image -->
       <img
         :src="room.images && room.images.length > 0 ? (room.images[0].image_url || room.images[0].ext_url) : 'https://www.trojanpress.com.au/wp-content/uploads/2019/05/Image-Coming-Soon-02-1024x683.jpg'"
-        alt="Room image" style="height: 15em;"
+        alt="Room image" class="room-image"
       />
 
       <!-- Card content -->
