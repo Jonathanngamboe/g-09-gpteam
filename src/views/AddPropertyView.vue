@@ -127,7 +127,12 @@ export default {
                 const images = await imagesService.getAllImages();
                 imageOptions.value = images.map(i => ({ label: i.url, value: i }));
             } catch (error) {
-                console.error('Failed to load images:', error);
+                $q.notify({
+                    message: 'Failed to load images',
+                    color: 'red-14',
+                    position: 'top',
+                    icon: 'error'
+                });
             }
         };
 
@@ -215,7 +220,6 @@ export default {
                         position: 'top',
                         icon: 'error'
                     });
-                    console.error('Error adding property:', error);
                 }
             }
         };
@@ -230,8 +234,6 @@ export default {
             cities,
             loadImages,
             addImageToOptions,
-            //updateZipCode
-            //updateCity,
         };
     }
 };

@@ -48,15 +48,15 @@ export default {
         return;
       }
 
-      // try {
+       try {
         const response = await api.patch('dj-rest-auth/user/', this.user);
         authService.user.value = response.data;
         this.user.first_name = authService.user.value.first_name;
         this.user.last_name = authService.user.value.last_name;
         this.user.email = authService.user.value.email;
-      /* } catch (error) {
+       } catch (error) {
         console.error('An error occurred:', error);
-      } */
+      } 
     }
   },
   created() {
