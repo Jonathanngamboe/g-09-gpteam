@@ -27,7 +27,7 @@
                   style="margin-bottom: 2%;" />
             </div>
             <div class="text-grey">
-                <label for="surface">Surface (sqm)</label>
+                <label for="surface">Surface (m²)</label>
                 <q-input id="surface" v-model="property.surface" flat dense required type="number"/>
             </div>
             <div class="text-grey">
