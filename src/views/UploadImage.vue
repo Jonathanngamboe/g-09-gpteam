@@ -1,36 +1,33 @@
 <template>
     <div class="upload-image">
         <q-form @submit.prevent="uploadImage">
-    <input type="file" ref="fileInput" @change="handleFileChange" class="hidden-input" />
-    <q-btn unelevated rounded color="primary" label="Choose File" @click="triggerFileInput" style="margin-bottom:2%"/>
-    <span v-if="selectedFileName" class="file-name">{{ selectedFileName }}</span><br>
-    <q-btn type="submit" unelevated rounded color="primary" label="Upload Image" />
-  </q-form>
+            <input type="file" @change="handleFileChange" style="margin-bottom: 2%;" />
+           <!-- <q-input v-model="image.ext_url" label="External URL (optional)" outlined dense />-->
+            <q-btn type="submit"  unelevated rounded color="primary" label="Upload Image" />
+        </q-form>
     </div>
 </template>
+
 <script>
 import { ref } from 'vue';
 import imagesService from '@/services/imagesService';
+
 export default {
-    data() {
-    return {
-      selectedFileName: ''
-    };
-  },
-    methods: {
-    triggerFileInput() {
-      this.$refs.fileInput.click();
-    },
-    handleFileChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.selectedFileName = file.name;
-      } else {
-        this.selectedFileName = '';
-      }
-    },
-    async uploadImage() {
-        if (selectedFile.value || image.value.ext_url) {
+    name: 'UploadImage',
+    setup(_, { emit }) {
+        const selectedFile = ref(null);
+        const image = ref({ ext_url: '' });
+
+        const handleFileChange = (event) => {
+            const files = event.target.files;
+            if (files.length > 0) {
+                selectedFile.value = files[0];
+                console.log('Selected file:', selectedFile.value);
+            }
+        };
+
+        const uploadImage = async () => {
+            if (selectedFile.value || image.value.ext_url) {
                 const formData = new FormData();
                 if (selectedFile.value) {
                     formData.append('image', selectedFile.value);
@@ -56,23 +53,20 @@ export default {
             } else {
                 console.log('No file or URL provided');
             }
-    }
-  }
-}
-</script>
+        };
 
+        return {
+            selectedFile,
+            image,
+            handleFileChange,
+            uploadImage,
+        };
+    }
+};
+</script>
 
 <style scoped>
 .upload-image {
     margin: 20px;
-}
-.hidden-input {
-  display: none;
-}
-.file-name {
-  margin-left: 10px;
-  margin-right: 10px;
-  font-size: 14px;
-  color: #555;
 }
 </style>
