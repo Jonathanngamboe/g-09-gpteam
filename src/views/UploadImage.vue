@@ -11,10 +11,12 @@
 <script>
 import { ref } from 'vue';
 import imagesService from '@/services/imagesService';
+import { useQuasar } from 'quasar';
 
 export default {
     name: 'UploadImage',
     setup(_, { emit }) {
+        const $q = useQuasar();
         const selectedFile = ref(null);
         const image = ref({ ext_url: '' });
 
@@ -22,7 +24,6 @@ export default {
             const files = event.target.files;
             if (files.length > 0) {
                 selectedFile.value = files[0];
-                console.log('Selected file:', selectedFile.value);
             }
         };
 
@@ -36,22 +37,24 @@ export default {
                     formData.append('ext_url', image.value.ext_url);
                 }
 
-                // Log the content of formData
-                formData.forEach((value, key) => {
-                    console.log(key + ': ' + value);
-                });
-
                 try {
                     const response = await imagesService.createImage(formData);
-                    console.log('Image uploaded successfully:', response);
                     emit('image-uploaded', response);  // Emit the event with the new image data
                     selectedFile.value = null; // Reset file input
                     image.value.ext_url = ''; // Reset URL input
                 } catch (error) {
-                    console.error('Error uploading image:', error);
+                    $q.notify({
+                        color: 'negative',
+                        position: 'top',
+                        message: 'Error uploading image',
+                    });
                 }
             } else {
-                console.log('No file or URL provided');
+                $q.notify({
+                    color: 'negative',
+                    position: 'top',
+                    message: 'Please select a file or provide an external URL',
+                });
             }
         };
 

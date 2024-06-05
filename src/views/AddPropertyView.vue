@@ -199,8 +199,6 @@ export default {
                          
                     };
                     
-                    console.log('Property data to be sent:', propertyData);  
-
                     const response = await propertyService.addProperty(propertyData);
                     if (response) {
                         $q.notify({

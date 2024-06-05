@@ -220,8 +220,6 @@ export default {
             }).slice((currentPage.value-1)*itempsPerPage.value,(currentPage.value-1)*itempsPerPage.value+itempsPerPage.value);
         });
 
-        console.log(filteredEvents);
-
         const lockDates = async () => {
             let startDate = new Date(tempDateRange.value.from || tempDateRange.value);
             let endDate = new Date(tempDateRange.value.to || startDate);
