@@ -3,8 +3,22 @@
 <!-- ![Vue Logo](/src/assets/logo-vue.png "Vue Logo")
 ![Django Logo](/src/assets/logo-django.png "Django Logo")
 ![Application Logo](https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png "GPTeam") -->
-# Application Logo
+### Application Logo
 <img src="https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png" alt="GPTeam" title="GPTeam" width="200"/>
+
+### Class diagramm
+![Class diagramm](/media/readme/GPTeam_Interschool.png "Class diagramm")
+
+### System Architecture 
+```mermaid
+graph TD;
+    A [User] --> B[Frontend - Vue.js/Quasar]
+    B --> C[Backend - Node.js]
+    C --> D[Database Django]
+    A --> E[Mobile Devices]
+    A --> F[Desktops]
+    A --> G[Tablets]
+
 
 This template is a minimal example for an application using Vue and Django.
 
