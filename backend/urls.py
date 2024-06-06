@@ -40,6 +40,7 @@ urlpatterns = [
         'post': 'add_image_to_property'
     }), name='add-image-to-property'),
     path('api/reviews/booking/<int:booking_id>/', ReviewViewSet.as_view({'get': 'reviews_by_booking'}), name='reviews-by-booking'),
+
     # http://localhost:8000/
     path('', index_view, name='index'),
 
@@ -49,13 +50,7 @@ urlpatterns = [
     path('api/explorer/', include('rest_framework.urls', namespace='rest_framework')),
 
     path('api/dj-rest-auth/', include('dj_rest_auth.urls')),
-    path('api/dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-
-    #path('api/properties/add/', add_property_view, name='add-property'),
-    #path('api/properties/<int:id>/edit/', edit_property_view, name='edit-property'),
-    #path('api/properties/<int:id>/delete/', delete_property_view, name='delete-property'),
-    #path('api/properties/<int:id>/book/', book_property_view, name='book-property'),
-    
+    path('api/dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),    
     
     
     # http://localhost:8000/api/admin/

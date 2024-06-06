@@ -6,7 +6,7 @@ from .serializers import   BookingSerializer, PropertySerializer, PropertyTypeSe
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError, NotFound, ParseError
+from rest_framework.exceptions import ValidationError
 from django.core.mail import EmailMessage, get_connection
 from backend.settings import base
 from django.http import JsonResponse
@@ -100,7 +100,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         bookings = self.queryset.filter(user=user)
         serializer = self.get_serializer(bookings, many=True)
         # Update the status of bookings based on the current date
-        # Note: This should be done periodically using a scheduled task
+
         self.update_booking_status()
         return Response(serializer.data)
 
@@ -113,7 +113,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         bookings = self.queryset.filter(property=room)
         serializer = self.get_serializer(bookings, many=True)
         # Update the status of bookings based on the current date
-        # Note: This should be done periodically using a scheduled task
+
         self.update_booking_status()
         return Response(serializer.data)
     
@@ -319,7 +319,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='add-image')
     def add_image_to_property(self, request, pk=None):
         try:
-            property = self.get_object()  # Ceci utilise 'pk' pour obtenir l'objet
+            property = self.get_object()  # This uses 'pk' to obtain the object
             image_id = request.data.get('imageId')
             if not image_id:
                 return Response({'error': 'No image ID provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -401,7 +401,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if booking.status.name != "Completed":
             raise ValidationError('You can only review completed bookings.')
 
-        # Vérification si l'utilisateur a déjà laissé un avis sur cette réservation
+        # Check if the user has already left a review on this reservation
         if Review.objects.filter(booking=booking, user=self.request.user, review_type=serializer.validated_data.get('review_type')).exists():
             raise ValidationError('You have already reviewed this booking.')
 

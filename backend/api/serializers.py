@@ -57,8 +57,8 @@ class PropertySerializer(serializers.HyperlinkedModelSerializer):
     average_rating = serializers.SerializerMethodField()
     city_id = serializers.PrimaryKeyRelatedField(
         queryset=City.objects.all(), 
-        source='city',  # Spécifie que ce champ doit être utilisé pour mettre à jour le champ 'city' du modèle
-        write_only=True  # Ce champ est utilisable uniquement pour l'écriture, il ne sera pas inclus dans la réponse de l'API
+        source='city',  # Specifies that this field is to be used to update the 'city' field in the template
+        write_only=True  # This field can only be used for writing, and will not be included in the API response.
     )
     city = CitySerializer(read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
