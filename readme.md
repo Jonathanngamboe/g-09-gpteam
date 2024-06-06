@@ -76,7 +76,7 @@ see [dj-rest-auth](https://dj-rest-auth.readthedocs.io/en/latest/api_endpoints.h
 | `/src/views`         | Views of the different pages               |
 | `/index.html` | [Html Application Entry Point](https://cli.vuejs.org/guide/html-and-static-assets.html) (`/`)         |
 | `/public`            | favicon                                    |
-| 
+
 
 ## Prerequisites
 
@@ -89,22 +89,21 @@ Before getting started you should have the following installed and running:
 
 ## Setup Template
 
-```
-$ git clone https://github.com/heg-interschool/template-django-vue.git
-$ cd template-django-vue
-```
-
 Setup frontend
 ```
 $ npm install
 ```
+
 Setup backend
 ```
 $ python -m venv venv
 # On windows
 $ .\venv\Scripts\Activate.ps1
+
 # On linux
 $ source venv/bin/activate
+```
+```
 $ pip install -r requirements.txt
 $ python manage.py migrate
 $ python manage.py loaddata .\backend\api\fixtures\initial_data.json
@@ -184,7 +183,7 @@ For more details see [WhiteNoise Documentation](http://whitenoise.evans.io/en/st
 It uses Django Whitenoise to serve all static files and Vue bundled files at `/static/`.
 
 ## Authors
-Léticia Tscherrig
-Francesco De Fino
-David Bürki
-Jonathan Ngamboe
+* Léticia Tscherrig
+* Francesco De Fino
+* David Bürki
+* Jonathan Ngamboe
