@@ -13,7 +13,7 @@
 
 ```mermaid
 graph TD;
-    A[User] --> B;
+    A[User] --> B[Frontend - Vue.Js/Quasar];
     B --> C;
     C --> D;
     A --> E;
