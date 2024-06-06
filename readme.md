@@ -3,8 +3,14 @@
 <!-- ![Vue Logo](/src/assets/logo-vue.png "Vue Logo")
 ![Django Logo](/src/assets/logo-django.png "Django Logo")
 ![Application Logo](https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png "GPTeam") -->
-### Application Logo
+## Application Logo
 <img src="https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png" alt="GPTeam" title="GPTeam" width="200"/>
+
+## Introduction
+### Description
+The Room Renting application is designed for students planning to spend time at another HES-SO institution. It aims to facilitate finding accommodation for these students or renting out their rooms or apartments when they are not needed temporarily. Additionally, it allows those with available rooms or apartments to easily find suitable tenants.
+
+## Diagrams
 
 ### Class diagramm
 ![Class diagramm](/media/readme/GPTeam_Interschool.png "Class diagramm")
@@ -14,20 +20,15 @@
 ```mermaid
 graph TD;
     A[User] --> B[Frontend - Vue.Js/Quasar];
-    B --> C;
-    C --> D;
-    A --> E;
-    A --> F;
-    A --> G;
+    B --> C[Backend - Node.js];
+    C --> D[Database - Django/SQlite3];
 ```
 
-### Technologies
+## Technologies
 - **Frontend**: Vue.js with Quasar framework
 - **Backend**: Node.js
 - **Database**: Django with Sqlite3
 
-
-This template is a minimal example for an application using Vue and Django.
 
 Vue and Django are clearly separated in this project. Vue, npm and Webpack handles all frontend logic and bundling assessments. Django and Django REST framework to manage Data Models, Web API and serve static files.
 
@@ -63,11 +64,19 @@ see [dj-rest-auth](https://dj-rest-auth.readthedocs.io/en/latest/api_endpoints.h
 |----------------------|--------------------------------------------|
 | `/backend`           | Django Project & Backend Config            |
 | `/backend/api`       | Django App (`/api`)                        |
+| `/media`             | Images                                     |
 | `/src`               | Vue App .                                  |
 | `/src/main.js`       | JS Application Entry Point                 |
+| `/src/assets/css`    | CSS of the application                     |
+| `/src/components`    | Components used on the Frontend            |
+| `/src/layouts`       | Layout used on all the application         |
+| `/src/router`        | Redirection of the different pages         |
+| `/src/services`      | Methods to communicate with DATABASE       |
+| `/src/utils`         | Methods used on different views            |
+| `/src/views`         | Views of the different pages               |
 | `/index.html` | [Html Application Entry Point](https://cli.vuejs.org/guide/html-and-static-assets.html) (`/`)         |
-| `/public/static`     | Static Assets                              |
-| `/dist/`             | Bundled Assets Output (generated at `npm run build`) |
+| `/public`            | favicon                                    |
+| 
 
 ## Prerequisites
 
@@ -98,6 +107,7 @@ $ .\venv\Scripts\Activate.ps1
 $ source venv/bin/activate
 $ pip install -r requirements.txt
 $ python manage.py migrate
+$ python manage.py loaddata .\backend\api\fixtures\initial_data.json
 $ python manage.py createsuperuser --email admin@example.com --username admin
 ```
 
@@ -172,3 +182,9 @@ This template implements the approach suggested by Whitenoise Django.
 For more details see [WhiteNoise Documentation](http://whitenoise.evans.io/en/stable/django.html)
 
 It uses Django Whitenoise to serve all static files and Vue bundled files at `/static/`.
+
+## Authors
+Léticia Tscherrig
+Francesco De Fino
+David Bürki
+Jonathan Ngamboe
