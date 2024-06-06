@@ -13,7 +13,7 @@
 
 ```mermaid
 graph TD;
-    A --> B;
+    A[User] --> B;
     B --> C;
     C --> D;
     A --> E;
