@@ -1,8 +1,5 @@
-# Django Vue Template ✌️ 🐍
+# G09 GPTEAM ✌️ 🐍
 
-<!-- ![Vue Logo](/src/assets/logo-vue.png "Vue Logo")
-![Django Logo](/src/assets/logo-django.png "Django Logo")
-![Application Logo](https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png "GPTeam") -->
 ## Application Logo
 <img src="https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png" alt="GPTeam" title="GPTeam" width="200"/>
 
@@ -21,13 +18,14 @@ The Room Renting application is designed for students planning to spend time at 
 graph TD;
     A[User] --> B[Frontend - Vue.Js/Quasar];
     B --> C[Backend - Node.js];
-    C --> D[Database - Django/SQlite3];
+    C --> D[(Database - Django/SQlite3)];
 ```
 
 ## Technologies
-- **Frontend**: Vue.js with Quasar framework
-- **Backend**: Node.js
-- **Database**: Django with Sqlite3
+- **Frontend**: Vue.js / Version 3.4.27
+- **Frontend**: Quasar framework / Version 1.16.11
+- **Backend**: Node.js / Version v20.11.1
+- **Database**: Django with Sqlite3 / Version 5.0.4
 
 
 Vue and Django are clearly separated in this project. Vue, npm and Webpack handles all frontend logic and bundling assessments. Django and Django REST framework to manage Data Models, Web API and serve static files.
@@ -74,7 +72,7 @@ see [dj-rest-auth](https://dj-rest-auth.readthedocs.io/en/latest/api_endpoints.h
 | `/src/services`      | Methods to communicate with DATABASE       |
 | `/src/utils`         | Methods used on different views            |
 | `/src/views`         | Views of the different pages               |
-| `/index.html` | [Html Application Entry Point](https://cli.vuejs.org/guide/html-and-static-assets.html) (`/`)         |
+| `/index.html`        | [Html Application Entry Point](https://cli.vuejs.org/guide/html-and-static-assets.html) (`/`)         |
 | `/public`            | favicon                                    |
 
 
@@ -97,6 +95,8 @@ $ npm install
 Setup backend
 ```
 $ python -m venv venv
+```
+```
 # On windows
 $ .\venv\Scripts\Activate.ps1
 
@@ -141,15 +141,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:9000",
 ]
-```
-
-If you would rather run a single dev server, you can run Django's
-development server only on `:8000`, and you have to build the Vue app first
-and the page will not reload on changes.
-
-```
-$ npm run build
-$ python manage.py runserver
 ```
 
 ## urls
