@@ -10,6 +10,7 @@
 ![Class diagramm](/media/readme/GPTeam_Interschool.png "Class diagramm")
 
 ### System Architecture 
+
 ```mermaid
 graph TD;
     A [User] --> B[Frontend - Vue.js/Quasar]
@@ -18,6 +19,12 @@ graph TD;
     A --> E[Mobile Devices]
     A --> F[Desktops]
     A --> G[Tablets]
+```
+
+### Technologies
+- **Frontend**: Vue.js with Quasar framework
+- **Backend**: Node.js
+- **Database**: Django with Sqlite3
 
 
 This template is a minimal example for an application using Vue and Django.
