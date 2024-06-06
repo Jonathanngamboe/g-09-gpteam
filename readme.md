@@ -13,12 +13,12 @@
 
 ```mermaid
 graph TD;
-    A [User] --> B[Frontend - Vue.js/Quasar]
-    B --> C[Backend - Node.js]
-    C --> D[Database Django]
-    A --> E[Mobile Devices]
-    A --> F[Desktops]
-    A --> G[Tablets]
+    A [User] --> B[Frontend - Vue.js/Quasar];
+    B --> C[Backend - Node.js];
+    C --> D[Database Django];
+    A --> E[Mobile Devices];
+    A --> F[Desktops];
+    A --> G[Tablets];
 ```
 
 ### Technologies
