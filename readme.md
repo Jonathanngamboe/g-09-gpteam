@@ -1,7 +1,8 @@
 # Django Vue Template ✌️ 🐍
 
-![Vue Logo](/src/assets/logo-vue.png "Vue Logo")
-![Django Logo](/src/assets/logo-django.png "Django Logo")
+<!-- ![Vue Logo](/src/assets/logo-vue.png "Vue Logo")
+![Django Logo](/src/assets/logo-django.png "Django Logo") -->
+![Application Logo](https://freelogopng.com/images/all_img/1681038325chatgpt-logo-transparent.png "GPTeam")
 
 This template is a minimal example for an application using Vue and Django.
 
