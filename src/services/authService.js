@@ -50,7 +50,7 @@ export default {
       .get(`dj-rest-auth/user/`)
       .then((response) => {
         user.value = response.data
-        return response.data; // return user data
+        return response.data;
       })
       .catch(() => {
         user.value = undefined

@@ -155,12 +155,12 @@ export default {
                         const formattedNewEndDate = this.formatDate(newEndDate);
                         return this.updateUnavailable(unavailability.id, { start_date: formattedStartDate, end_date: formattedNewEndDate, property: propertyUrl, comment: unavailability.comment });
                     } else if (targetDate > startDate && targetDate < endDate) {
-                        // Nouvelle fin pour la première plage: la veille de la date cible
-                        const newEndDate1 = new Date(targetDate.getTime() - 86400000); // un jour avant
+                        // New end for the first range: the day before the target date
+                        const newEndDate1 = new Date(targetDate.getTime() - 86400000); // One day before
                         const formattedNewEndDate1 = this.formatDate(newEndDate1);
                     
-                        // Nouveau début pour la deuxième plage: le lendemain de la date cible
-                        const newStartDate2 = new Date(targetDate.getTime() + 86400000); // un jour après
+                        // New start for the second range: the day after the target date
+                        const newStartDate2 = new Date(targetDate.getTime() + 86400000); // One day after
                         const formattedNewStartDate2 = this.formatDate(newStartDate2);
 
                         // Delete the current unavailability and create two new ones

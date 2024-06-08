@@ -8,10 +8,6 @@
       Last Name:
       <input v-model="user.last_name" type="text" />
     </label>
-    <!-- <label>
-      Email:
-      <input v-model="user.email" type="email" />
-    </label> -->
     <button type="submit">Update</button>
   </form>
 </template>

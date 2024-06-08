@@ -35,8 +35,6 @@
                 <q-select id="property_type" v-model="property.property_Type" :options="propertyTypes" flat dense
                     required style="margin-bottom: 2%;" />
             </div>
-            <!-- <citySelect v-model="property.city" /> -->
-
             <div>
                 <p>Select room amenities</p>
                 <q-list style="display: flex; flex-wrap: wrap;">
@@ -99,7 +97,7 @@ export default {
             city: null,
             
             zip: '',
-            price_per_night: 0.0, // Inizializzato come numero
+            price_per_night: 0.0, // Initialized as number
             surface: null,
             property_Type: null,
             amenities: [],

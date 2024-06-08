@@ -114,7 +114,6 @@ export default defineComponent({
                 if (result) {
                     // Second registration
                     const resultuser = await authService.registerUser({
-                        //username: username.value,
                         date_of_birth: date_of_birth.value,
                         email: email.value,
                         first_name: first_name.value,

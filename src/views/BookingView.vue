@@ -250,13 +250,11 @@
                     property: room.value.url,
                     user: user.url,
                     status: pendingStatus.url,
-                    //total_price: room.value.price_per_night * totalNights.value,
                 };
                 const bookingResponse = await bookingService.createBooking(booking);
 
                 // Send booking confirmation email
                 if (bookingResponse !== null) {
-                    // TODO: Redirect to user's history page
                     router.push('My-account');
                     // Send confirmation email to the student
                     const confirmationEmail = {

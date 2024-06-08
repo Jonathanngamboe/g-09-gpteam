@@ -50,9 +50,9 @@ export default {
         return api.get(`${endpoint}?name=${name}`)
             .then(response => {
                 if (response.data && response.data.length > 0) {
-                    return response.data[0];  // Assume che la risposta sia un array di città
+                    return response.data[0];
                 }
-                return null;  // Nessuna città trovata
+                return null;  
             })
             .catch(error => {
                 throw new Error(`Failed to fetch city by name ${name}: ` + error.message);

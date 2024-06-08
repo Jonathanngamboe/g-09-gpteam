@@ -48,7 +48,7 @@ export default {
               if (key === 'city' && value) {
                 userEditable.city.url = value; 
                 userEditable.city.name = extractCityNameFromUrl(value);
-              } else if (key !== 'city') { // Assurez-vous de ne pas écraser city avec null si value n'est pas définie
+              } else if (key !== 'city') { // Make sure you don't overwrite city with null if value is not defined
                 userEditable[key] = value;
               }
             }

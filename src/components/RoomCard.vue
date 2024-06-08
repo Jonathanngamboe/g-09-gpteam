@@ -20,8 +20,6 @@
   
       <!-- Card actions -->
       <q-card-actions>
-        <!-- TODO : Implement favorite functionality -->
-        <!--<q-btn flat round color="red" icon="favorite" />-->
         <q-btn flat round color="primary" icon="share" @click="shareRoom"/>
         <q-btn style="width: 130px" unelevated rounded color="primary" label="Details" @click="$emit('room-details', room.id)"/>
       </q-card-actions>

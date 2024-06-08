@@ -130,9 +130,9 @@ export default {
 
     const fetchUserProperties = async () => {
       try {
-        // Fonction hypothétique pour récupérer l'ID de l'utilisateur connecté
+        // Hypothetical function to retrieve the logged-in user's ID
         const userProperties = await propertyService.getUserProperties(user.value.pk); 
-        rooms.value = userProperties; // Faire quelque chose avec les propriétés récupérées, par exemple les afficher
+        rooms.value = userProperties; // Do something with the retrieved properties, e.g. display them
       } catch (error) {
         router.push('/');
         
@@ -151,14 +151,14 @@ export default {
         await authService.getUser();
 
         if (!authService.user.value) {
-          router.push('/'); // Redirigez vers la page d'accueil si l'utilisateur n'est pas connecté
+          router.push('/'); // Redirect to home page if user is not logged in
         }
         user.value = authService.user.value;
 
-        fetchUserProperties(); // Appelez la fonction
+        fetchUserProperties(); // Call the function
 
       } catch (error) {
-        router.push('/'); // Redirigez en cas d'erreur ou si les données de l'utilisateur ne peuvent pas être récupérées
+        router.push('/'); // Redirect in case of error or if user data cannot be recovered
         $q.notify({
           color: 'negative',
           position: 'top',

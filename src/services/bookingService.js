@@ -47,7 +47,7 @@ export default {
                 throw new Error(`Failed to delete booking with ID ${id}: ` + error.message);
             });
     },
-    //Method to retrieve the bookings of a specifi property
+    //Method to retrieve the bookings of a specific property with From and To dates
     getBookedDatesByPropertyFromTo(propertyId){
         const propertyEndpoint = `/properties/${propertyId}/`;
     
@@ -130,7 +130,6 @@ export default {
     },
 
     updateBookingStatus(booking) {
-        // Post request to update the booking status
         return api.post(`${endpoint}update-status/`, booking)
             .then(response => response.data)
             .catch(error => {

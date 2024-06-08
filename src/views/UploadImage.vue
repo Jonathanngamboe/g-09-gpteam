@@ -4,7 +4,6 @@
             <input type="file" id="inputAddImage" @change="handleFileChange" style="display:none; margin-bottom: 2%;" />
             <q-btn onclick="document.getElementById('inputAddImage').click()" type="submit"  unelevated rounded color="primary" label="Select an image" />
             <span v-if="selectedFile" class="file-name" style="margin-left:1%;">{{ selectedFile.name }}</span><br><br>
-           <!--<q-input v-model="image.ext_url" label="External URL (optional)" outlined dense />-->
             <q-btn type="submit"  unelevated rounded color="primary" label="Upload Image" />
         </q-form>
     </div>

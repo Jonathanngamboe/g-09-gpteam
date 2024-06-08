@@ -1,6 +1,6 @@
 <template>
   <div class="col text-center q-gutter-md">
-    <!-- Carrousel d'images -->
+    <!-- Image carousel -->
     <q-carousel
       swipeable
       animated
@@ -16,7 +16,7 @@
         :name="index"
         :img-src="image.image_url ? image.image_url : image.ext_url"
       >
-        <!-- Bouton de suppression pour chaque image en mode édition -->
+        <!-- Delete button for each image in edit mode -->
         <q-btn
           v-if="isEditingImage"
           flat
@@ -42,7 +42,7 @@
       </template>
     </q-carousel>
 
-  <!-- Editer Images -->
+  <!-- Edit images -->
   <div v-if="isEditingImage">
     <q-list class="row justify-center">
         <q-item
@@ -105,7 +105,7 @@
     </div>
   </div>
 
-    <!-- Détails de la pièce -->
+    <!-- Room details -->
     <div class="q-mt-md">
 
       <!-- City -->
@@ -298,7 +298,7 @@ export default {
       });
     };
 
-    // Méthode pour récupérer toutes les villes
+    // Method to retrieve all cities
     const getAllCities = async () => {
       try {
         cities.value = await citiesService.getAllCities();
@@ -317,7 +317,7 @@ export default {
 
     getAllAmenities();
 
-    // Appel de la méthode pour récupérer les villes au chargement du composant
+    // Calling the method for retrieving cities when the component is loaded
     getAllCities();
 
     const createEditMethod = (fieldName, successMessage) => {
@@ -333,20 +333,20 @@ export default {
 
       const saveField = async () => {
         try {
-          // Cloner la propriété existante
+          // Clone existing property
           const updatedPropertyData = { [fieldName]: editableField.value };
 
-          // Appeler la méthode de service pour mettre à jour la propriété
+          // Call the service method to update the property
           await propertyService.updateProperty(props.room.id, updatedPropertyData);
           props.room[fieldName] = editableField.value;
 
-          // Afficher une notification de succès
+          // Display a success notification
           notifySuccess(successMessage);
 
-          // Basculer hors du mode d'édition
+          // Toggle out of editing mode
           toggleEdit();
         } catch (error) {
-          // Afficher une notification d'erreur
+          // Display error notification
           notifyError(`Une erreur est survenue lors de la mise à jour de ${fieldName}`, error);
         }
       };

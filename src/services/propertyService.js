@@ -45,7 +45,6 @@ const propertyService = {
       });
   },
 
-  // Method to add a new property
   addProperty(propertyData) {
     const data = {
       title: propertyData.title,
@@ -84,14 +83,12 @@ const propertyService = {
       .catch(error => Promise.reject(error.response.data));
   },
 
-  // Method for updating the data of an existing property
   updateProperty(propertyId, propertyData) {
     return api.patch(`properties/${propertyId}/`, propertyData)
       .then(response => response.data)
       .catch(error => Promise.reject(error.response.data));
   },
 
-  // Method to delete a property
   deleteProperty(propertyId) {
     return api.delete(`properties/${propertyId}/`)
       .then(response => response.data)
