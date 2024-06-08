@@ -58,8 +58,8 @@ class City(models.Model):
 
 class Booking(models.Model):
     id = models.AutoField(primary_key=True)
-    check_in = models.DateField()   #Start date
-    check_out = models.DateField()  #End date
+    check_in = models.DateField()
+    check_out = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     #Link between tables

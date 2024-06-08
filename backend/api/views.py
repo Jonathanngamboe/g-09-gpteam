@@ -21,7 +21,7 @@ import json
 import re
 
 
-# Serve Vue Application
+# Server Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
 @api_view(['GET'])
