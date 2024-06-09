@@ -216,7 +216,11 @@
                         tempBookRange.value.push(unavailableDates.value[i]);
                     }
                 } catch (error) {
-                    console.error('Error fetching unavailable dates:', error);
+                    $q.notify({
+                        color: 'negative',
+                        position: 'top',
+                        message: `Error fetching unavailable and booking dates: ${error.message}`
+                    });
                 }
             });
 

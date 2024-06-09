@@ -40,7 +40,11 @@ export default {
         this.rooms = response.data
       })
       .catch((error) => {
-        console.error("There was an error!", error)
+        $q.notify({
+            color: 'negative',
+            position: 'top',
+            message: `There was an error! ${error.message}`
+          });
       })
   }
 }

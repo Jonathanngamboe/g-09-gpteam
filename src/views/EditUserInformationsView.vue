@@ -35,12 +35,20 @@ export default {
         this.user.last_name = authService.user.value.last_name;
         this.user.email = authService.user.value.email;
       } catch (error) {
-        console.error('An error occurred:', error);
+        $q.notify({
+            color: 'negative',
+            position: 'top',
+            message: `Failed to get user details: ${error.message}`
+          });
       }
     },
     async updateUserDetails() {
       if (!this.user.first_name || !this.user.last_name || !this.user.email) {
-        console.error("First name, last name and email are required.");
+        $q.notify({
+            color: 'negative',
+            position: 'top',
+            message: `First name, last name and email are required.`
+          });
         return;
       }
 
@@ -51,7 +59,11 @@ export default {
         this.user.last_name = authService.user.value.last_name;
         this.user.email = authService.user.value.email;
        } catch (error) {
-        console.error('An error occurred:', error);
+        $q.notify({
+            color: 'negative',
+            position: 'top',
+            message: `Failed to get user details: ${error.message}`
+          });
       } 
     }
   },

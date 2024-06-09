@@ -43,7 +43,11 @@ export async function getBookedDates(propertyId){
             bookingDates = fetchedBookings;
         })
         .catch(error => {
-            console.error('Failed to fetch property bookings (dateUtils): ' + error.message);
+            $q.notify({
+                color: 'negative',
+                position: 'top',
+                message: `Failed to fetch property bookings: ${error.message}`
+              });
         });
         return bookingDates;
 }
@@ -55,7 +59,11 @@ export async function getBookedDatesArray(propertyId){
             bookings = fetchedBookings;
         })
         .catch(error => {
-            console.error('Failed to fetch property bookings (dateUtils): ' + error.message);
+            $q.notify({
+                color: 'negative',
+                position: 'top',
+                message: `Failed to fetch property bookings: ${error.message}`
+              });
         });
         return bookings;
 }
@@ -67,7 +75,11 @@ export async function getUnavailableDates(propertyId){
             unavailableDates = fetchedUnavailableDates;
         })
         .catch(error => {
-            console.error('Failed to fetch property unavailabilities (dateUtils): ' + error.message);
+            $q.notify({
+                color: 'negative',
+                position: 'top',
+                message: `Failed to fetch property unavailabilities: ${error.message}`
+              });
         });
         return unavailableDates;
 }
@@ -79,7 +91,11 @@ export async function getUnavailableDatesArray(propertyId){
             unavailableDates = fetchedUnavailableDates;
         })
         .catch(error => {
-            console.error('Failed to fetch property unavailabilities (dateUtils): ' + error.message);
+            $q.notify({
+                color: 'negative',
+                position: 'top',
+                message: `Failed to fetch unavailabilities: ${error.message}`
+              });
         });
         return unavailableDates;
 }
